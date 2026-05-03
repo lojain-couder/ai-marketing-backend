@@ -4,18 +4,12 @@ The engines make all analytical decisions.
 Groq only rewrites outputs in polished Arabic.
 """
 
-import os
 import re
-import sys
 from typing import Any
 
-PLAYGROUND_PATH = os.getenv("PLAYGROUND_PATH", "/Users/lojain/Documents/Playground")
-if PLAYGROUND_PATH not in sys.path:
-    sys.path.insert(0, PLAYGROUND_PATH)
-
-from src.bi_advisor.social_analysis_engine import SocialAnalysisEngine
-from src.bi_advisor.recommendation_engine import MarketingRecommendationEngine
-from src.bi_advisor.weekly_plan_generator import WeeklyMarketingPlanGenerator
+from bi_advisor.social_analysis_engine import SocialAnalysisEngine
+from bi_advisor.recommendation_engine import MarketingRecommendationEngine
+from bi_advisor.weekly_plan_generator import WeeklyMarketingPlanGenerator
 from services.groq_writer import GroqWriter
 from services.gemini_analyzer import GeminiAnalyzer
 
