@@ -10,23 +10,22 @@ import json
 import re
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
 
 
 class GeminiAnalyzer:
 
     def __init__(self):
-        self._model = None
+        self._client = None
 
     @property
     def model(self):
-        if self._model is None:
+        if self._client is None:
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key:
                 raise RuntimeError("GEMINI_API_KEY غير موجود في ملف .env")
-            genai.configure(api_key=api_key)
-            self._model = genai.GenerativeModel("gemini-2.0-flash")
-        return self._model
+            self._client = genai.Client(api_key=api_key)
+        return self._client
 
     # ── Phase 1: Video content enrichment ────────────────────────────────────
 
@@ -55,7 +54,7 @@ class GeminiAnalyzer:
 {{"results": [{{"index": 0, "content_type": "...", "topic": "...", "hook_type": "...", "sentiment": "..."}}]}}"""
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
             data = self._parse_json(response.text)
             results_map = {r["index"]: r for r in data.get("results", [])}
 
@@ -123,7 +122,7 @@ class GeminiAnalyzer:
 أجيبي بـ JSON فقط بدون markdown أو نص إضافي."""
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
             result = self._parse_json(response.text)
             print("[Gemini] Deep insights generated successfully")
             return result
