@@ -32,24 +32,37 @@ Business Profile:
 - Website: {business_profile.get('website', 'Not specified')}
 """
 
-    prompt = f"""You are an expert AI Marketing Strategist specializing in TikTok growth and social media marketing.
+    prompt = f"""أنت خبير في التسويق الرقمي ومتخصص في تيك توك. حلل هذه البيانات وقدم تقرير استراتيجي شامل باللغة العربية.
 
 {business_context}
 
-TikTok Videos Performance Data:
+بيانات الفيديوهات:
 {videos_summary}
 
-Provide a comprehensive strategic marketing analysis with these sections:
+اكتب تقريراً استراتيجياً شاملاً يتضمن الأقسام التالية بالضبط:
 
-1. **Top Performing Content Themes** — identify patterns in high-engagement videos
-2. **Engagement Insights** — what drives views, likes, comments, and shares
-3. **Content Strategy Recommendations** — specific actionable tactics
-4. **Posting Frequency & Timing** — optimal schedule based on the data
-5. **Hashtag Strategy** — which hashtag types and volumes to use
-6. **5 Tailored Content Ideas** — specific video concepts for this business
-7. **Key Metrics to Track** — KPIs and benchmarks to monitor progress
+**١. أبرز ثيمات المحتوى الناجح**
+حلل الأنماط المشتركة في الفيديوهات ذات الأداء العالي واذكر ٣-٥ ثيمات رئيسية.
 
-Be specific, data-driven, and actionable. Format as a structured marketing report."""
+**٢. رؤى التفاعل**
+ما الذي يحقق المشاهدات والإعجابات والتعليقات؟ اذكر السبب الجذري لأي ضعف في الأداء.
+
+**٣. توصيات استراتيجية للمحتوى**
+قدم ٣-٥ توصيات تفصيلية وقابلة للتطبيق فوراً.
+
+**٤. توقيت ووتيرة النشر**
+أفضل أوقات وأيام النشر مع عدد المقاطع الأسبوعية الموصى بها.
+
+**٥. استراتيجية الهاشتاق**
+اذكر ١٠-١٥ هاشتاق موصى بها مقسمة إلى: (هاشتاقات كبيرة، متوسطة، متخصصة).
+
+**٦. ٥ أفكار محتوى مخصصة**
+اذكر ٥ أفكار فيديو محددة ومفصلة، لكل فكرة: العنوان، الخطاف الأول، الفكرة الرئيسية، والهدف.
+
+**٧. المؤشرات الرئيسية للمتابعة**
+اذكر ٥-٧ KPIs مع الأهداف المقترحة لكل منها.
+
+اكتب بأسلوب واضح ومهني باللغة العربية. كن محدداً وعملياً."""
 
     response = client.chat.completions.create(
         model=MODEL,

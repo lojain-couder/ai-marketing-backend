@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مُدار — تسجيل الدخول</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  body { background: var(--bg2); min-height: 100vh; display: flex; flex-direction: column; }
+  .login-wrap {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+  .login-box {
+    background: var(--bg); border: 1px solid var(--b1);
+    border-radius: 20px; padding: 48px 40px;
+    width: 100%; max-width: 420px;
+    box-shadow: var(--shadow);
+  }
+  .login-logo {
+    font-size: 26px; font-weight: 800; color: var(--t1);
+    text-align: center; margin-bottom: 8px;
+  }
+  .login-sub {
+    text-align: center; font-size: 14px; color: var(--t3);
+    margin-bottom: 36px; line-height: 1.6;
+  }
+  .login-divider {
+    height: 1px; background: var(--b1);
+    margin: 28px 0;
+  }
+  .login-note {
+    text-align: center; font-size: 12px; color: var(--t3);
+    margin-top: 20px; line-height: 1.6;
+  }
+  .error-msg {
+    background: #fee2e2; color: #ef4444;
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 13px; font-weight: 600;
+    margin-bottom: 16px; display: none;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="brand">
+    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
+    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
+  </a>
+</nav>
+
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">أهلاً بك في مُدار 👋</div>
+    <div class="login-sub">أدخل معلوماتك للبدء — لن نرسل لك أي رسائل غير مرغوبة</div>
+
+    <div class="error-msg" id="errorMsg">يرجى إدخال الاسم والبريد الإلكتروني</div>
+
+    <div class="form-group">
+      <label class="form-label">الاسم *</label>
+      <input class="input" type="text" id="loginName" placeholder="اسمك الكامل" autocomplete="name">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">البريد الإلكتروني *</label>
+      <input class="input" type="email" id="loginEmail" placeholder="example@email.com" autocomplete="email" style="direction:ltr;text-align:right">
+    </div>
+
+    <div style="margin-top:28px">
+      <button class="btn-navy-lg" onclick="doLogin()" id="loginBtn">
+        ابدأ الآن ←
+      </button>
+    </div>
+
+    <div class="login-note">
+      بالضغط على "ابدأ الآن" أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بمُدار.
+    </div>
+  </div>
+</div>
+
+<script>
+function doLogin() {
+  const name  = document.getElementById('loginName').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
+  const err   = document.getElementById('errorMsg');
+
+  if (!name || !email) {
+    err.style.display = 'block';
+    return;
+  }
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) {
+    err.textContent = 'البريد الإلكتروني غير صحيح';
+    err.style.display = 'block';
+    return;
+  }
+
+  err.style.display = 'none';
+  sessionStorage.setItem('mudarUser', JSON.stringify({ name, email }));
+
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'جارٍ التحميل...';
+  btn.disabled = true;
+
+  setTimeout(() => { window.location.href = 'pricing.html'; }, 400);
+}
+
+// Allow Enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// If already logged in, go directly to onboarding
+const existing = sessionStorage.getItem('mudarUser');
+if (existing) {
+  try {
+    const u = JSON.parse(existing);
+    if (u.name && u.email) {
+      // Pre-fill fields
+      document.getElementById('loginName').value  = u.name;
+      document.getElementById('loginEmail').value = u.email;
+    }
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

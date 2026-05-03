@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مُدار — التسعير</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script>if (!sessionStorage.getItem('mudarUser')) { window.location.replace('login.html'); }</script>
+<style>
+
+/* ── Page layout ── */
+.pricing-hero {
+  text-align: center;
+  padding: 60px 20px 40px;
+}
+.pricing-hero h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--t1);
+  margin-bottom: 12px;
+}
+.pricing-hero p {
+  font-size: 16px;
+  color: var(--t3);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── Presets ── */
+.presets {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+.preset-btn {
+  background: var(--bg);
+  border: 2px solid var(--b1);
+  border-radius: 50px;
+  padding: 10px 24px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--t1);
+  cursor: pointer;
+  transition: all .2s;
+}
+.preset-btn:hover { border-color: var(--t2); color: var(--t2); }
+.preset-btn.active {
+  background: var(--t1);
+  border-color: var(--t1);
+  color: #fff;
+}
+
+/* ── Main grid ── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+@media (max-width: 720px) {
+  .pricing-grid { grid-template-columns: 1fr; }
+  .pricing-hero h1 { font-size: 26px; }
+}
+
+/* ── Calculator card ── */
+.calc-card {
+  background: var(--bg);
+  border: 1px solid var(--b1);
+  border-radius: 20px;
+  padding: 36px;
+  box-shadow: var(--shadow);
+}
+.calc-card h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 28px;
+}
+
+.slider-group {
+  margin-bottom: 32px;
+}
+.slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.slider-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t1);
+}
+.slider-value {
+  background: var(--green);
+  color: var(--t1);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+.slider-desc {
+  font-size: 12px;
+  color: var(--t3);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* Custom range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--bg3);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--t1);
+  border: 3px solid var(--green);
+  box-shadow: 0 2px 8px rgba(31,23,110,0.2);
+  cursor: pointer;
+  transition: transform .15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--t1);
+  border: 3px solid var(--green);
+  cursor: pointer;
+}
+
+/* ── Summary card ── */
+.summary-card {
+  background: var(--t1);
+  border-radius: 20px;
+  padding: 36px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+}
+.summary-title {
+  font-size: 15px;
+  font-weight: 700;
+  opacity: .7;
+  margin-bottom: 24px;
+}
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-size: 14px;
+}
+.summary-line:last-of-type { border-bottom: none; }
+.summary-line .name { opacity: .8; }
+.summary-line .price { font-weight: 700; font-family: var(--mono, monospace); }
+.summary-total {
+  background: var(--green);
+  color: var(--t1);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  margin-top: 20px;
+}
+.summary-total .label {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: .7;
+  margin-bottom: 4px;
+}
+.summary-total .amount {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+}
+.summary-total .period {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: .7;
+  margin-top: 2px;
+}
+
+.cta-btn {
+  background: var(--green);
+  color: var(--t1);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 32px;
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.cta-btn:hover { filter: brightness(.93); transform: translateY(-1px); }
+
+.trust-badges {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.trust-badge {
+  background: rgba(255,255,255,0.12);
+  border-radius: 50px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: .85;
+}
+
+/* ── FAQ strip ── */
+.faq-strip {
+  max-width: 900px;
+  margin: 0 auto 60px;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.faq-item {
+  background: var(--bg);
+  border: 1px solid var(--b1);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+.faq-item .q {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 6px;
+}
+.faq-item .a {
+  font-size: 13px;
+  color: var(--t3);
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="index.html" class="brand">
+    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
+    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
+  </a>
+  <a href="login.html" class="btn-green">ابدأ مجاناً</a>
+</nav>
+
+<!-- Hero -->
+<div class="pricing-hero">
+  <h1>احسب اشتراكك بنفسك</h1>
+  <p>سعرك يعتمد على استخدامك الفعلي — ابدأ بما تحتاجه وزد متى تريد</p>
+</div>
+
+<!-- Presets -->
+<div class="presets">
+  <button class="preset-btn active" onclick="applyPreset('light', this)">بداية خفيفة</button>
+  <button class="preset-btn" onclick="applyPreset('medium', this)">استخدام متوسط</button>
+  <button class="preset-btn" onclick="applyPreset('heavy', this)">نشاط مكثف</button>
+</div>
+
+<!-- Grid -->
+<div class="pricing-grid">
+
+  <!-- Calculator -->
+  <div class="calc-card">
+    <h2>حدد استخدامك الشهري</h2>
+
+    <!-- Reports slider -->
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">التقارير التحليلية</span>
+        <span class="slider-value" id="reportLabel">تقرير واحد</span>
+      </div>
+      <input type="range" id="reportSlider" min="1" max="10" value="1" oninput="updatePricing()">
+      <div class="slider-desc">تحليل كامل لأداء المحتوى + توصيات استراتيجية</div>
+    </div>
+
+    <!-- Weekly plans slider -->
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">الخطط الأسبوعية</span>
+        <span class="slider-value" id="planLabel">خطة واحدة</span>
+      </div>
+      <input type="range" id="planSlider" min="1" max="10" value="1" oninput="updatePricing()">
+      <div class="slider-desc">خطة محتوى أسبوعية جاهزة مع سكريبت لكل يوم</div>
+    </div>
+
+    <!-- Platforms slider -->
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">المنصات الإضافية</span>
+        <span class="slider-value" id="platformLabel">TikTok فقط</span>
+      </div>
+      <input type="range" id="platformSlider" min="0" max="3" value="0" oninput="updatePricing()">
+      <div class="slider-desc">إضافة X وSnapchat وInstagram — مشمول دائماً TikTok</div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-card">
+    <div class="summary-title">تفصيل اشتراكك</div>
+
+    <div class="summary-line">
+      <span class="name">تحليل TikTok</span>
+      <span class="price">17 ر.س</span>
+    </div>
+    <div class="summary-line" id="extraPlatformsLine" style="display:none">
+      <span class="name" id="extraPlatformsName">منصات إضافية</span>
+      <span class="price" id="extraPlatformsPrice"></span>
+    </div>
+    <div class="summary-line">
+      <span class="name" id="reportLineName">تقرير تحليلي × 1</span>
+      <span class="price" id="reportLinePrice">8 ر.س</span>
+    </div>
+    <div class="summary-line">
+      <span class="name" id="planLineName">خطة أسبوعية × 1</span>
+      <span class="price" id="planLinePrice">5 ر.س</span>
+    </div>
+
+    <div class="summary-total">
+      <div class="label">الاشتراك الشهري</div>
+      <div class="amount" id="totalPrice">30</div>
+      <div class="period">ر.س / شهر — قابل للتغيير في أي وقت</div>
+    </div>
+
+    <a href="onboarding.html" class="cta-btn">↗ ابدأ الآن</a>
+
+    <div class="trust-badges">
+      <span class="trust-badge">لا بطاقة بنكية</span>
+      <span class="trust-badge">إلغاء في أي وقت</span>
+      <span class="trust-badge">TikTok مشمول دائماً</span>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-strip">
+  <div class="faq-item">
+    <div class="q">هل يمكنني تغيير خطتي لاحقاً؟</div>
+    <div class="a">نعم، يمكنك رفع أو تخفيض اشتراكك في أي وقت ويُحسب الفرق تلقائياً.</div>
+  </div>
+  <div class="faq-item">
+    <div class="q">ماذا يشمل التقرير التحليلي؟</div>
+    <div class="a">تحليل كامل لأداء حسابك، أفضل المحتوى، معدلات التفاعل، وتوصيات استراتيجية مخصصة.</div>
+  </div>
+  <div class="faq-item">
+    <div class="q">هل TikTok مشمول في كل الخطط؟</div>
+    <div class="a">نعم، تحليل TikTok مشمول دائماً في جميع الخطط. المنصات الأخرى تضاف بتكلفة إضافية.</div>
+  </div>
+  <div class="faq-item">
+    <div class="q">كيف تُحسب الخطة الأسبوعية؟</div>
+    <div class="a">خطة محتوى كاملة لـ 7 أيام مع عناوين ونصوص وهاشتاقات مقترحة لكل منشور.</div>
+  </div>
+</div>
+
+<script>
+const PRICES = {
+  tiktok:   17,
+  report:    8,
+  plan:      5,
+  platforms: [0, 12, 22, 30]
+};
+
+const PLATFORM_NAMES = ['TikTok فقط', 'TikTok + Instagram', 'TikTok + Snapchat + Instagram', 'جميع المنصات'];
+const PLATFORM_EXTRA_NAMES = ['', 'Instagram', 'Snapchat + Instagram', 'X + Snapchat + Instagram'];
+
+function numLabel(n, single, plural) {
+  if (n === 1) return single;
+  if (n <= 10) return `${n} ${plural}`;
+  return `${n} ${plural}`;
+}
+
+function updatePricing() {
+  const reports   = parseInt(document.getElementById('reportSlider').value);
+  const plans     = parseInt(document.getElementById('planSlider').value);
+  const platforms = parseInt(document.getElementById('platformSlider').value);
+
+  // Labels
+  document.getElementById('reportLabel').textContent =
+    reports === 1 ? 'تقرير واحد' : `${reports} تقارير`;
+  document.getElementById('planLabel').textContent =
+    plans === 1 ? 'خطة واحدة' : `${plans} خطط`;
+  document.getElementById('platformLabel').textContent = PLATFORM_NAMES[platforms];
+
+  // Line items
+  document.getElementById('reportLineName').textContent  = `تقرير تحليلي × ${reports}`;
+  document.getElementById('reportLinePrice').textContent = `${reports * PRICES.report} ر.س`;
+  document.getElementById('planLineName').textContent    = `خطة أسبوعية × ${plans}`;
+  document.getElementById('planLinePrice').textContent   = `${plans * PRICES.plan} ر.س`;
+
+  // Extra platforms line
+  const extraPlatformCost = PRICES.platforms[platforms];
+  const extraLine = document.getElementById('extraPlatformsLine');
+  if (platforms > 0) {
+    extraLine.style.display = 'flex';
+    document.getElementById('extraPlatformsName').textContent  = PLATFORM_EXTRA_NAMES[platforms];
+    document.getElementById('extraPlatformsPrice').textContent = `${extraPlatformCost} ر.س`;
+  } else {
+    extraLine.style.display = 'none';
+  }
+
+  // Total
+  const total = PRICES.tiktok + extraPlatformCost + (reports * PRICES.report) + (plans * PRICES.plan);
+  const el = document.getElementById('totalPrice');
+  el.textContent = total;
+
+  // Animate
+  el.style.transform = 'scale(1.12)';
+  setTimeout(() => { el.style.transform = 'scale(1)'; }, 150);
+  el.style.transition = 'transform .15s ease';
+}
+
+const PRESETS = {
+  light:  { reports: 1,  plans: 1, platforms: 0 },
+  medium: { reports: 3,  plans: 3, platforms: 1 },
+  heavy:  { reports: 10, plans: 7, platforms: 3 },
+};
+
+function applyPreset(key, btn) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const p = PRESETS[key];
+  document.getElementById('reportSlider').value   = p.reports;
+  document.getElementById('planSlider').value     = p.plans;
+  document.getElementById('platformSlider').value = p.platforms;
+  updatePricing();
+}
+
+// Init
+updatePricing();
+</script>
+</body>
+</html>

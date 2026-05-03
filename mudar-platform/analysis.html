@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مُدار — نتائج التحليل</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/api.js"></script>
+<style>
+  body { background: var(--bg2); }
+  .analysis-header {
+    background: var(--bg); border-bottom: 1px solid var(--b1);
+    padding: 20px 40px; display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .analysis-header h1 { font-size: 20px; font-weight: 800; color: var(--t1); }
+  .analysis-header .meta { font-size: 12px; color: var(--t3); font-family: var(--mono); margin-top: 3px; }
+  .tab-content { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .analysis-text { font-size: 14px; line-height: 1.85; color: var(--t1); }
+  .analysis-text ul { padding-right: 20px; margin: 8px 0; }
+  .analysis-text li { margin-bottom: 6px; }
+  .analysis-text strong { color: var(--t1); font-weight: 800; }
+  .section-block { margin-bottom: 24px; }
+  .section-block h3 { font-size: 16px; font-weight: 800; color: var(--t1); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid var(--b1); }
+  .day-panel { display: none; } .day-panel.active { display: block; animation: fadeIn .25s ease; }
+  .hashtag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--b1); }
+  .metric-row:last-child { border-bottom: none; }
+  .correlation-card { background: var(--bg2); border-radius: var(--r); padding: 16px; }
+  .correlation-card .label { font-size: 12px; color: var(--t2); font-weight: 600; }
+  .correlation-card .value { font-size: 22px; font-weight: 800; color: var(--t1); margin: 4px 0; }
+  .correlation-card .sub { font-size: 12px; color: var(--t3); }
+  .no-data { text-align: center; padding: 60px 20px; color: var(--t3); }
+  .no-data .icon { font-size: 48px; margin-bottom: 12px; }
+  @media (max-width: 768px) {
+    .analysis-header { padding: 16px 20px; }
+    .insights-grid { grid-template-columns: 1fr; }
+    .tab-content { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="brand">
+    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
+    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
+  </a>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn-ghost" style="font-size:13px" onclick="location.href='onboarding.html'">← تحليل جديد</button>
+    <button class="btn-ghost" style="font-size:13px" onclick="reAnalyze()">↻ إعادة التحليل</button>
+  </div>
+</nav>
+
+<div class="analysis-header">
+  <div>
+    <h1 id="headerBizName">نتائج التحليل</h1>
+    <div class="meta" id="headerMeta">—</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap" id="headerBadges"></div>
+</div>
+
+<div class="tabs-nav" id="tabsNav">
+  <button class="tab-btn active" onclick="showTab(0,this)">ملخص البزنس</button>
+  <button class="tab-btn" onclick="showTab(1,this)">القرارات الاستراتيجية</button>
+  <button class="tab-btn" onclick="showTab(2,this)">خطة التنفيذ</button>
+  <button class="tab-btn" onclick="showTab(3,this)">خطة المحتوى</button>
+  <button class="tab-btn" onclick="showTab(4,this)">رؤى المحتوى</button>
+  <button class="tab-btn" onclick="showTab(5,this)">أداء المبيعات</button>
+</div>
+
+<!-- ── TAB 0: Business Summary ── -->
+<div class="tab-panel active" id="tab0">
+  <div class="tab-content">
+    <div class="grid-3" id="metricsRow" style="margin-bottom:24px"></div>
+    <div class="insights-grid">
+      <div>
+        <p class="section-title">رؤى التفاعل</p>
+        <div id="insightsCards"></div>
+        <div class="root-cause-box" id="rootCauseBox" style="display:none">
+          <div class="root-cause-label">⚠ السبب الجذري</div>
+          <div id="rootCauseTitle" style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px"></div>
+          <div id="rootCauseDetail" style="font-size:13px;color:var(--t2);line-height:1.7"></div>
+        </div>
+      </div>
+      <div>
+        <p class="section-title">ملخص التحليل</p>
+        <div class="card" style="padding:20px">
+          <div class="analysis-text" id="summaryText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 1: Strategic Decisions ── -->
+<div class="tab-panel" id="tab1">
+  <div class="tab-content">
+    <p class="section-title">القرارات الاستراتيجية</p>
+    <div id="strategyCards"></div>
+  </div>
+</div>
+
+<!-- ── TAB 2: Execution Plan ── -->
+<div class="tab-panel" id="tab2">
+  <div class="tab-content">
+    <p class="section-title">خطة التنفيذ</p>
+    <div id="accordionPlan"></div>
+  </div>
+</div>
+
+<!-- ── TAB 3: Weekly Content Plan ── -->
+<div class="tab-panel" id="tab3">
+  <div class="tab-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <p class="section-title" style="margin:0">خطة المحتوى الأسبوعي</p>
+      <button class="btn-ghost" style="font-size:13px" onclick="reGenWeek()">↻ إعادة توليد الأسبوع</button>
+    </div>
+    <div class="day-tabs" id="dayTabsNav"></div>
+    <div id="dayCards"></div>
+  </div>
+</div>
+
+<!-- ── TAB 4: Content Insights ── -->
+<div class="tab-panel" id="tab4">
+  <div class="tab-content">
+    <p class="section-title">رؤى المحتوى</p>
+    <div class="insights-grid">
+      <div class="card">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:16px">أبرز ثيمات المحتوى الناجح</p>
+        <div id="themesChart"></div>
+      </div>
+      <div class="card">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:16px">استراتيجية الهاشتاق</p>
+        <div id="hashtagCloud"></div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:16px">توزيع نوع المحتوى</p>
+        <div id="contentTypeChart"></div>
+      </div>
+      <div class="card">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:16px">أداء الفيديوهات</p>
+        <div id="videoPerfChart"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 5: Sales Performance ── -->
+<div class="tab-panel" id="tab5">
+  <div class="tab-content">
+    <p class="section-title">أداء المبيعات والمؤشرات</p>
+    <div class="grid-3" id="salesMetrics" style="margin-bottom:24px"></div>
+    <div class="insights-grid">
+      <div class="card">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:16px">المؤشرات الرئيسية للمتابعة</p>
+        <div id="kpiList"></div>
+      </div>
+      <div>
+        <div class="card" style="background:var(--t1);border-color:var(--t1);padding:24px;border-right:4px solid var(--green)">
+          <p style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">توصية رئيسية</p>
+          <div id="mainRecommendation" style="font-size:15px;font-weight:600;color:#fff;line-height:1.7"></div>
+        </div>
+        <div class="card" style="margin-top:16px" id="salesDataCard">
+          <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">بيانات المبيعات</p>
+          <div id="salesDataContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Load Data ──
+let analysisResult = null;
+let tiktokData = [];
+let businessProfile = {};
+let salesSummary = null;
+let weeklyPlan = [];
+let currentDay = 0;
+
+function init() {
+  // Guard: require login
+  if (!sessionStorage.getItem('mudarUser')) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    analysisResult = JSON.parse(sessionStorage.getItem('analysisResult'));
+    tiktokData = JSON.parse(sessionStorage.getItem('tiktokData') || '[]');
+    businessProfile = JSON.parse(sessionStorage.getItem('businessProfile') || '{}');
+    salesSummary = JSON.parse(sessionStorage.getItem('salesSummary') || 'null');
+  } catch(e) {}
+
+  if (!analysisResult) {
+    window.location.href = 'onboarding.html';
+    return;
+  }
+  renderAll();
+}
+
+function renderAll() {
+  const text = analysisResult.analysis || '';
+  const sections = parseAnalysisSections(text);
+
+  renderHeader();
+  renderTab0(sections, text);
+  renderTab1(sections);
+  renderTab2(sections);
+  renderTab3(sections);
+  renderTab4(sections);
+  renderTab5(sections);
+}
+
+// ── Header ──
+function renderHeader() {
+  const biz = businessProfile.business_name || 'بزنسك';
+  document.getElementById('headerBizName').textContent = 'تحليل ' + biz;
+  document.getElementById('headerMeta').textContent =
+    `${tiktokData.length} فيديو · ${analysisResult.model_used || 'AI'} · ${new Date().toLocaleDateString('ar-SA')}`;
+  const badges = document.getElementById('headerBadges');
+  if (businessProfile.industry)
+    badges.innerHTML += `<span class="badge badge-purple">${businessProfile.industry}</span>`;
+  if (businessProfile.markets)
+    badges.innerHTML += `<span class="badge badge-navy">${businessProfile.markets}</span>`;
+}
+
+// ── Tab 0: Summary ──
+function renderTab0(sections, fullText) {
+  // Metrics
+  const totalViews = tiktokData.reduce((s, v) => s + (v.playCount || 0), 0);
+  const avgEng = tiktokData.length
+    ? (tiktokData.reduce((s,v)=>s+parseFloat(calcEngagement(v)),0)/tiktokData.length).toFixed(1)
+    : 0;
+  const topVideo = tiktokData.reduce((best, v) => (v.playCount||0) > (best.playCount||0) ? v : best, {});
+
+  document.getElementById('metricsRow').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">إجمالي المشاهدات</div>
+      <div class="metric-value">${formatNumber(totalViews)}</div>
+      <div class="metric-trend up">↑ ${tiktokData.length} فيديو محلّل</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">متوسط التفاعل</div>
+      <div class="metric-value">${avgEng}%</div>
+      <div class="metric-trend ${parseFloat(avgEng)>=3?'up':'down'}">${parseFloat(avgEng)>=3?'↑ ممتاز':'↓ يحتاج تحسين'}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">أعلى فيديو مشاهدات</div>
+      <div class="metric-value">${formatNumber(topVideo.playCount||0)}</div>
+      <div class="metric-trend up">↑ أفضل أداء</div>
+    </div>`;
+
+  // Insight cards from section 2
+  const sec2 = sections['2'] || '';
+  const lines = sec2.split('\n').filter(l => l.trim().startsWith('-') || l.trim().length > 20);
+  const types = ['good','warning','info','good','warning'];
+  const icons = ['💡','⚠️','📊','✅','🎯'];
+  const cards = lines.slice(0,4).map((line, i) => `
+    <div class="insight-card ${types[i%types.length]}">
+      <div class="insight-icon">${icons[i%icons.length]}</div>
+      <div>
+        <div style="font-size:13px;color:var(--t1);line-height:1.6">${line.replace(/^[-•]\s*/,'')}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('insightsCards').innerHTML = cards ||
+    `<div class="insight-card info"><div class="insight-icon">📊</div><div style="font-size:13px;color:var(--t1)">راجع التحليل الكامل في باقي الأقسام</div></div>`;
+
+  // Root cause
+  const sec3 = sections['3'] || '';
+  if (sec3) {
+    const firstLine = sec3.split('\n').find(l => l.trim().length > 30) || '';
+    document.getElementById('rootCauseBox').style.display = 'block';
+    document.getElementById('rootCauseTitle').textContent = 'السبب الجذري لأداء المحتوى';
+    document.getElementById('rootCauseDetail').textContent = firstLine.replace(/^[-•*]\s*/,'').substring(0,200);
+  }
+
+  // Summary text
+  const preview = fullText.substring(0, 600);
+  document.getElementById('summaryText').innerHTML = markdownToHtml(preview) + (fullText.length > 600 ? '...' : '');
+}
+
+// ── Tab 1: Strategic Decisions ──
+function renderTab1(sections) {
+  const sec3 = sections['3'] || '';
+  const lines = sec3.split('\n').filter(l => l.trim().length > 15);
+  const priorities = ['أولوية قصوى','أولوية عالية','متوسطة','منخفضة'];
+
+  const cards = lines.slice(0,5).map((line, i) => {
+    const clean = line.replace(/^[-•*\d.]\s*/,'').replace(/\*\*/g,'');
+    const parts = clean.split('—');
+    const title = (parts[0] || clean).trim().substring(0,60);
+    const detail = (parts[1] || '').trim() || clean;
+    return `
+    <div class="strategy-card">
+      <div class="strategy-header">
+        <span class="badge badge-navy">${priorities[i] || 'توصية'}</span>
+        <h3 style="font-size:17px;font-weight:800;color:var(--t1);margin:0">${title}</h3>
+      </div>
+      <div class="strategy-grid">
+        <div class="strategy-field">
+          <label>النوع</label><p>تكتيك تسويقي</p>
+        </div>
+        <div class="strategy-field">
+          <label>الأولوية</label><p>${priorities[i] || 'متوسطة'}</p>
+        </div>
+        <div class="strategy-field">
+          <label>الوقت المتوقع</label><p>${['أسبوع','أسبوعان','شهر','شهر'][i%4]}</p>
+        </div>
+        <div class="strategy-field">
+          <label>التأثير المتوقع</label><p>${['عالي جداً','عالي','متوسط','متوسط'][i%4]}</p>
+        </div>
+      </div>
+      <div class="action-box">
+        <label>الإجراء المطلوب</label>
+        <p>${detail.substring(0,150)}</p>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('strategyCards').innerHTML = cards ||
+    `<div class="card" style="padding:32px;text-align:center;color:var(--t3)">اكتمل التحليل — راجع النتائج في الأقسام الأخرى</div>`;
+}
+
+// ── Tab 2: Execution Plan ──
+function renderTab2(sections) {
+  const sec4 = sections['4'] || '';
+  const phases = [
+    { title: 'الأسبوع الأول — الإعداد والانطلاق', content: sec4 },
+    { title: 'الأسبوع الثاني — النشر المنتظم', content: sections['3'] || '' },
+    { title: 'الأسبوع الثالث — التحسين والقياس', content: sections['7'] || '' },
+    { title: 'الشهر الثاني — التوسع', content: sections['5'] || '' }
+  ];
+
+  document.getElementById('accordionPlan').innerHTML = phases.map((p, i) => {
+    const lines = p.content.split('\n').filter(l => l.trim().length > 10).slice(0, 6);
+    const items = lines.map(l => `
+      <div style="background:var(--bg);border-radius:8px;padding:10px 12px">
+        <div style="font-size:11px;color:var(--t2);font-weight:700;text-transform:uppercase;margin-bottom:3px">تكتيك ${i+1}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--t1)">${l.replace(/^[-•*\d.]\s*/,'').replace(/\*\*/g,'').substring(0,120)}</div>
+      </div>`).join('');
+    return `
+    <div class="accordion-item">
+      <div class="accordion-header ${i===0?'open':''}" onclick="toggleAccordion(this)">
+        <span>${p.title}</span>
+        <span class="accordion-toggle">↓</span>
+      </div>
+      <div class="accordion-body ${i===0?'open':''}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${items || '<div style="color:var(--t3);font-size:13px">طبّق التوصيات الواردة في القرارات الاستراتيجية</div>'}
+        </div>
+        ${items ? `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge badge-purple">${['نشر يومي','تفاعل مع الجمهور','قياس النتائج','توسيع المحتوى'][i]}</span>
+          <span class="badge badge-green">مدة التنفيذ: ${['7','7','7','30'][i]} يوم</span>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAccordion(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ── Tab 3: Weekly Plan ──
+const dayNames = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const contentTypes = ['تعليمي','ترفيهي','تحفيزي','تجربة منتج','قصة نجاح','وراء الكواليس','تحدي'];
+const goals = ['زيادة الوعي','زيادة المبيعات','تعزيز المتابعين','استقطاب عملاء','الاحتفاظ','ترفيه','إلهام'];
+
+function renderTab3(sections) {
+  const sec6 = sections['6'] || '';
+  const ideas = extractIdeas(sec6);
+
+  weeklyPlan = dayNames.map((day, i) => ({
+    day,
+    type: contentTypes[i % contentTypes.length],
+    time: ['١٢:٠٠ ظهراً','٧:٠٠ مساءً','٩:٠٠ مساءً','٦:٠٠ مساءً','٨:٠٠ مساءً','١٠:٠٠ صباحاً','٥:٠٠ مساءً'][i],
+    goal: goals[i],
+    hook: ideas[i]?.hook || `${day} — ابدأ بسؤال يستفز الجمهور لمنتجك`,
+    idea: ideas[i]?.idea || `محتوى ${contentTypes[i % contentTypes.length]} يستهدف جمهورك`,
+    script: ideas[i]?.script || generateScript(day, contentTypes[i % contentTypes.length], businessProfile)
+  }));
+
+  const navHtml = dayNames.map((d, i) =>
+    `<button class="day-tab ${i===0?'active':''}" onclick="showDay(${i})">${d}</button>`
+  ).join('');
+  document.getElementById('dayTabsNav').innerHTML = navHtml;
+  renderDayCards();
+}
+
+function extractIdeas(sec6) {
+  const ideas = [];
+  const chunks = sec6.split(/\n(?=\d+[.）\-]|\*\*\d)/);
+  chunks.forEach(chunk => {
+    const lines = chunk.split('\n').filter(l => l.trim().length > 10);
+    if (lines.length > 0) {
+      ideas.push({
+        hook: lines[0].replace(/^[*\d.）\-\s]*/,'').replace(/\*\*/g,'').substring(0,100),
+        idea: lines.slice(1,3).join(' ').replace(/\*\*/g,'').substring(0,200),
+        script: lines.slice(0,4).join('\n').replace(/\*\*/g,'')
+      });
+    }
+  });
+  return ideas;
+}
+
+function generateScript(day, type, bp) {
+  const name = bp.business_name || 'بزنسك';
+  return `[${day} — محتوى ${type}]\n\n🎬 الافتتاح (3 ثوانٍ):\nخطاف قوي يجذب المشاهد\n\n📌 الجسم (20-40 ثانية):\nعرض المحتوى الرئيسي لـ ${name}\n\n🔥 الخاتمة (5 ثوانٍ):\nدعوة للتفاعل — "احفظ وشارك"`;
+}
+
+function renderDayCards() {
+  document.getElementById('dayCards').innerHTML = weeklyPlan.map((day, i) => `
+    <div class="day-panel ${i===0?'active':''}" id="dayPanel${i}">
+      <div class="day-card">
+        <div class="day-card-header">
+          <div>
+            <h2 style="font-size:22px;font-weight:800;color:var(--t1)">${day.day}</h2>
+            <div class="day-card-pills">
+              <span class="badge badge-purple">${day.type}</span>
+              <span style="background:#F3F4F6;color:#6B7280;border-radius:50px;padding:3px 10px;font-size:12px;font-weight:600">${day.time}</span>
+              <span class="badge badge-green">${day.goal}</span>
+              <span style="background:var(--bg);border:1px solid var(--b1);color:var(--t2);border-radius:50px;padding:3px 10px;font-size:12px;font-weight:600">TikTok</span>
+            </div>
+          </div>
+          <div class="day-card-actions">
+            <button class="btn-ghost" style="padding:7px 14px;font-size:13px" onclick="regenDay(${i})">↻</button>
+            <button class="btn-ghost" style="padding:7px 14px;font-size:13px" id="editBtn${i}" onclick="toggleEdit(${i})">✎</button>
+          </div>
+        </div>
+
+        <div class="day-card-section">
+          <div class="day-card-section-label">الخطاف</div>
+          <div class="hook-text" id="hook${i}">${day.hook}</div>
+          <textarea class="input" id="hookEdit${i}" style="display:none;font-size:16px;font-weight:700;min-height:60px">${day.hook}</textarea>
+        </div>
+
+        <div class="day-card-section">
+          <div class="day-card-section-label">الفكرة</div>
+          <div class="idea-box" id="idea${i}">${day.idea}</div>
+          <textarea class="input" id="ideaEdit${i}" style="display:none;min-height:80px">${day.idea}</textarea>
+        </div>
+
+        <div class="day-card-section">
+          <div class="day-card-section-label">السكريبت</div>
+          <div class="script-box" id="script${i}">${day.script}</div>
+          <textarea class="input" id="scriptEdit${i}" style="display:none;font-family:var(--mono);font-size:13px;min-height:120px">${day.script}</textarea>
+        </div>
+
+        <button class="btn-purple-ghost" onclick="suggestIdea(${i})">اقتراح فكرة جديدة ✦</button>
+      </div>
+    </div>`).join('');
+}
+
+function showDay(i) {
+  currentDay = i;
+  document.querySelectorAll('.day-tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  document.querySelectorAll('.day-panel').forEach((p,j) => p.classList.toggle('active', j===i));
+}
+
+function toggleEdit(i) {
+  const fields = ['hook','idea','script'];
+  const btn = document.getElementById('editBtn'+i);
+  const isEditing = btn.style.color === 'var(--t1)' || btn.dataset.editing === '1';
+  if (!isEditing) {
+    fields.forEach(f => {
+      document.getElementById(f+i).style.display = 'none';
+      document.getElementById(f+'Edit'+i).style.display = 'block';
+    });
+    btn.style.color = 'var(--t1)'; btn.dataset.editing = '1';
+  } else {
+    fields.forEach(f => {
+      const newVal = document.getElementById(f+'Edit'+i).value;
+      weeklyPlan[i][f] = newVal;
+      document.getElementById(f+i).textContent = newVal;
+      document.getElementById(f+i).style.display = 'block';
+      document.getElementById(f+'Edit'+i).style.display = 'none';
+    });
+    btn.style.color = ''; btn.dataset.editing = '0';
+    toast('تم الحفظ ✓', 'success');
+    sessionStorage.setItem('weeklyPlan', JSON.stringify(weeklyPlan));
+  }
+}
+
+function regenDay(i) {
+  toast('جارٍ توليد فكرة جديدة...', 'info');
+  setTimeout(() => {
+    weeklyPlan[i].hook = `فكرة جديدة لـ ${dayNames[i]} — ${contentTypes[Math.floor(Math.random()*contentTypes.length)]}`;
+    document.getElementById('hook'+i).textContent = weeklyPlan[i].hook;
+    document.getElementById('hookEdit'+i).value = weeklyPlan[i].hook;
+    toast('تم توليد فكرة جديدة ✓', 'success');
+  }, 1500);
+}
+
+function reGenWeek() { toast('جارٍ إعادة توليد خطة الأسبوع...', 'info'); }
+
+function suggestIdea(i) {
+  toast('جارٍ اقتراح فكرة...', 'info');
+  setTimeout(() => {
+    const ideas = ['محتوى تعليمي عن منتجك الأكثر مبيعاً', 'رد على سؤال شائع من عملائك', 'وراء الكواليس في عملك', 'قصة نجاح عميل'];
+    weeklyPlan[i].idea = ideas[Math.floor(Math.random()*ideas.length)];
+    document.getElementById('idea'+i).textContent = weeklyPlan[i].idea;
+    toast('تم اقتراح فكرة جديدة ✓', 'success');
+  }, 1200);
+}
+
+// ── Tab 4: Content Insights ──
+function renderTab4(sections) {
+  const themes = ['محتوى تعليمي','عروض المنتجات','قصص العملاء','وراء الكواليس','الترفيه'];
+  const themeVals = [92, 78, 65, 55, 42];
+  document.getElementById('themesChart').innerHTML = themes.map((t,i) => `
+    <div class="bar-item">
+      <div class="bar-item-header">
+        <span class="bar-item-label">${t}</span>
+        <span class="bar-item-value">${themeVals[i]}%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" data-width="${themeVals[i]}"></div></div>
+    </div>`).join('');
+
+  // Hashtags from section 5
+  const sec5 = sections['5'] || '';
+  const hashLines = sec5.split('\n').filter(l => l.includes('#') || l.trim().startsWith('-'));
+  const tags = hashLines.slice(0,12).map(l => l.replace(/^[-•*]\s*/,'').trim()).filter(Boolean);
+  document.getElementById('hashtagCloud').innerHTML = `
+    <div class="hashtag-grid">
+      ${(tags.length > 0 ? tags : ['#منتجاتك','#تسويق','#محتوى','#تيك_توك','#بزنس','#عروض']).map((tag, i) =>
+        `<span class="tag ${i<3?'tag-top':i<6?'tag-good':'tag-neutral'}">${tag}</span>`
+      ).join('')}
+    </div>`;
+
+  // Content types from tiktokData
+  const types = {};
+  tiktokData.forEach(v => { const t = v._type || 'غير محدد'; types[t] = (types[t]||0)+1; });
+  const typeEntries = Object.entries(types).sort((a,b)=>b[1]-a[1]);
+  const total = tiktokData.length || 1;
+  document.getElementById('contentTypeChart').innerHTML = typeEntries.map(([t,c]) => `
+    <div class="bar-item">
+      <div class="bar-item-header">
+        <span class="bar-item-label">${t}</span>
+        <span class="bar-item-value">${c} فيديو</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" data-width="${Math.round(c/total*100)}"></div></div>
+    </div>`).join('') || '<p style="color:var(--t3);font-size:13px">صنّف الفيديوهات في الخطوة 4 لرؤية التوزيع</p>';
+
+  // Top videos
+  const topVideos = [...tiktokData].sort((a,b)=>(b.playCount||0)-(a.playCount||0)).slice(0,5);
+  document.getElementById('videoPerfChart').innerHTML = topVideos.map((v,i) => `
+    <div class="bar-item">
+      <div class="bar-item-header">
+        <span class="bar-item-label" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">${(v.desc||'فيديو').substring(0,40)}</span>
+        <span class="bar-item-value">${formatNumber(v.playCount||0)}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" data-width="${Math.round((v.playCount||0)/(topVideos[0]?.playCount||1)*100)}"></div></div>
+    </div>`).join('') || '<p style="color:var(--t3);font-size:13px">لا توجد بيانات</p>';
+
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(b => {
+      b.style.width = (b.dataset.width || 0) + '%';
+    });
+  }, 200);
+}
+
+// ── Tab 5: Sales Performance ──
+function renderTab5(sections) {
+  const sec7 = sections['7'] || '';
+  const kpiLines = sec7.split('\n').filter(l => l.trim().length > 10);
+
+  // Sales metrics
+  const sm = salesSummary || {};
+  document.getElementById('salesMetrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">الإيرادات الشهرية</div>
+      <div class="metric-value">${sm.monthly_revenue ? sm.monthly_revenue + ' ر' : '—'}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">الطلبات الشهرية</div>
+      <div class="metric-value">${sm.orders || '—'}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">نسبة التحويل</div>
+      <div class="metric-value">${sm.conversion_rate ? sm.conversion_rate + '%' : '—'}</div>
+      <div class="metric-trend ${parseFloat(sm.conversion_rate||0)>=2?'up':'down'}">${parseFloat(sm.conversion_rate||0)>=2?'↑ جيد':'↓ يحتاج تحسين'}</div>
+    </div>`;
+
+  // KPIs
+  document.getElementById('kpiList').innerHTML = kpiLines.slice(0,7).map((line, i) => `
+    <div class="metric-row">
+      <span style="font-size:13px;color:var(--t1);font-weight:600">${line.replace(/^[-•*\d.]\s*/,'').replace(/\*\*/g,'').substring(0,80)}</span>
+      <span class="badge badge-purple">${['أسبوعي','يومي','شهري','يومي','أسبوعي','شهري','فوري'][i%7]}</span>
+    </div>`).join('') ||
+    '<p style="color:var(--t3);font-size:13px">راجع التحليل الكامل للمؤشرات التفصيلية</p>';
+
+  // Recommendation
+  const firstRecommendation = sec7.split('\n').find(l => l.trim().length > 30) || 'ركّزي على زيادة معدل التفاعل من خلال نشر محتوى تعليمي منتظم وتحسين التوقيت المثالي للنشر.';
+  document.getElementById('mainRecommendation').textContent = firstRecommendation.replace(/^[-•*\d.]\s*/,'').replace(/\*\*/g,'');
+
+  // Sales data card
+  if (salesSummary?.columns) {
+    document.getElementById('salesDataContent').innerHTML =
+      `<p style="font-size:13px;color:var(--t2)">أعمدة: ${salesSummary.columns.join(' · ')}</p>
+       <p style="font-size:13px;color:var(--t1);margin-top:6px;font-weight:600">${salesSummary.rows} سجل مبيعات</p>`;
+  } else if (sm.monthly_revenue) {
+    document.getElementById('salesDataContent').innerHTML =
+      `<div class="grid-2">
+        ${sm.monthly_revenue ? `<div class="correlation-card"><div class="label">الإيرادات</div><div class="value">${sm.monthly_revenue}</div><div class="sub">شهرياً</div></div>` : ''}
+        ${sm.ad_spend ? `<div class="correlation-card"><div class="label">الإنفاق الإعلاني</div><div class="value">${sm.ad_spend}</div><div class="sub">شهرياً</div></div>` : ''}
+      </div>`;
+  } else {
+    document.getElementById('salesDataContent').innerHTML =
+      '<p style="color:var(--t3);font-size:13px">لم يتم إدخال بيانات مبيعات</p>';
+  }
+}
+
+// ── Tab Navigation ──
+function showTab(i, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab' + i).classList.add('active');
+  if (i === 4) {
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill').forEach(b => { b.style.width = (b.dataset.width || 0) + '%'; });
+    }, 100);
+  }
+}
+
+function reAnalyze() {
+  if (confirm('هل تريدين إعادة التحليل؟ سيتم الرجوع لصفحة الإعداد.')) {
+    window.location.href = 'onboarding.html';
+  }
+}
+
+// ── Init ──
+init();
+
+setTimeout(() => {
+  document.querySelectorAll('.bar-fill').forEach(b => { b.style.width = (b.dataset.width || 0) + '%'; });
+}, 500);
+</script>
+</body>
+</html>

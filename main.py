@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
-from routers import tiktok, analysis, business
+from routers import tiktok, analysis, business, social
 
 app = FastAPI(
     title="AI Marketing Strategist API",
@@ -21,10 +23,11 @@ app.add_middleware(
 )
 
 app.include_router(tiktok.router, prefix="/api/tiktok", tags=["TikTok"])
+app.include_router(social.router, prefix="/api/social", tags=["Social"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(business.router, prefix="/api/business", tags=["Business"])
 
-
-@app.get("/")
-def root():
-    return {"message": "AI Marketing Strategist API is running", "docs": "/docs"}
+# Serve mudar-platform as the frontend (must come last)
+frontend_dir = os.path.join(os.path.dirname(__file__), "mudar-platform")
+if os.path.isdir(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")

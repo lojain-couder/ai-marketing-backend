@@ -5,7 +5,13 @@ from typing import Optional, List, Dict, Any
 class TikTokFetchRequest(BaseModel):
     hashtag: Optional[str] = None
     username: Optional[str] = None
-    max_items: int = 20
+    max_items: int = 50
+
+
+class SocialFetchRequest(BaseModel):
+    platform: str  # tiktok | instagram | x
+    username: str
+    limit: int = 50
 
 
 class AnalysisRequest(BaseModel):

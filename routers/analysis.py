@@ -1,19 +1,30 @@
 from fastapi import APIRouter, HTTPException
 from models.schemas import AnalysisRequest
-from services.analysis_service import analyze_tiktok_videos
+from services.analysis_pipeline import AnalysisPipeline
 
 router = APIRouter()
+pipeline = AnalysisPipeline()
 
 
 @router.post("/run")
 async def run_analysis(request: AnalysisRequest):
+    """
+    Pipeline:
+    1. Convert frontend video format → SocialAnalysisEngine format
+    2. Rule-based engines produce structured insights, strategies, weekly plan
+    3. Groq writing layer enriches language only — does NOT change decisions
+    4. Return final output
+    """
     if not request.videos:
-        raise HTTPException(status_code=400, detail="No videos provided for analysis")
+        raise HTTPException(status_code=400, detail="لا توجد فيديوهات للتحليل")
+
     try:
-        result = analyze_tiktok_videos(
-            videos=request.videos,
-            business_profile=request.business_profile,
-        )
+        normalized = {
+            "business_profile": request.business_profile or {},
+            "sales_summary": None,
+            "videos": request.videos,
+        }
+        result = pipeline.run(normalized)
         return {"success": True, **result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

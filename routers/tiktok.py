@@ -19,5 +19,9 @@ async def fetch_tiktok(request: TikTokFetchRequest):
             max_items=request.max_items,
         )
         return {"success": True, "videos": videos, "count": len(videos)}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"خطأ غير متوقع: {str(e)}")

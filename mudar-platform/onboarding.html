@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مُدار — إعداد الحساب</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/api.js"></script>
+<style>
+  body { background: var(--bg2); }
+  .onboarding-wrap { max-width: 680px; margin: 0 auto; padding: 0 24px 60px; }
+  .onboarding-wrap.wide { max-width: 1100px; padding: 0 24px 60px; }
+  .helper-banner {
+    background: #EDE9FF; border: 1px solid #CFC8FF;
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 13px; color: #4B3FA0; line-height: 1.65;
+    margin-bottom: 16px; font-weight: 500;
+  }
+  .helper-banner strong { font-weight: 800; }
+  .required-hint { font-size: 11px; color: var(--red); font-weight: 700; margin-right: 4px; }
+  .validation-msg {
+    background: #fee2e2; color: var(--red);
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 13px; font-weight: 700;
+    margin-top: 12px; display: none;
+  }
+  .step { display: none; animation: fadeIn .3s ease; }
+  .step.active { display: block; }
+  .step-header { margin-bottom: 24px; }
+  .step-header h2 { font-size: 24px; font-weight: 800; color: var(--t1); }
+  .step-header p { font-size: 14px; color: var(--t2); margin-top: 4px; opacity: .85; }
+  .step-footer { display: flex; gap: 12px; margin-top: 28px; }
+  .step-footer .btn-green-lg, .step-footer .btn-navy-lg { flex: 1; }
+  .chip-section-label { font-size: 12px; font-weight: 700; color: var(--t3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; margin-top: 16px; }
+  .manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  .platform-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .platform-tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 14px 10px; border-radius: 12px; border: 2px solid var(--b1);
+    cursor: pointer; transition: all .2s; background: var(--bg);
+  }
+  .platform-tab:hover { border-color: var(--acc); background: var(--bg2); }
+  .platform-tab.active { border-color: var(--t1); background: var(--bg3); }
+  .platform-tab .p-icon { font-size: 26px; line-height: 1; }
+  .platform-tab .p-name { font-size: 13px; font-weight: 700; color: var(--t1); }
+  .platform-tab .p-badge { font-size: 10px; font-weight: 600; color: var(--t3); background: var(--bg2); border-radius: 50px; padding: 2px 8px; }
+  .platform-tab.active .p-badge { background: var(--green-bg); color: var(--green-dark); }
+  .social-loading { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 40px 0; text-align: center; }
+  .social-loading.visible { display: flex; }
+  .tiktok-form.hidden { display: none; }
+  .table-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .table-toolbar .search-bar { flex: 1; min-width: 200px; }
+  .video-desc { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .stats-mini { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stats-mini-card { background: var(--bg2); border-radius: var(--r); padding: 12px 14px; }
+  .stats-mini-card .label { font-size: 11px; color: var(--t2); font-weight: 600; }
+  .stats-mini-card .val { font-size: 18px; font-weight: 800; color: var(--t1); margin-top: 2px; }
+  .save-loading { display: none; flex-direction: column; align-items: center; gap: 20px; padding: 40px 0; }
+  .save-loading.visible { display: flex; }
+  .save-form.hidden { display: none; }
+  @media (max-width: 600px) {
+    .manual-grid { grid-template-columns: 1fr; }
+    .stats-mini { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="brand">
+    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
+    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
+  </a>
+  <span id="navStepLabel" style="font-size:13px;color:var(--t3);font-weight:600">الخطوة 1 من 5</span>
+</nav>
+
+<div class="onboarding-wrap">
+
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar">
+    <div class="step-item">
+      <div class="step-circle active" id="sc1">1</div>
+      <div class="step-label active" id="sl1">البزنس</div>
+    </div>
+    <div class="step-line" id="ln1"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="sc2">2</div>
+      <div class="step-label" id="sl2">المبيعات</div>
+    </div>
+    <div class="step-line" id="ln2"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="sc3">3</div>
+      <div class="step-label" id="sl3">TikTok</div>
+    </div>
+    <div class="step-line" id="ln3"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="sc4">4</div>
+      <div class="step-label" id="sl4">البيانات</div>
+    </div>
+    <div class="step-line" id="ln4"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="sc5">5</div>
+      <div class="step-label" id="sl5">التحليل</div>
+    </div>
+  </div>
+
+  <!-- ── STEP 1: Business Profile ── -->
+  <div class="step active" id="step1">
+    <div class="card">
+      <div class="step-header">
+        <h2>أخبرنا عن بزنسك</h2>
+        <p>هذه المعلومات <strong>مطلوبة</strong> — تساعد الذكاء الاصطناعي على تقديم توصيات دقيقة لك</p>
+      </div>
+
+      <div id="step1ValidationMsg" class="validation-msg"></div>
+
+      <div class="form-group">
+        <label class="form-label">اسم البزنس <span class="required-hint">*</span></label>
+        <input class="input" type="text" id="bizName" placeholder="مثال: متجر نور للعناية">
+      </div>
+      <div class="form-group">
+        <label class="form-label">وش تبيع؟ <span class="required-hint">*</span></label>
+        <textarea class="input" id="bizProducts" placeholder="اكتب وصفاً مختصراً لمنتجاتك أو خدماتك..." rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">القطاع <span class="required-hint">*</span></label>
+        <select class="input" id="bizSector">
+          <option value="">اختر القطاع</option>
+          <option>عناية بالبشرة والجمال</option>
+          <option>ملابس وأزياء</option>
+          <option>صحة ولياقة</option>
+          <option>طعام ومشروبات</option>
+          <option>إلكترونيات</option>
+          <option>أثاث وديكور</option>
+          <option>تعليم وكورسات</option>
+          <option>خدمات</option>
+          <option>أخرى</option>
+        </select>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="chip-section-label">الجنس المستهدف <span class="required-hint">*</span></div>
+        <div class="chips-group" id="chips-gender">
+          <span class="chip" data-group="gender">نساء</span>
+          <span class="chip" data-group="gender">رجال</span>
+          <span class="chip" data-group="gender">الجنسين</span>
+        </div>
+      </div>
+      <div>
+        <div class="chip-section-label">الفئة العمرية</div>
+        <div class="chips-group" id="chips-age">
+          <span class="chip" data-group="age">١٣–١٧</span>
+          <span class="chip" data-group="age">١٨–٢٤</span>
+          <span class="chip" data-group="age">٢٥–٣٤</span>
+          <span class="chip" data-group="age">٣٥–٤٤</span>
+          <span class="chip" data-group="age">٤٥+</span>
+        </div>
+      </div>
+      <div>
+        <div class="chip-section-label">السوق المستهدف</div>
+        <div class="chips-group" id="chips-market">
+          <span class="chip" data-group="market">السعودية</span>
+          <span class="chip" data-group="market">الإمارات</span>
+          <span class="chip" data-group="market">الكويت</span>
+          <span class="chip" data-group="market">مصر</span>
+          <span class="chip" data-group="market">الخليج كله</span>
+          <span class="chip" data-group="market">العالم العربي</span>
+        </div>
+      </div>
+      <div>
+        <div class="chip-section-label">الهدف الرئيسي <span class="required-hint">*</span></div>
+        <div class="chips-group" id="chips-goal">
+          <span class="chip" data-group="goal">زيادة المبيعات</span>
+          <span class="chip" data-group="goal">زيادة المتابعين</span>
+          <span class="chip" data-group="goal">رفع الوعي</span>
+          <span class="chip" data-group="goal">استقطاب عملاء</span>
+          <span class="chip" data-group="goal">الاحتفاظ بالعملاء</span>
+        </div>
+      </div>
+      <div>
+        <div class="chip-section-label">نبرة البراند <span class="required-hint">*</span></div>
+        <div class="chips-group" id="chips-tone">
+          <span class="chip" data-group="tone">ودود وقريب</span>
+          <span class="chip" data-group="tone">احترافي وموثوق</span>
+          <span class="chip" data-group="tone">ملهم ومحفز</span>
+          <span class="chip" data-group="tone">فاخر وراقي</span>
+          <span class="chip" data-group="tone">شبابي وعصري</span>
+          <span class="chip" data-group="tone">تعليمي</span>
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="chip-section-label">نطاق السعر</div>
+        <div class="chips-group" id="chips-price">
+          <span class="chip" data-group="price">أقل من ٥٠ ريال</span>
+          <span class="chip" data-group="price">٥٠–١٥٠</span>
+          <span class="chip" data-group="price">١٥٠–٥٠٠</span>
+          <span class="chip" data-group="price">أكثر من ٥٠٠</span>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn-green-lg" onclick="goStep1()">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Sales Data ── -->
+  <div class="step" id="step2">
+    <div class="card">
+      <div class="step-header">
+        <h2>بيانات المبيعات</h2>
+        <p>اختياري — يساعد الذكاء الاصطناعي على ربط المحتوى بالمبيعات الفعلية</p>
+      </div>
+
+      <label class="upload-zone" id="salesUploadZone" for="salesFileInput">
+        <div id="uploadIcon" style="font-size:36px;margin-bottom:12px">📊</div>
+        <div id="uploadText" style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px">ارفع ملف CSV للمبيعات</div>
+        <div style="font-size:13px;color:var(--t3)">اسحب الملف هنا أو اضغط للاختيار</div>
+        <input type="file" id="salesFileInput" accept=".csv">
+      </label>
+      <div id="uploadSummary" style="display:none;margin-top:12px;background:var(--bg2);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--t2)"></div>
+
+      <div class="divider"></div>
+      <p style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:12px">أو أدخل البيانات يدوياً</p>
+
+      <div class="manual-grid">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">الإيرادات الشهرية (ريال)</label>
+          <input class="input" type="number" id="revenue" placeholder="مثال: 15000">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">عدد الطلبات الشهرية</label>
+          <input class="input" type="number" id="orders" placeholder="مثال: 80">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">الإنفاق الإعلاني (ريال)</label>
+          <input class="input" type="number" id="adSpend" placeholder="مثال: 2000">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">نسبة التحويل (%)</label>
+          <input class="input" type="number" id="convRate" placeholder="مثال: 2.5">
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn-ghost" onclick="skipStep2()" style="flex:0.4">تخطي</button>
+        <button class="btn-green-lg" onclick="goStep2()">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: Social Media Fetch ── -->
+  <div class="step" id="step3">
+    <div class="card">
+      <div class="step-header">
+        <h2>جلب بيانات المنصة</h2>
+        <p>اختاري المنصة وأدخلي اسم الحساب لجلب بيانات الأداء</p>
+      </div>
+
+      <div class="tiktok-form" id="tiktokForm">
+        <!-- Platform Selector -->
+        <div class="form-group">
+          <label class="form-label">اختاري المنصة</label>
+          <div class="platform-tabs">
+            <div class="platform-tab active" id="ptab-tiktok" onclick="selectPlatform('tiktok')">
+              <span class="p-icon">🎵</span>
+              <span class="p-name">TikTok</span>
+              <span class="p-badge">مدعوم</span>
+            </div>
+            <div class="platform-tab" id="ptab-instagram" onclick="selectPlatform('instagram')">
+              <span class="p-icon">📸</span>
+              <span class="p-name">Instagram</span>
+              <span class="p-badge">مدعوم</span>
+            </div>
+            <div class="platform-tab" id="ptab-x" onclick="selectPlatform('x')" style="opacity:.55;cursor:not-allowed">
+              <span class="p-icon">𝕏</span>
+              <span class="p-name">X (Twitter)</span>
+              <span class="p-badge" style="background:#fee2e2;color:#ef4444">غير متاح</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Username Input -->
+        <div class="form-group">
+          <label class="form-label" id="usernameLabel">أدخلي اسم الحساب على TikTok</label>
+          <div class="input-prefix">
+            <span class="prefix">@</span>
+            <input class="input" type="text" id="socialUsername" placeholder="username" style="padding-right:36px">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">عدد المنشورات</label>
+          <input class="input" type="number" id="socialLimit" value="30" min="5" max="50">
+        </div>
+
+        <button class="btn-green-lg" onclick="fetchSocialData()">جلب البيانات ←</button>
+      </div>
+
+      <!-- Loading -->
+      <div class="social-loading" id="socialLoading">
+        <div class="spinner"></div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px">جارٍ جلب البيانات...</div>
+          <div id="fetchStatusMsg" style="font-size:13px;color:var(--t2)">هذا قد يأخذ 30–60 ثانية</div>
+        </div>
+        <button class="btn-ghost" style="font-size:13px;margin-top:8px" onclick="cancelFetch()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: Data Table ── -->
+  <div class="step" id="step4">
+    <div class="card" style="padding:20px">
+      <div class="step-header">
+        <h2>مراجعة البيانات</h2>
+        <p>راجع البيانات المجلوبة وأضف التصنيفات يدوياً لتحسين دقة التحليل</p>
+      </div>
+
+      <div class="helper-banner">
+        <strong>ملاحظة مهمة:</strong> يرجى مراجعة البيانات وإضافة التصنيفات المناسبة للمحتوى يدويًا عند الحاجة، مثل نوع المحتوى، نوع الهوك، الموضوع، والمنتج المرتبط. هذه المعلومات تساعد <strong>مُدار</strong> على تقديم تحليل أدق.
+      </div>
+
+      <div class="stats-mini" id="tableStats">
+        <div class="stats-mini-card">
+          <div class="label">إجمالي المشاهدات</div>
+          <div class="val" id="statViews">—</div>
+        </div>
+        <div class="stats-mini-card">
+          <div class="label">متوسط التفاعل</div>
+          <div class="val" id="statEng">—</div>
+        </div>
+        <div class="stats-mini-card">
+          <div class="label">الفيديوهات</div>
+          <div class="val" id="statCount">—</div>
+        </div>
+        <div class="stats-mini-card">
+          <div class="label">أعلى مشاهدات</div>
+          <div class="val" id="statTop">—</div>
+        </div>
+      </div>
+
+      <div class="table-toolbar">
+        <div class="search-bar" style="flex:1;min-width:180px">
+          <span class="search-icon">🔍</span>
+          <input class="input" type="text" id="tableSearch" placeholder="بحث في الوصف..." style="padding-right:38px" oninput="filterTable()">
+        </div>
+        <select class="input" id="filterEng" onchange="filterTable()" style="width:auto;min-width:130px">
+          <option value="">كل التفاعلات</option>
+          <option value="high">تفاعل عالي</option>
+          <option value="med">متوسط</option>
+          <option value="low">منخفض</option>
+        </select>
+      </div>
+
+      <div class="bulk-bar" id="bulkBar">
+        <span style="font-size:13px;font-weight:700;color:var(--t1)" id="bulkCount">0 محدد</span>
+        <select class="input" id="bulkType" style="width:auto;min-width:140px">
+          <option value="">نوع المحتوى...</option>
+          <option>تعليمي</option><option>ترفيهي</option><option>تحفيزي</option>
+          <option>إعلان</option><option>تحدي</option><option>وراء الكواليس</option>
+          <option>تجربة منتج</option><option>قصة نجاح</option>
+        </select>
+        <button class="btn-navy" style="padding:7px 16px;font-size:13px" onclick="bulkApply()">تطبيق</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
+              <th>الوصف</th>
+              <th>المشاهدات</th>
+              <th>الإعجابات</th>
+              <th>التعليقات</th>
+              <th>التفاعل</th>
+              <th>نوع المحتوى</th>
+            </tr>
+          </thead>
+          <tbody id="videosTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn-green-lg" onclick="goStep4()">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 5: Save & Analyze ── -->
+  <div class="step" id="step5">
+    <div class="card">
+      <div class="save-form" id="saveForm">
+        <div class="step-header">
+          <h2>جاهز للتحليل</h2>
+          <p>سيقوم الذكاء الاصطناعي بتحليل بيانات بزنسك وبناء استراتيجية تسويقية كاملة</p>
+        </div>
+
+        <div style="background:var(--bg2);border-radius:var(--r);padding:16px;margin-bottom:20px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:13px;color:var(--t2);font-weight:600">البزنس</span>
+              <span style="font-size:13px;font-weight:700;color:var(--t1)" id="summBiz">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:13px;color:var(--t2);font-weight:600">فيديوهات TikTok</span>
+              <span style="font-size:13px;font-weight:700;color:var(--t1)" id="summVideos">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:13px;color:var(--t2);font-weight:600">بيانات المبيعات</span>
+              <span style="font-size:13px;font-weight:700;color:var(--t1)" id="summSales">—</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-navy-lg" onclick="startAnalysis()" id="analyzeBtn">
+          حفظ وبدء التحليل ✦
+        </button>
+      </div>
+
+      <div class="save-loading" id="saveLoading">
+        <div class="spinner"></div>
+        <div class="loading-steps" id="loadingSteps">
+          <div class="loading-step" id="ls1">تحليل بيانات البزنس...</div>
+          <div class="loading-step" id="ls2">تحليل أداء المحتوى...</div>
+          <div class="loading-step" id="ls3">تحديد السبب الجذري...</div>
+          <div class="loading-step" id="ls4">بناء القرارات الاستراتيجية...</div>
+          <div class="loading-step" id="ls5">توليد خطة المحتوى الأسبوعية...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /onboarding-wrap -->
+
+<script>
+loadState();
+let currentStep = 1;
+let selectedVideos = new Set();
+
+// ── Step Navigation ──
+function setStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  document.getElementById('navStepLabel').textContent = `الخطوة ${n} من 5`;
+  updateProgress(n);
+  currentStep = n;
+  window.appState.currentStep = n;
+  saveState();
+  // Expand wrap to full width on step 4 (data table)
+  const wrap = document.querySelector('.onboarding-wrap');
+  if (n === 4) wrap.classList.add('wide');
+  else wrap.classList.remove('wide');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress(n) {
+  const labels = ['البزنس','المبيعات','TikTok','البيانات','التحليل'];
+  for (let i = 1; i <= 5; i++) {
+    const sc = document.getElementById('sc' + i);
+    const sl = document.getElementById('sl' + i);
+    sc.className = 'step-circle ' + (i < n ? 'done' : i === n ? 'active' : 'inactive');
+    sc.textContent = i < n ? '✓' : i;
+    sl.className = 'step-label' + (i === n ? ' active' : '');
+    if (i < 5) {
+      const ln = document.getElementById('ln' + i);
+      ln.className = 'step-line' + (i < n ? ' done' : '');
+    }
+  }
+}
+
+// ── Chips ──
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('selected'));
+});
+
+function getSelectedChips(group) {
+  return [...document.querySelectorAll(`.chip[data-group="${group}"].selected`)]
+    .map(c => c.textContent);
+}
+
+// ── Step 1 ──
+function goStep1() {
+  const name    = document.getElementById('bizName').value.trim();
+  const sector  = document.getElementById('bizSector').value;
+  const products = document.getElementById('bizProducts').value.trim();
+  const gender  = getSelectedChips('gender');
+  const goals   = getSelectedChips('goal');
+  const tone    = getSelectedChips('tone');
+
+  const msg = document.getElementById('step1ValidationMsg');
+
+  const missing = [];
+  if (!name)            missing.push('اسم البزنس');
+  if (!sector)          missing.push('القطاع');
+  if (!products)        missing.push('وصف المنتج أو الخدمة');
+  if (!gender.length)   missing.push('الجنس المستهدف');
+  if (!goals.length)    missing.push('الهدف الرئيسي');
+  if (!tone.length)     missing.push('نبرة البراند');
+
+  if (missing.length) {
+    msg.textContent = 'يرجى إكمال الحقول المطلوبة: ' + missing.join(' · ');
+    msg.style.display = 'block';
+    msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+
+  msg.style.display = 'none';
+
+  window.appState.businessProfile = {
+    business_name:   name,
+    industry:        sector,
+    products:        products,
+    target_audience: gender.join(', '),
+    age_groups:      getSelectedChips('age').join(', '),
+    markets:         getSelectedChips('market').join(', '),
+    goals:           goals.join(', '),
+    brand_tone:      tone.join(', '),
+    price_range:     getSelectedChips('price').join(', ')
+  };
+  saveState();
+  setStep(2);
+}
+
+// ── Step 2 ──
+document.getElementById('salesFileInput').addEventListener('change', async function() {
+  const file = this.files[0];
+  if (!file) return;
+  const zone = document.getElementById('salesUploadZone');
+  zone.classList.add('has-file');
+  document.getElementById('uploadIcon').textContent = '✅';
+  document.getElementById('uploadText').textContent = file.name;
+
+  const result = await apiCall(() => uploadSales(file));
+  if (result && result.success) {
+    window.appState.salesSummary = result.summary;
+    saveState();
+    const s = result.summary;
+    document.getElementById('uploadSummary').style.display = 'block';
+    document.getElementById('uploadSummary').innerHTML =
+      `<strong>تم رفع الملف بنجاح ✓</strong> — ${s.rows} سجل | الأعمدة: ${s.columns.join(' · ')}`;
+    toast('تم رفع ملف المبيعات بنجاح', 'success');
+  }
+});
+
+function skipStep2() {
+  window.appState.salesSummary = null;
+  saveSalesManual();
+  setStep(3);
+}
+
+function goStep2() {
+  saveSalesManual();
+  setStep(3);
+}
+
+function saveSalesManual() {
+  const rev = document.getElementById('revenue').value;
+  const ord = document.getElementById('orders').value;
+  const ad  = document.getElementById('adSpend').value;
+  const cv  = document.getElementById('convRate').value;
+  if (rev || ord || ad || cv) {
+    window.appState.salesSummary = window.appState.salesSummary || {};
+    Object.assign(window.appState.salesSummary, {
+      monthly_revenue: rev || null,
+      orders: ord || null,
+      ad_spend: ad || null,
+      conversion_rate: cv || null
+    });
+    saveState();
+  }
+}
+
+// ── Step 3: Platform Selection + Social Fetch ──
+let selectedPlatform = 'tiktok';
+const platformNames = { tiktok: 'TikTok', instagram: 'Instagram', x: 'X (Twitter)' };
+const platformMsgs = {
+  tiktok:    ['جارٍ الاتصال بـ TikTok...', 'جارٍ جلب الفيديوهات...', 'معالجة البيانات...'],
+  instagram: ['جارٍ الاتصال بـ Instagram...', 'جارٍ جلب المنشورات...', 'معالجة البيانات...'],
+  x:         ['جارٍ الاتصال بـ X...', 'جارٍ جلب التغريدات...', 'معالجة البيانات...'],
+};
+
+function selectPlatform(p) {
+  if (p === 'x') {
+    toast('X (Twitter) غير متاح على الخطة المجانية — استخدمي TikTok أو Instagram', 'info');
+    return;
+  }
+  selectedPlatform = p;
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ptab-' + p).classList.add('active');
+  document.getElementById('usernameLabel').textContent =
+    `أدخلي اسم الحساب على ${platformNames[p]}`;
+  document.getElementById('socialUsername').placeholder = 'username';
+  document.getElementById('socialUsername').focus();
+}
+
+function cancelFetch() {
+  document.getElementById('tiktokForm').classList.remove('hidden');
+  document.getElementById('socialLoading').classList.remove('visible');
+}
+
+async function fetchSocialData() {
+  const username = document.getElementById('socialUsername').value.trim().replace(/^@/, '');
+  const limit    = parseInt(document.getElementById('socialLimit').value) || 30;
+  if (!username) { toast('أدخلي اسم الحساب', 'error'); return; }
+
+  document.getElementById('tiktokForm').classList.add('hidden');
+  document.getElementById('socialLoading').classList.add('visible');
+
+  const msgs = platformMsgs[selectedPlatform];
+  let mi = 0;
+  const msgInterval = setInterval(() => {
+    document.getElementById('fetchStatusMsg').textContent = msgs[mi++ % msgs.length];
+  }, 6000);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/social/fetch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform: selectedPlatform, username, limit })
+    });
+    const result = await res.json();
+    clearInterval(msgInterval);
+
+    if (!res.ok) throw new Error(result.detail || 'فشل الجلب');
+
+    const posts = result.posts || [];
+    if (posts.length === 0) throw new Error('لم يتم إيجاد منشورات');
+
+    window.appState.tiktokData     = posts;
+    window.appState.fetchedPlatform = selectedPlatform;
+    saveState();
+
+    toast(`تم جلب ${posts.length} منشور من ${platformNames[selectedPlatform]} ✓`, 'success');
+    renderTable(posts);
+    setStep(4);
+
+  } catch (e) {
+    clearInterval(msgInterval);
+    toast(e.message || 'فشل جلب البيانات — تأكدي من اسم الحساب', 'error');
+    document.getElementById('tiktokForm').classList.remove('hidden');
+    document.getElementById('socialLoading').classList.remove('visible');
+  }
+}
+
+// ── Step 4: Table ──
+let allRows = [];
+
+function renderTable(videos) {
+  allRows = videos;
+  // Support both normalized schema (views/likes) and raw TikTok schema (playCount/diggCount)
+  const getViews    = v => v.views    ?? v.playCount    ?? 0;
+  const getLikes    = v => v.likes    ?? v.diggCount    ?? 0;
+  const getComments = v => v.comments ?? v.commentCount ?? 0;
+  const getShares   = v => v.shares   ?? v.shareCount   ?? 0;
+  const getCaption  = v => v.caption  ?? v.text         ?? v.desc ?? '';
+
+  window._getViews    = getViews;
+  window._getLikes    = getLikes;
+  window._getComments = getComments;
+  window._getShares   = getShares;
+  window._getCaption  = getCaption;
+
+  const totalViews = videos.reduce((s, v) => s + getViews(v), 0);
+  const engList    = videos.map(v => {
+    const views = getViews(v); if (!views) return 0;
+    return ((getLikes(v) + getComments(v) + getShares(v)) / views * 100);
+  });
+  const avgEng = videos.length ? (engList.reduce((a,b)=>a+b,0)/videos.length).toFixed(1) : 0;
+  const topV   = Math.max(...videos.map(v => getViews(v)));
+
+  document.getElementById('statViews').textContent = formatNumber(totalViews);
+  document.getElementById('statEng').textContent   = avgEng + '%';
+  document.getElementById('statCount').textContent = videos.length;
+  document.getElementById('statTop').textContent   = formatNumber(topV);
+
+  renderRows(videos);
+}
+
+function renderRows(videos) {
+  const gV = window._getViews    || (v => v.views    ?? v.playCount    ?? 0);
+  const gL = window._getLikes    || (v => v.likes    ?? v.diggCount    ?? 0);
+  const gC = window._getComments || (v => v.comments ?? v.commentCount ?? 0);
+  const gS = window._getShares   || (v => v.shares   ?? v.shareCount   ?? 0);
+  const gT = window._getCaption  || (v => v.caption  ?? v.text ?? v.desc ?? '');
+
+  const tbody = document.getElementById('videosTableBody');
+  tbody.innerHTML = videos.map((v, i) => {
+    const views = gV(v);
+    const eng   = views ? (((gL(v)+gC(v)+gS(v))/views)*100).toFixed(1) : '0.0';
+    const badge = engagementBadge(eng);
+    const desc  = gT(v).substring(0, 80);
+    return `<tr id="row-${i}">
+      <td><input type="checkbox" onchange="rowSelect(this,${i})"></td>
+      <td><div class="video-desc" title="${desc}">${desc || '—'}</div></td>
+      <td style="font-family:var(--mono);font-size:12px">${formatNumber(views)}</td>
+      <td style="font-family:var(--mono);font-size:12px">${formatNumber(gL(v))}</td>
+      <td style="font-family:var(--mono);font-size:12px">${formatNumber(gC(v))}</td>
+      <td>${badge}</td>
+      <td>
+        <select onchange="this.classList.toggle('filled', !!this.value); updateVideoType(${i}, this.value)">
+          <option value="">صنّف...</option>
+          <option>تعليمي</option><option>ترفيهي</option><option>تحفيزي</option>
+          <option>إعلان</option><option>تحدي</option><option>وراء الكواليس</option>
+          <option>تجربة منتج</option><option>قصة نجاح</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('tableSearch').value.toLowerCase();
+  const ef = document.getElementById('filterEng').value;
+  const filtered = allRows.filter(v => {
+    const desc = (v.desc || v.text || '').toLowerCase();
+    const eng = parseFloat(calcEngagement(v));
+    const matchQ = !q || desc.includes(q);
+    const matchE = !ef || (ef === 'high' && eng >= 5) || (ef === 'med' && eng >= 2 && eng < 5) || (ef === 'low' && eng < 2);
+    return matchQ && matchE;
+  });
+  renderRows(filtered);
+}
+
+function updateVideoType(i, val) {
+  if (window.appState.tiktokData && window.appState.tiktokData[i]) {
+    window.appState.tiktokData[i]._type = val;
+    saveState();
+  }
+}
+
+function rowSelect(el, i) {
+  if (el.checked) selectedVideos.add(i); else selectedVideos.delete(i);
+  const row = document.getElementById('row-' + i);
+  if (row) row.classList.toggle('selected', el.checked);
+  const bb = document.getElementById('bulkBar');
+  bb.classList.toggle('visible', selectedVideos.size > 0);
+  document.getElementById('bulkCount').textContent = selectedVideos.size + ' محدد';
+}
+
+function toggleAll(el) {
+  document.querySelectorAll('#videosTableBody input[type=checkbox]').forEach((cb, i) => {
+    cb.checked = el.checked;
+    rowSelect(cb, i);
+  });
+}
+
+function bulkApply() {
+  const val = document.getElementById('bulkType').value;
+  if (!val) return;
+  selectedVideos.forEach(i => updateVideoType(i, val));
+  document.querySelectorAll('#videosTableBody select').forEach((sel, i) => {
+    if (selectedVideos.has(i)) { sel.value = val; sel.classList.add('filled'); }
+  });
+  toast(`تم تطبيق "${val}" على ${selectedVideos.size} فيديو`, 'success');
+}
+
+function goStep4() {
+  updateStep5Summary();
+  setStep(5);
+}
+
+// ── Step 5: Analyze ──
+function updateStep5Summary() {
+  const bp = window.appState.businessProfile;
+  document.getElementById('summBiz').textContent = bp.business_name || '—';
+  document.getElementById('summVideos').textContent = (window.appState.tiktokData?.length || 0) + ' فيديو';
+  document.getElementById('summSales').textContent = window.appState.salesSummary ? 'متوفرة ✓' : 'غير محددة';
+}
+
+async function startAnalysis() {
+  const videos = window.appState.tiktokData;
+  if (!videos || videos.length === 0) { toast('لا توجد بيانات TikTok', 'error'); return; }
+
+  document.getElementById('saveForm').classList.add('hidden');
+  document.getElementById('saveLoading').classList.add('visible');
+
+  const steps = ['ls1','ls2','ls3','ls4','ls5'];
+  let si = 0;
+  document.getElementById(steps[0]).classList.add('active');
+
+  const stepInterval = setInterval(() => {
+    if (si < steps.length - 1) {
+      document.getElementById(steps[si]).classList.remove('active');
+      document.getElementById(steps[si]).classList.add('done');
+      si++;
+      document.getElementById(steps[si]).classList.add('active');
+    }
+  }, 3000);
+
+  try {
+    const dataset = {
+      videos: videos,
+      business_profile: window.appState.businessProfile
+    };
+    const result = await runAnalysis(dataset);
+    clearInterval(stepInterval);
+    if (result && result.success) {
+      window.appState.analysisResult = result;
+      saveState();
+      sessionStorage.setItem('analysisResult', JSON.stringify(result));
+      sessionStorage.setItem('tiktokData', JSON.stringify(videos));
+      sessionStorage.setItem('businessProfile', JSON.stringify(window.appState.businessProfile));
+      sessionStorage.setItem('salesSummary', JSON.stringify(window.appState.salesSummary));
+      toast('اكتمل التحليل! 🎉', 'success');
+      setTimeout(() => { window.location.href = 'analysis.html'; }, 800);
+    } else {
+      throw new Error('فشل التحليل');
+    }
+  } catch (e) {
+    clearInterval(stepInterval);
+    toast('حدث خطأ في التحليل — حاولي مرة ثانية', 'error');
+    document.getElementById('saveForm').classList.remove('hidden');
+    document.getElementById('saveLoading').classList.remove('visible');
+  }
+}
+
+// ── Init ──
+// Guard: require login
+(function() {
+  const user = sessionStorage.getItem('mudarUser');
+  if (!user) { window.location.href = 'login.html'; return; }
+})();
+
+loadState();
+if (window.appState.businessProfile?.business_name) {
+  document.getElementById('bizName').value = window.appState.businessProfile.business_name;
+  if (window.appState.businessProfile.products) {
+    document.getElementById('bizProducts').value = window.appState.businessProfile.products;
+  }
+  if (window.appState.businessProfile.industry) {
+    document.getElementById('bizSector').value = window.appState.businessProfile.industry;
+  }
+}
+</script>
+</body>
+</html>
