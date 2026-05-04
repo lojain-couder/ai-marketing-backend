@@ -196,13 +196,8 @@ function init() {
 }
 
 function renderAll() {
-  renderHeader();
-  renderTab0();
-  renderTab1();
-  renderTab2();
-  renderTab3();
-  renderTab4();
-  renderTab5();
+  const fns = [renderHeader, renderTab0, renderTab1, renderTab2, renderTab3, renderTab4, renderTab5];
+  fns.forEach(fn => { try { fn(); } catch(e) { console.error(fn.name, e); } });
 }
 
 // ── Header ──

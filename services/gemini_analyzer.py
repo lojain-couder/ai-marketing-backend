@@ -90,10 +90,10 @@ class GeminiAnalyzer:
 
             profile_lines = "\n".join([
                 f"اسم النشاط: {business_profile.get('business_name', 'غير محدد')}",
-                f"القطاع: {business_profile.get('sector', 'غير محدد')}",
+                f"القطاع: {business_profile.get('sector') or business_profile.get('industry', 'غير محدد')}",
                 f"المنتجات: {business_profile.get('products', 'غير محدد')}",
-                f"الجمهور المستهدف: {business_profile.get('target_gender', '')} / {business_profile.get('target_goal', '')}",
-                f"الأسلوب: {business_profile.get('tone', 'غير محدد')}",
+                f"الجمهور المستهدف: {business_profile.get('target_gender') or business_profile.get('target_audience', '')} / {business_profile.get('target_goal') or business_profile.get('goals', '')}",
+                f"الأسلوب: {business_profile.get('tone') or business_profile.get('brand_tone', 'غير محدد')}",
             ])
 
             prompt = f"""أنتِ استراتيجية تسويق رقمي خبيرة متخصصة في السوق العربي.

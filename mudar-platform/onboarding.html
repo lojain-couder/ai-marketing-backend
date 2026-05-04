@@ -716,7 +716,7 @@ function filterTable() {
   const q = document.getElementById('tableSearch').value.toLowerCase();
   const ef = document.getElementById('filterEng').value;
   const filtered = allRows.filter(v => {
-    const desc = (v.desc || v.text || '').toLowerCase();
+    const desc = (v.caption || v.desc || v.text || '').toLowerCase();
     const eng = parseFloat(calcEngagement(v));
     const matchQ = !q || desc.includes(q);
     const matchE = !ef || (ef === 'high' && eng >= 5) || (ef === 'med' && eng >= 2 && eng < 5) || (ef === 'low' && eng < 2);

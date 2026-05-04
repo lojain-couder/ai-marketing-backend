@@ -21,7 +21,7 @@ class WeeklyMarketingPlanGenerator:
         top_topic_by_platform = self._best_topic_by_platform(social_rows)
         top_cta_by_platform = self._best_cta_by_platform(social_rows)
         audience = business_profile.get("audience_type") or business_profile.get("target_audience") or "الجمهور المستهدف"
-        business_name = business_profile.get("name") or "العلامة"
+        business_name = business_profile.get("business_name") or business_profile.get("name") or "العلامة"
 
         day_labels = [
             "اليوم 1",
