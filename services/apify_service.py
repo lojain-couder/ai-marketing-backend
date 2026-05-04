@@ -5,7 +5,7 @@ from typing import Optional
 APIFY_TOKEN = os.getenv("APIFY_TOKEN")
 
 ACTOR_IDS = {
-    "tiktok":    "apidojo~tiktok-scraper",
+    "tiktok":    "novi~fast-tiktok-profile-scraper",
     "instagram": "apify~instagram-post-scraper",   # fixed: correct actor
     "x":         "quacker~twitter-scraper",
 }
@@ -14,20 +14,21 @@ ACTOR_IDS = {
 # ── Normalizers ───────────────────────────────────────────────────────────────
 
 def _norm_tiktok(item: dict) -> dict:
-    author = item.get("authorMeta") or {}
+    author = item.get("authorMeta") or item.get("author") or {}
     video  = item.get("videoMeta")  or {}
     vid_id = item.get("id", "")
-    uname  = author.get("name", "")
+    uname  = author.get("name", "") or author.get("uniqueId", "")
     return {
         "id":        vid_id,
-        "url":       item.get("webVideoUrl") or f"https://www.tiktok.com/@{uname}/video/{vid_id}",
-        "views":     item.get("playCount", 0),
-        "likes":     item.get("diggCount", 0),
-        "comments":  item.get("commentCount", 0),
-        "shares":    item.get("shareCount", 0),
-        "caption":   item.get("text") or item.get("desc", ""),
-        "posted_at": item.get("createTimeISO", ""),
-        "duration":  video.get("duration", 0) if isinstance(video, dict) else 0,
+        "url":       (item.get("webVideoUrl") or item.get("url") or
+                      f"https://www.tiktok.com/@{uname}/video/{vid_id}"),
+        "views":     item.get("playCount") or item.get("views") or 0,
+        "likes":     item.get("diggCount") or item.get("likes") or item.get("likeCount") or 0,
+        "comments":  item.get("commentCount") or item.get("comments") or 0,
+        "shares":    item.get("shareCount") or item.get("shares") or 0,
+        "caption":   item.get("text") or item.get("desc") or item.get("description") or "",
+        "posted_at": item.get("createTimeISO") or item.get("createTime") or "",
+        "duration":  video.get("duration", 0) if isinstance(video, dict) else item.get("duration", 0),
     }
 
 
@@ -74,11 +75,8 @@ def _build_input(platform: str, username: str, limit: int) -> dict:
     clean = username.lstrip("@")
     if platform == "tiktok":
         return {
-            "profiles":             [f"https://www.tiktok.com/@{clean}"],
-            "maxItems":             limit,
-            "resultsPerPage":       limit,
-            "shouldDownloadVideos": False,
-            "shouldDownloadCovers": False,
+            "profiles": [f"https://www.tiktok.com/@{clean}"],
+            "maxItems": limit,
         }
     if platform == "instagram":
         # apify~instagram-post-scraper expects username as array
