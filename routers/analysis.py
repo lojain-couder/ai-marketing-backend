@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, HTTPException
 from models.schemas import AnalysisRequest
 from services.analysis_pipeline import AnalysisPipeline
@@ -25,6 +26,7 @@ async def run_analysis(request: AnalysisRequest):
             "videos": request.videos,
         }
         result = pipeline.run(normalized)
-        return {"success": True, **result}
+        safe = json.loads(json.dumps(result, default=str))
+        return {"success": True, **safe}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

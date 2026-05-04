@@ -81,21 +81,22 @@ class GeminiAnalyzer:
     def generate_deep_insights(self, engine_output: dict, business_profile: dict) -> dict:
         """Produce strategic marketing insights based on engine analysis results."""
 
-        root = engine_output.get("root_cause", {})
-        insights_summary = "\n".join(
-            f"- {ins.get('title', '')}: {ins.get('detail', '')}"
-            for ins in engine_output.get("insights", [])
-        )
+        try:
+            root = engine_output.get("root_cause", {})
+            insights_summary = "\n".join(
+                f"- {ins.get('title', '')}: {ins.get('detail', '')}"
+                for ins in engine_output.get("insights", [])
+            )
 
-        profile_lines = "\n".join([
-            f"اسم النشاط: {business_profile.get('business_name', 'غير محدد')}",
-            f"القطاع: {business_profile.get('sector', 'غير محدد')}",
-            f"المنتجات: {business_profile.get('products', 'غير محدد')}",
-            f"الجمهور المستهدف: {business_profile.get('target_gender', '')} / {business_profile.get('target_goal', '')}",
-            f"الأسلوب: {business_profile.get('tone', 'غير محدد')}",
-        ])
+            profile_lines = "\n".join([
+                f"اسم النشاط: {business_profile.get('business_name', 'غير محدد')}",
+                f"القطاع: {business_profile.get('sector', 'غير محدد')}",
+                f"المنتجات: {business_profile.get('products', 'غير محدد')}",
+                f"الجمهور المستهدف: {business_profile.get('target_gender', '')} / {business_profile.get('target_goal', '')}",
+                f"الأسلوب: {business_profile.get('tone', 'غير محدد')}",
+            ])
 
-        prompt = f"""أنتِ استراتيجية تسويق رقمي خبيرة متخصصة في السوق العربي.
+            prompt = f"""أنتِ استراتيجية تسويق رقمي خبيرة متخصصة في السوق العربي.
 بناءً على البيانات التالية، قدمي تحليلاً استراتيجياً عميقاً باللغة العربية.
 
 ── معلومات النشاط ──
@@ -106,7 +107,7 @@ class GeminiAnalyzer:
 
 أفضل منصة: {root.get('best_platform', 'غير محدد')}
 متوسط التفاعل: {root.get('avg_engagement', 0)}
-أفضل هاشتاقات: {', '.join(root.get('best_hashtags', []))}
+أفضل هاشتاقات: {', '.join(str(h) for h in root.get('best_hashtags', []))}
 أفضل مواضيع: {', '.join(str(t) for t in root.get('best_topics', []))}
 إجمالي المشاهدات: {root.get('total_views', 0)}
 إجمالي المنشورات: {root.get('total_posts', 0)}
@@ -120,8 +121,6 @@ class GeminiAnalyzer:
 - audience_insight: رؤية عن الجمهور المستهدف (جملة واحدة)
 
 أجيبي بـ JSON فقط بدون markdown أو نص إضافي."""
-
-        try:
             response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
             result = self._parse_json(response.text)
             print("[Gemini] Deep insights generated successfully")
