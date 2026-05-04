@@ -5,7 +5,7 @@ from typing import Optional
 APIFY_TOKEN = os.getenv("APIFY_TOKEN")
 
 ACTOR_IDS = {
-    "tiktok":    "novi~fast-tiktok-profile-scraper",
+    "tiktok":    "apidojo~tiktok-scraper",
     "instagram": "apify~instagram-post-scraper",   # fixed: correct actor
     "x":         "quacker~twitter-scraper",
 }
@@ -75,8 +75,9 @@ def _build_input(platform: str, username: str, limit: int) -> dict:
     clean = username.lstrip("@")
     if platform == "tiktok":
         return {
-            "profiles": [f"https://www.tiktok.com/@{clean}"],
-            "maxItems": limit,
+            "profiles":        [f"https://www.tiktok.com/@{clean}"],
+            "resultsPerPage":  limit,
+            "proxy":           {"useApifyProxy": True, "apifyProxyGroups": ["RESIDENTIAL"]},
         }
     if platform == "instagram":
         # apify~instagram-post-scraper expects username as array
