@@ -5,7 +5,7 @@ from typing import Optional
 APIFY_TOKEN = os.getenv("APIFY_TOKEN")
 
 ACTOR_IDS = {
-    "tiktok":    "apidojo~tiktok-scraper",
+    "tiktok":    "novi~tiktok-user-api",
     "instagram": "apify~instagram-post-scraper",   # fixed: correct actor
     "x":         "quacker~twitter-scraper",
 }
@@ -14,21 +14,22 @@ ACTOR_IDS = {
 # ── Normalizers ───────────────────────────────────────────────────────────────
 
 def _norm_tiktok(item: dict) -> dict:
-    author = item.get("authorMeta") or item.get("author") or {}
-    video  = item.get("videoMeta")  or {}
-    vid_id = item.get("id", "")
-    uname  = author.get("name", "") or author.get("uniqueId", "")
+    stats  = item.get("statistics") or {}
+    author = item.get("author") or {}
+    video  = item.get("video") or {}
+    vid_id = item.get("aweme_id") or item.get("id", "")
+    uname  = author.get("unique_id") or author.get("uniqueId", "")
+    ts     = item.get("create_time") or item.get("createTime") or 0
     return {
         "id":        vid_id,
-        "url":       (item.get("webVideoUrl") or item.get("url") or
-                      f"https://www.tiktok.com/@{uname}/video/{vid_id}"),
-        "views":     item.get("playCount") or item.get("views") or 0,
-        "likes":     item.get("diggCount") or item.get("likes") or item.get("likeCount") or 0,
-        "comments":  item.get("commentCount") or item.get("comments") or 0,
-        "shares":    item.get("shareCount") or item.get("shares") or 0,
-        "caption":   item.get("text") or item.get("desc") or item.get("description") or "",
-        "posted_at": item.get("createTimeISO") or item.get("createTime") or "",
-        "duration":  video.get("duration", 0) if isinstance(video, dict) else item.get("duration", 0),
+        "url":       item.get("share_url") or f"https://www.tiktok.com/@{uname}/video/{vid_id}",
+        "views":     stats.get("play_count") or stats.get("playCount") or item.get("playCount") or 0,
+        "likes":     stats.get("digg_count") or stats.get("diggCount") or item.get("diggCount") or 0,
+        "comments":  stats.get("comment_count") or stats.get("commentCount") or item.get("commentCount") or 0,
+        "shares":    stats.get("share_count") or stats.get("shareCount") or item.get("shareCount") or 0,
+        "caption":   item.get("desc") or item.get("text") or "",
+        "posted_at": str(ts),
+        "duration":  video.get("duration", 0) if isinstance(video, dict) else 0,
     }
 
 
@@ -75,9 +76,8 @@ def _build_input(platform: str, username: str, limit: int) -> dict:
     clean = username.lstrip("@")
     if platform == "tiktok":
         return {
-            "profiles":        [f"https://www.tiktok.com/@{clean}"],
-            "resultsPerPage":  limit,
-            "proxy":           {"useApifyProxy": True, "apifyProxyGroups": ["RESIDENTIAL"]},
+            "username": clean,
+            "maxItems": max(20, limit),
         }
     if platform == "instagram":
         # apify~instagram-post-scraper expects username as array
