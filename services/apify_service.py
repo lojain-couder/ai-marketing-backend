@@ -5,7 +5,7 @@ from typing import Optional
 APIFY_TOKEN = os.getenv("APIFY_TOKEN")
 
 ACTOR_IDS = {
-    "tiktok":    "clockworks~tiktok-scraper",
+    "tiktok":    "apidojo~tiktok-scraper",
     "instagram": "apify~instagram-post-scraper",   # fixed: correct actor
     "x":         "quacker~twitter-scraper",
 }
