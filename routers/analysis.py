@@ -1,10 +1,19 @@
 import json
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from models.schemas import AnalysisRequest
 from services.analysis_pipeline import AnalysisPipeline
+from services.groq_writer import GroqWriter
 
 router = APIRouter()
 pipeline = AnalysisPipeline()
+groq = GroqWriter()
+
+
+class SalesInsightsRequest(BaseModel):
+    sales_data: dict = {}
+    social_metrics: dict = {}
+    business_profile: dict = {}
 
 
 @router.post("/run")
@@ -28,5 +37,20 @@ async def run_analysis(request: AnalysisRequest):
         result = pipeline.run(normalized)
         safe = json.loads(json.dumps(result, default=str))
         return {"success": True, **safe}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/sales-insights")
+async def sales_insights(req: SalesInsightsRequest):
+    if not req.sales_data and not req.social_metrics:
+        raise HTTPException(status_code=400, detail="لا توجد بيانات لتحليلها")
+    try:
+        result = groq.analyze_sales_with_social(
+            req.sales_data,
+            req.social_metrics,
+            req.business_profile,
+        )
+        return {"success": True, **result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -8,7 +8,6 @@ Runs in two phases:
 import os
 import json
 import re
-from typing import Any
 
 from google import genai
 
@@ -127,6 +126,82 @@ class GeminiAnalyzer:
             return result
         except Exception as e:
             print(f"[Gemini] generate_deep_insights failed — skipping: {e}")
+            return {}
+
+    # ── Phase 3: Comment voice analysis ──────────────────────────────────────
+
+    def analyze_comments(self, comments: list[dict], business_profile: dict) -> dict:
+        """Extract audience voice: questions, product requests, complaints, content ideas."""
+        texts = [c.get("text", "") for c in comments if c.get("text", "").strip()]
+        if not texts:
+            return {}
+
+        sample = texts[:120]
+        product = business_profile.get("products") or business_profile.get("product") or "المنتج"
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "النشاط التجاري"
+
+        prompt = f"""أنتِ محللة تسويقية متخصصة في السوق العربي. حللي هذه التعليقات من جمهور متجر {sector} ({product}).
+
+التعليقات ({len(sample)} تعليق):
+{json.dumps(sample, ensure_ascii=False, indent=None)}
+
+استخرجي بالضبط:
+- frequent_questions: أكثر 5 أسئلة يطرحها الجمهور (مثل "كيف أطلب؟", "هل في توصيل؟")
+- product_requests: أكثر 5 طلبات أو اقتراحات لمنتجات/ألوان/مقاسات
+- complaints: أكثر 3 شكاوى أو ملاحظات سلبية (إن وجدت)
+- content_suggestions: 5 أفكار محتوى مباشرة تجيب على هذه الأسئلة والطلبات (جملة كاملة لكل فكرة)
+- sentiment_breakdown: نسب المشاعر كأرقام مئوية {{"positive": N, "neutral": N, "negative": N}}
+- top_comments: أفضل 3 تعليقات تعبر عن صوت الجمهور (نصوص كاملة)
+
+أجيبي بـ JSON فقط بدون markdown أو نص إضافي."""
+
+        try:
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            result = self._parse_json(response.text)
+            print(f"[Gemini] Comment analysis done — {len(texts)} comments")
+            return result
+        except Exception as e:
+            print(f"[Gemini] analyze_comments failed: {e}")
+            return {}
+
+    # ── Phase 4: Caption-based audience estimation (fallback) ────────────────
+
+    def analyze_from_captions(self, captions: list[str], business_profile: dict) -> dict:
+        """Estimate likely audience questions/requests from video captions when real comments unavailable."""
+        sample = [c[:200] for c in captions if c.strip()][:20]
+        if not sample:
+            return {}
+
+        product = business_profile.get("products") or business_profile.get("product") or "المنتج"
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "النشاط التجاري"
+
+        prompt = f"""أنتِ خبيرة تسويق رقمي. بناءً على كابشن الفيديوهات التالية لمتجر {sector} ({product})، توقّعي:
+- ماذا يسأل الجمهور في التعليقات؟
+- ماذا يطلبون من المنتجات؟
+- ما المشاعر الغالبة؟
+
+كابشن الفيديوهات:
+{json.dumps(sample, ensure_ascii=False)}
+
+أجيبي بـ JSON بنفس الهيكل:
+- frequent_questions: 5 أسئلة متوقعة من الجمهور
+- product_requests: 5 طلبات/اقتراحات متوقعة
+- complaints: قائمة فارغة [] (لا معلومات حقيقية)
+- content_suggestions: 5 أفكار محتوى بناءً على ما يحتاجه هذا الجمهور
+- sentiment_breakdown: {{"positive": 75, "neutral": 20, "negative": 5}}
+- top_comments: [] (لا تعليقات حقيقية)
+- is_estimated: true
+
+أجيبي بـ JSON فقط."""
+
+        try:
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            result = self._parse_json(response.text)
+            result["is_estimated"] = True
+            print("[Gemini] Caption-based audience estimation done")
+            return result
+        except Exception as e:
+            print(f"[Gemini] analyze_from_captions failed: {e}")
             return {}
 
     # ── JSON parser ───────────────────────────────────────────────────────────

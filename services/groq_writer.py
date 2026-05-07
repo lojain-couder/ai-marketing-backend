@@ -151,6 +151,306 @@ class GroqWriter:
 """
         return self._call_groq_json(prompt).get("text", "")
 
+    # ── Audience voice analysis (caption-based) ───────────────────────────────
+
+    def _normalize_sentiment(self, result: dict) -> dict:
+        s = result.get("sentiment_breakdown", {})
+        if not s:
+            return result
+        total = sum(s.values())
+        if total > 0 and total != 100:
+            result["sentiment_breakdown"] = {
+                k: round(v / total * 100) for k, v in s.items()
+            }
+        return result
+
+    def analyze_audience_from_captions(self, captions: list[str], business_profile: dict) -> dict:
+        """Estimate likely audience questions/requests from video captions using Groq."""
+        sample = [c[:200] for c in captions if c.strip()][:20]
+        if not sample:
+            return {}
+
+        product = business_profile.get("products") or "المنتج"
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "النشاط"
+
+        prompt = f"""بناءً على كابشن الفيديوهات التالية لمتجر {sector} ({product})، توقّعي ماذا يسأل الجمهور ويطلب.
+
+كابشن الفيديوهات:
+{json.dumps(sample, ensure_ascii=False)}
+
+أرجعي JSON بهذا الهيكل بالضبط:
+{{
+  "frequent_questions": ["سؤال 1", "سؤال 2", "سؤال 3", "سؤال 4", "سؤال 5"],
+  "product_requests": ["طلب 1", "طلب 2", "طلب 3", "طلب 4", "طلب 5"],
+  "complaints": [],
+  "content_suggestions": ["فكرة 1", "فكرة 2", "فكرة 3", "فكرة 4", "فكرة 5"],
+  "sentiment_breakdown": {{"positive": 75, "neutral": 20, "negative": 5}},
+  "top_comments": []
+}}
+
+JSON فقط بدون أي نص خارجه."""
+
+        result = self._call_groq_json(prompt)
+        if result:
+            result = self._normalize_sentiment(result)
+            result["is_estimated"] = True
+        return result
+
+    def analyze_real_comments(self, comments: list[dict], business_profile: dict) -> dict:
+        """Analyze real comment texts using Groq."""
+        texts = [c.get("text", "") for c in comments if len(c.get("text", "").strip()) > 3]
+        if not texts:
+            return {}
+
+        sample = texts[:80]
+        product = business_profile.get("products") or "المنتج"
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "النشاط"
+
+        prompt = f"""حللي هذه التعليقات من جمهور متجر {sector} ({product}).
+
+التعليقات:
+{json.dumps(sample, ensure_ascii=False)}
+
+أرجعي JSON بهذا الهيكل (النسب المئوية يجب أن تجمع 100):
+{{
+  "frequent_questions": ["أكثر 5 أسئلة نصية فعلية من التعليقات — مثل كيف أطلب، كم السعر، هل في توصيل"],
+  "product_requests": ["أكثر 5 طلبات أو اقتراحات — مثل أريد بلون بيج، أريد مقاس كبير"],
+  "complaints": ["أبرز الشكاوى إن وجدت — وإلا قائمة فارغة []"],
+  "content_suggestions": ["5 أفكار محتوى مباشرة تجيب على هذه التعليقات"],
+  "sentiment_breakdown": {{"positive": 70, "neutral": 20, "negative": 10}},
+  "top_comments": ["أبرز 3 تعليقات نصية كاملة من القائمة"]
+}}
+
+JSON فقط بدون أي نص خارجه."""
+
+        result = self._call_groq_json(prompt)
+        if result:
+            result = self._normalize_sentiment(result)
+        return result
+
+    # ── CSV sales analysis ────────────────────────────────────────────────────
+
+    def analyze_csv_sales(
+        self,
+        columns: list[str],
+        sample_rows: list[dict],
+        numeric_summary: dict,
+    ) -> str:
+        """Extract business insights from a sales CSV and return a concise Arabic summary string."""
+        import json as _json
+        prompt = f"""حللي بيانات المبيعات التالية واستخرجي أبرز الأنماط.
+
+الأعمدة: {', '.join(columns)}
+
+عينة السجلات (أول 20):
+{_json.dumps(sample_rows, ensure_ascii=False, default=str)}
+
+ملخص الأرقام:
+{_json.dumps(numeric_summary, ensure_ascii=False)}
+
+أرجعي JSON بهذا الهيكل:
+{{
+  "top_products": ["أعلى 3 منتجات مبيعاً إن وُجدت"],
+  "revenue_trend": "وصف مختصر لاتجاه الإيرادات",
+  "best_period": "أفضل فترة مبيعات إن ظهرت",
+  "key_finding": "أهم ملاحظة واحدة من البيانات"
+}}
+
+JSON فقط."""
+        result = self._call_groq_json(prompt)
+        if not result:
+            return ""
+        parts = []
+        if result.get("key_finding"):
+            parts.append(result["key_finding"])
+        if result.get("revenue_trend"):
+            parts.append(result["revenue_trend"])
+        if result.get("top_products"):
+            parts.append("أبرز المنتجات: " + "، ".join(result["top_products"]))
+        return " | ".join(parts)
+
+    # ── Sales + Social correlation ────────────────────────────────────────────
+
+    def analyze_sales_with_social(
+        self,
+        sales_data: dict,
+        social_metrics: dict,
+        business_profile: dict,
+    ) -> dict:
+        """Correlate sales KPIs with social media performance and produce insights."""
+        revenue   = sales_data.get("monthly_revenue")
+        orders    = sales_data.get("orders")
+        ad_spend  = sales_data.get("ad_spend")
+        conv_rate = sales_data.get("conversion_rate")
+        csv_insights = sales_data.get("csv_insights", "")
+
+        avg_eng    = social_metrics.get("avg_engagement") or social_metrics.get("avg_engagement_rate") or 0
+        total_views = social_metrics.get("total_views") or 0
+        best_platform = social_metrics.get("best_platform") or "—"
+        best_topics   = social_metrics.get("best_topics") or []
+
+        # Compute derived KPIs
+        derived: dict = {}
+        try:
+            if revenue and ad_spend and float(ad_spend) > 0:
+                derived["roas"] = round(float(revenue) / float(ad_spend), 2)
+        except Exception:
+            pass
+        try:
+            if revenue and orders and float(orders) > 0:
+                derived["avg_order_value"] = round(float(revenue) / float(orders))
+        except Exception:
+            pass
+        try:
+            if ad_spend and orders and float(orders) > 0:
+                derived["cost_per_order"] = round(float(ad_spend) / float(orders))
+        except Exception:
+            pass
+
+        kpi_lines = "\n".join([
+            f"- الإيرادات الشهرية: {revenue or '—'} ريال",
+            f"- عدد الطلبات الشهرية: {orders or '—'}",
+            f"- الإنفاق الإعلاني: {ad_spend or '—'} ريال",
+            f"- نسبة التحويل: {conv_rate or '—'}%",
+            *(
+                [f"- ROAS (عائد الإنفاق): {derived['roas']}x"]
+                if "roas" in derived else []
+            ),
+            *(
+                [f"- متوسط قيمة الطلب: {derived['avg_order_value']} ريال"]
+                if "avg_order_value" in derived else []
+            ),
+            *(
+                [f"- تكلفة الطلب الواحد: {derived['cost_per_order']} ريال"]
+                if "cost_per_order" in derived else []
+            ),
+        ])
+
+        social_lines = "\n".join([
+            f"- متوسط التفاعل: {round(float(avg_eng) * 100, 1)}%",
+            f"- إجمالي المشاهدات: {total_views}",
+            f"- أفضل منصة: {best_platform}",
+            f"- أفضل مواضيع: {', '.join(str(t) for t in best_topics[:3]) or '—'}",
+        ])
+
+        product = business_profile.get("products") or "المنتج"
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "النشاط"
+
+        csv_section = f"\nبيانات CSV:\n{csv_insights}" if csv_insights else ""
+
+        prompt = f"""أنتِ محللة أعمال متخصصة في ربط أداء السوشيال ميديا بالمبيعات لمتجر {sector} ({product}).
+
+بيانات المبيعات:
+{kpi_lines}
+
+أداء السوشيال ميديا:
+{social_lines}{csv_section}
+
+قدمي تحليلاً واقعياً مبنياً على الأرقام فقط.
+إذا كان رقم غير متاح، لا تفترضي — قولي "غير محدد".
+
+أرجعي JSON بهذا الهيكل:
+{{
+  "correlation_insight": "جملتان تربطان الأرقام: مثل 'تفاعل X% مع إيرادات Y ريال يعني...'",
+  "what_is_working": "ما الذي يعمل جيداً بناءً على الأرقام",
+  "main_gap": "أهم فجوة بين أداء المحتوى والمبيعات",
+  "top_action": "الإجراء الأكثر أثراً هذا الشهر بناءً على الأرقام",
+  "kpi_ratings": {{
+    "engagement": "ممتاز/مقبول/يحتاج تحسين",
+    "roas": "ممتاز/مقبول/يحتاج تحسين/غير محدد",
+    "conversion": "ممتاز/مقبول/يحتاج تحسين/غير محدد"
+  }}
+}}
+
+JSON فقط."""
+
+        result = self._call_groq_json(prompt)
+        result["derived_kpis"] = derived
+        return result
+
+    # ── Conversational assistant ──────────────────────────────────────────────
+
+    def chat(
+        self,
+        message: str,
+        context: dict,
+        history: list[dict],
+    ) -> str:
+        """Answer a user question using full analysis context. Returns Arabic text."""
+
+        biz = context.get("business_profile", {})
+        ar  = context.get("analysis_result", {})
+        rc  = ar.get("root_cause", {})
+        dm  = ar.get("dashboard_metrics", {})
+        cp  = ar.get("content_patterns", {})
+
+        top_topics = ", ".join(
+            (t.get("topic") or t.get("label") or str(t)) if isinstance(t, dict) else str(t)
+            for t in (cp.get("repeated_topics") or rc.get("best_topics", []))[:4]
+        )
+        top_tags = ", ".join(
+            (h.get("label") or h.get("tag") or str(h)) if isinstance(h, dict) else str(h)
+            for h in (cp.get("best_hashtags") or rc.get("best_hashtags", []))[:4]
+        )
+        strategies_summary = "\n".join(
+            f"  - {s.get('title','')}: {(s.get('recommended_action') or '')[:80]}"
+            for s in (ar.get("strategies") or [])[:3]
+        )
+        plan_summary = "\n".join(
+            f"  - {d.get('day','')}: {d.get('content_type','')} — {(d.get('hook') or d.get('content_idea',''))[:60]}"
+            for d in (ar.get("weekly_plan") or context.get("weekly_plan") or [])[:7]
+        )
+        sales = context.get("sales_summary") or {}
+        sales_line = f"إيرادات شهرية: {sales.get('monthly_revenue','—')}" if sales else "لا توجد بيانات مبيعات"
+
+        system = f"""أنتِ "مُدار AI" — مساعدة تسويقية ذكية. تعرفين نتائج تحليل النشاط التجاري التالي وتساعدين في فهمها واتخاذ القرارات.
+
+── معلومات النشاط ──
+الاسم: {biz.get('business_name') or biz.get('name','—')}
+القطاع: {biz.get('sector') or biz.get('industry','—')}
+المنتجات: {biz.get('products','—')}
+الجمهور: {biz.get('target_audience') or biz.get('target_gender','—')}
+النبرة: {biz.get('brand_tone') or biz.get('tone','—')}
+
+── نتائج التحليل ──
+أفضل منصة: {rc.get('best_platform') or dm.get('best_platform','—')}
+متوسط التفاعل: {round((rc.get('avg_engagement') or dm.get('avg_engagement_rate') or 0)*100,1)}%
+إجمالي الفيديوهات: {rc.get('total_posts') or dm.get('total_posts','—')}
+إجمالي المشاهدات: {rc.get('total_views') or dm.get('total_views','—')}
+أفضل مواضيع: {top_topics or '—'}
+أفضل هاشتاقات: {top_tags or '—'}
+{sales_line}
+
+── القرارات الاستراتيجية ──
+{strategies_summary or '—'}
+
+── خطة المحتوى الأسبوعي ──
+{plan_summary or '—'}
+
+── طريقة تواصلك ──
+- تحدثي بالعربي الخليجي الواضح والمباشر
+- كوني عملية: اذكري أرقاماً حقيقية من البيانات عند الشرح
+- إذا طلبوا تعديلاً، اقترحي النص المعدّل مباشرة
+- ردودك مختصرة ومفيدة — لا إطالة بدون فائدة
+- لا تقولي "كمساعدة ذكاء اصطناعي..." — فقط أجيبي مباشرة"""
+
+        messages: list[dict] = [{"role": "system", "content": system}]
+        for h in history[-8:]:
+            messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
+        messages.append({"role": "user", "content": message})
+
+        try:
+            res = self.client.chat.completions.create(
+                model=MODEL,
+                messages=messages,
+                max_tokens=600,
+                temperature=0.5,
+            )
+            return res.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"[GroqWriter.chat error] {e}")
+            return "عذراً، صار خطأ مؤقت. جربي مرة ثانية."
+
     def _call_groq_json(self, prompt: str) -> dict[str, Any]:
         try:
             res = self.client.chat.completions.create(

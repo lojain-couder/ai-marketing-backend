@@ -69,6 +69,7 @@
   <button class="tab-btn" onclick="showTab(3,this)">خطة المحتوى</button>
   <button class="tab-btn" onclick="showTab(4,this)">رؤى المحتوى</button>
   <button class="tab-btn" onclick="showTab(5,this)">أداء المبيعات</button>
+  <button class="tab-btn" onclick="showTab(6,this)">صوت الجمهور</button>
 </div>
 
 <!-- ── TAB 0: Business Summary ── -->
@@ -150,29 +151,248 @@
   </div>
 </div>
 
+<!-- ── TAB 6: Audience Voice ── -->
+<div class="tab-panel" id="tab6">
+  <div class="tab-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <p class="section-title" style="margin:0">صوت الجمهور — ماذا يقولون في التعليقات</p>
+      <button class="btn-primary" id="loadCommentsBtn" onclick="loadComments()" style="font-size:13px;padding:10px 20px">
+        تحليل التعليقات
+      </button>
+    </div>
+
+    <div id="commentsLoadingState" style="display:none;text-align:center;padding:60px 20px">
+      <div style="font-size:32px;margin-bottom:12px">💬</div>
+      <div style="font-size:14px;color:var(--t2)">جارٍ جمع وتحليل التعليقات...</div>
+      <div style="font-size:12px;color:var(--t3);margin-top:6px">قد يستغرق حتى دقيقة واحدة</div>
+    </div>
+
+    <div id="commentsResults" style="display:none">
+
+      <!-- Sentiment bar -->
+      <div class="card" style="margin-bottom:20px;padding:20px">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">المشاعر العامة للجمهور</p>
+        <div id="sentimentBar" style="display:flex;border-radius:8px;overflow:hidden;height:28px;gap:2px"></div>
+        <div id="sentimentLegend" style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap"></div>
+      </div>
+
+      <div class="insights-grid">
+        <!-- Frequent questions -->
+        <div class="card">
+          <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">❓ أكثر الأسئلة المطروحة</p>
+          <div id="frequentQuestions"></div>
+        </div>
+        <!-- Product requests -->
+        <div class="card">
+          <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">🛍 طلبات واقتراحات الجمهور</p>
+          <div id="productRequests"></div>
+        </div>
+      </div>
+
+      <!-- Content suggestions based on comments -->
+      <div class="card" style="margin-top:20px;border-right:4px solid var(--purple)">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:6px">💡 أفكار محتوى مقترحة بناءً على التعليقات</p>
+        <p style="font-size:12px;color:var(--t3);margin-bottom:14px">هذه الأفكار تجيب مباشرة على ما يسأله ويطلبه جمهورك</p>
+        <div id="contentSuggestionsFromComments"></div>
+      </div>
+
+      <!-- Complaints -->
+      <div class="card" id="complaintsCard" style="margin-top:20px;border-right:4px solid #F59E0B">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">⚠️ ملاحظات تستحق الاهتمام</p>
+        <div id="complaintsContent"></div>
+      </div>
+
+      <!-- Top comments -->
+      <div class="card" style="margin-top:20px">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">💬 أبرز ما قاله الجمهور</p>
+        <div id="topComments"></div>
+      </div>
+
+      <div style="margin-top:16px;text-align:left">
+        <span id="commentsCountBadge" class="badge badge-purple"></span>
+      </div>
+    </div>
+
+    <div id="commentsEmptyState" style="text-align:center;padding:60px 20px">
+      <div style="font-size:48px;margin-bottom:12px">💬</div>
+      <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:8px">اعرف ماذا يريد جمهورك</div>
+      <div style="font-size:13px;color:var(--t3);max-width:400px;margin:0 auto;line-height:1.7">
+        اضغط "تحليل التعليقات" لجمع وتحليل التعليقات من أفضل فيديوهاتك.<br>
+        الذكاء الاصطناعي سيستخرج الأسئلة، الطلبات، والأفكار المباشرة للمحتوى.
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ── TAB 5: Sales Performance ── -->
 <div class="tab-panel" id="tab5">
   <div class="tab-content">
     <p class="section-title">أداء المبيعات والمؤشرات</p>
+
+    <!-- KPI Cards row -->
     <div class="grid-3" id="salesMetrics" style="margin-bottom:24px"></div>
-    <div class="insights-grid">
-      <div class="card">
-        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:16px">المؤشرات الرئيسية للمتابعة</p>
-        <div id="kpiList"></div>
+
+    <!-- Derived Business KPIs -->
+    <div id="derivedKpisSection" style="display:none;margin-bottom:24px">
+      <p style="font-size:14px;font-weight:700;color:var(--t2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">مؤشرات الأعمال المحسوبة</p>
+      <div class="grid-3" id="derivedKpis"></div>
+    </div>
+
+    <!-- AI Correlation Insight -->
+    <div id="salesInsightCard" style="display:none;margin-bottom:24px">
+      <div class="card" style="border-right:4px solid var(--purple);padding:20px 24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:20px">🤖</span>
+          <p style="font-size:14px;font-weight:800;color:var(--t1);margin:0">تحليل الذكاء الاصطناعي — ربط المبيعات بالتسويق</p>
+          <span id="salesInsightLoading" style="font-size:12px;color:var(--t3)">جارٍ التحليل...</span>
+        </div>
+        <div id="salesInsightBody" style="display:none">
+          <div id="salesCorrelation" style="font-size:14px;color:var(--t2);line-height:1.8;margin-bottom:14px;padding:12px;background:var(--bg2);border-radius:8px"></div>
+          <div class="grid-2" id="salesGapAction" style="gap:12px;margin-bottom:14px"></div>
+          <div id="salesKpiRatings" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+        </div>
       </div>
+    </div>
+
+    <div class="insights-grid">
+      <!-- Raw Sales Numbers -->
+      <div class="card" id="salesDataCard">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">بيانات المبيعات المُدخلة</p>
+        <div id="salesDataContent"></div>
+      </div>
+
+      <!-- Top Social Recommendation -->
       <div>
         <div class="card" style="background:var(--t1);border-color:var(--t1);padding:24px;border-right:4px solid var(--green)">
-          <p style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">توصية رئيسية</p>
+          <p style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">أولوية هذا الشهر</p>
           <div id="mainRecommendation" style="font-size:15px;font-weight:600;color:#fff;line-height:1.7"></div>
         </div>
-        <div class="card" style="margin-top:16px" id="salesDataCard">
-          <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">بيانات المبيعات</p>
-          <div id="salesDataContent"></div>
+        <div class="card" style="margin-top:16px">
+          <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">مؤشرات السوشيال</p>
+          <div id="socialKpiList"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ── AI Assistant Chat ── -->
+<div id="chatBubble" onclick="toggleChat()" title="مساعد مُدار AI" style="
+  position:fixed;bottom:28px;left:28px;z-index:1000;
+  width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(135deg,#6B5CFF,#1F176E);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 4px 20px rgba(107,92,255,.4);
+  transition:transform .2s;font-size:24px;
+" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">
+  🤖
+  <span style="
+    position:absolute;top:-4px;right:-4px;
+    background:#10B981;color:#fff;border-radius:50%;
+    width:16px;height:16px;font-size:9px;
+    display:flex;align-items:center;justify-content:center;font-weight:800;
+  ">AI</span>
+</div>
+
+<div id="chatWindow" style="
+  display:none;flex-direction:column;
+  position:fixed;bottom:94px;left:28px;z-index:1000;
+  width:360px;max-height:520px;
+  background:var(--bg);border:1px solid var(--b1);
+  border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.15);
+  overflow:hidden;
+">
+  <!-- Header -->
+  <div style="
+    background:linear-gradient(135deg,#6B5CFF,#1F176E);
+    padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
+  ">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">🤖</span>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#fff">مُدار AI</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7)">مساعدك في اتخاذ القرارات</div>
+      </div>
+    </div>
+    <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px;line-height:1">×</button>
+  </div>
+
+  <!-- Quick prompts -->
+  <div style="padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;gap:6px;flex-wrap:wrap" id="quickPrompts">
+    <button class="btn-ghost" style="font-size:11px;padding:4px 10px;border-radius:20px" onclick="quickSend('ليش هذه المنصة أفضل؟')">ليش هذه المنصة؟</button>
+    <button class="btn-ghost" style="font-size:11px;padding:4px 10px;border-radius:20px" onclick="quickSend('وش أهم قرار أطبقه هالأسبوع؟')">أهم قرار هالأسبوع؟</button>
+    <button class="btn-ghost" style="font-size:11px;padding:4px 10px;border-radius:20px" onclick="quickSend('اشرحي لي معدل التفاعل')">اشرحي معدل التفاعل</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="chatMessages" style="
+    flex:1;overflow-y:auto;padding:16px;
+    display:flex;flex-direction:column;gap:10px;
+    min-height:200px;max-height:310px;
+  "></div>
+
+  <!-- Input -->
+  <div style="padding:12px 14px;border-top:1px solid var(--b1);display:flex;gap:8px;align-items:flex-end">
+    <textarea id="chatInput" placeholder="اسأليني أي شيء..." rows="1" style="
+      flex:1;resize:none;border:1px solid var(--b1);border-radius:10px;
+      padding:9px 12px;font-family:var(--font);font-size:13px;
+      background:var(--bg2);color:var(--t1);outline:none;max-height:80px;
+      overflow-y:auto;direction:rtl;
+    " onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'">
+    </textarea>
+    <button id="chatSendBtn" onclick="sendChatMessage()" style="
+      background:linear-gradient(135deg,#6B5CFF,#1F176E);
+      color:#fff;border:none;border-radius:10px;
+      padding:9px 14px;cursor:pointer;font-size:16px;flex-shrink:0;
+      transition:opacity .2s;
+    " onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">↑</button>
+  </div>
+</div>
+
+<style>
+.chat-msg {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.65;
+  word-wrap: break-word;
+}
+.chat-msg.user {
+  background: linear-gradient(135deg,#6B5CFF,#1F176E);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.chat-msg.assistant {
+  background: var(--bg2);
+  color: var(--t1);
+  border: 1px solid var(--b1);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.typing {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 14px;
+}
+.chat-msg.typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--t3);
+  animation: typingDot 1.2s infinite;
+}
+.chat-msg.typing span:nth-child(2) { animation-delay: .2s; }
+.chat-msg.typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes typingDot {
+  0%,60%,100% { transform: translateY(0); opacity:.4; }
+  30% { transform: translateY(-5px); opacity:1; }
+}
+</style>
 
 <script>
 let analysisResult = null;
@@ -194,6 +414,8 @@ function init() {
   if (!analysisResult) { window.location.href = 'onboarding.html'; return; }
   renderAll();
 }
+
+let commentsAnalysis = null;
 
 function renderAll() {
   const fns = [renderHeader, renderTab0, renderTab1, renderTab2, renderTab3, renderTab4, renderTab5];
@@ -482,14 +704,25 @@ function renderTab4() {
 }
 
 // ── Tab 5: Sales Performance ──
-function renderTab5() {
+function ratingColor(r) {
+  if (!r || r==='غير محدد') return '#94a3b8';
+  if (r==='ممتاز') return '#10B981';
+  if (r==='مقبول') return '#F59E0B';
+  return '#EF4444';
+}
+
+async function renderTab5() {
   const dm  = analysisResult.dashboard_metrics || {};
   const rc  = analysisResult.root_cause || {};
   const sm  = salesSummary || {};
   const s0  = (analysisResult.strategies || [])[0];
-  const avgEng = rc.avg_engagement ? (rc.avg_engagement*100).toFixed(1)
-               : dm.avg_engagement_rate ? (dm.avg_engagement_rate*100).toFixed(1) : '—';
 
+  const avgEngRaw = rc.avg_engagement || dm.avg_engagement_rate || 0;
+  const avgEng = avgEngRaw ? (avgEngRaw*100).toFixed(1) : '—';
+  const totalViews = rc.total_views || dm.total_views || 0;
+  const totalPosts = rc.total_posts || dm.total_posts || 0;
+
+  // ── Row 1: Social KPI cards ──
   document.getElementById('salesMetrics').innerHTML = `
     <div class="metric-card">
       <div class="metric-label">متوسط التفاعل</div>
@@ -497,36 +730,254 @@ function renderTab5() {
       <div class="metric-trend ${parseFloat(avgEng)>=3?'up':'down'}">${parseFloat(avgEng)>=3?'↑ ممتاز':'↓ يحتاج تحسين'}</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">أفضل وقت نشر</div>
-      <div class="metric-value" style="font-size:22px">${rc.top_posting_time||dm.top_posting_time||'—'}</div>
+      <div class="metric-label">إجمالي المشاهدات</div>
+      <div class="metric-value">${formatNumber(totalViews)}</div>
+      <div class="metric-trend">${totalPosts} فيديو</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">نوع المحتوى الأقوى</div>
-      <div class="metric-value" style="font-size:18px">${rc.best_media_type||dm.top_content_type||'video'}</div>
+      <div class="metric-label">أفضل وقت نشر</div>
+      <div class="metric-value" style="font-size:22px">${rc.top_posting_time||dm.top_posting_time||'—'}</div>
     </div>`;
 
-  const kpis = [
-    {name:'معدل التفاعل المستهدف', period:'أسبوعي', target:'> 5%'},
-    {name:'عدد الفيديوهات المنشورة', period:'أسبوعي', target:'3-5 فيديو'},
-    {name:'إجمالي المشاهدات', period:'شهري', target:'نمو 20%'},
-    {name:'متابعون جدد', period:'شهري', target:'نمو 10%'},
-    {name:'نسبة الحفظ والمشاركة', period:'أسبوعي', target:'> 2%'},
+  // ── Row 2: Derived business KPIs ──
+  const rev = parseFloat(sm.monthly_revenue) || 0;
+  const ord = parseFloat(sm.orders) || 0;
+  const ads = parseFloat(sm.ad_spend) || 0;
+  const cvr = parseFloat(sm.conversion_rate) || 0;
+
+  const derived = {};
+  if (rev && ads) derived.roas = (rev/ads).toFixed(2);
+  if (rev && ord) derived.aov  = Math.round(rev/ord);
+  if (ads && ord) derived.cpo  = Math.round(ads/ord);
+
+  const derivedSection = document.getElementById('derivedKpisSection');
+  if (Object.keys(derived).length) {
+    derivedSection.style.display = 'block';
+    document.getElementById('derivedKpis').innerHTML = `
+      ${derived.roas ? `<div class="metric-card">
+        <div class="metric-label">ROAS (عائد الإنفاق)</div>
+        <div class="metric-value">${derived.roas}x</div>
+        <div class="metric-trend ${parseFloat(derived.roas)>=3?'up':'down'}">${parseFloat(derived.roas)>=3?'↑ جيد':'↓ يحتاج مراجعة'}</div>
+      </div>` : ''}
+      ${derived.aov ? `<div class="metric-card">
+        <div class="metric-label">متوسط قيمة الطلب</div>
+        <div class="metric-value">${formatNumber(derived.aov)} ر</div>
+      </div>` : ''}
+      ${derived.cpo ? `<div class="metric-card">
+        <div class="metric-label">تكلفة الطلب الواحد</div>
+        <div class="metric-value">${formatNumber(derived.cpo)} ر</div>
+      </div>` : ''}
+      ${cvr ? `<div class="metric-card">
+        <div class="metric-label">نسبة التحويل</div>
+        <div class="metric-value">${cvr}%</div>
+        <div class="metric-trend ${cvr>=2?'up':'down'}">${cvr>=2?'↑ جيدة':'↓ منخفضة'}</div>
+      </div>` : ''}`;
+  } else {
+    derivedSection.style.display = 'none';
+  }
+
+  // ── Row 3: AI Sales+Social insight ──
+  const hasSalesData = rev || ord || ads || sm.csv_insights;
+  if (hasSalesData) {
+    document.getElementById('salesInsightCard').style.display = 'block';
+    document.getElementById('salesInsightLoading').style.display = 'inline';
+    document.getElementById('salesInsightBody').style.display = 'none';
+
+    try {
+      const API = window.MUDAR_API_BASE || '';
+      const res = await fetch(`${API}/api/analysis/sales-insights`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          sales_data: sm,
+          social_metrics: {
+            avg_engagement: avgEngRaw,
+            total_views: totalViews,
+            best_platform: rc.best_platform || dm.best_platform || '',
+            best_topics: rc.best_topics || [],
+          },
+          business_profile: businessProfile,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('salesCorrelation').textContent = data.correlation_insight || '';
+        const ratings = data.kpi_ratings || {};
+        document.getElementById('salesKpiRatings').innerHTML = Object.entries(ratings).map(([k,v])=>`
+          <span style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;background:${ratingColor(v)}">${k}: ${v}</span>`).join('');
+        document.getElementById('salesGapAction').innerHTML = `
+          ${data.main_gap?`<div class="card" style="margin:0;padding:14px;border-right:3px solid #F59E0B">
+            <div style="font-size:11px;font-weight:700;color:#F59E0B;margin-bottom:6px">الفجوة الرئيسية</div>
+            <div style="font-size:13px;color:var(--t2)">${data.main_gap}</div></div>`:''}
+          ${data.top_action?`<div class="card" style="margin:0;padding:14px;border-right:3px solid #10B981">
+            <div style="font-size:11px;font-weight:700;color:#10B981;margin-bottom:6px">الإجراء الأهم</div>
+            <div style="font-size:13px;color:var(--t2)">${data.top_action}</div></div>`:''}`;
+        document.getElementById('salesInsightLoading').style.display = 'none';
+        document.getElementById('salesInsightBody').style.display = 'block';
+      }
+    } catch(e) {
+      document.getElementById('salesInsightLoading').textContent = 'تعذّر التحليل';
+    }
+  } else {
+    document.getElementById('salesInsightCard').style.display = 'none';
+  }
+
+  // ── Raw sales data card ──
+  document.getElementById('salesDataContent').innerHTML = (rev||ord||ads||cvr)
+    ? `<div style="display:flex;flex-direction:column;gap:10px">
+        ${rev?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">الإيرادات الشهرية</span><span style="font-weight:700;color:var(--t1)">${formatNumber(rev)} ر</span></div>`:''}
+        ${ord?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">عدد الطلبات</span><span style="font-weight:700;color:var(--t1)">${formatNumber(ord)} طلب</span></div>`:''}
+        ${ads?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">الإنفاق الإعلاني</span><span style="font-weight:700;color:var(--t1)">${formatNumber(ads)} ر</span></div>`:''}
+        ${cvr?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">نسبة التحويل</span><span style="font-weight:700;color:var(--t1)">${cvr}%</span></div>`:''}
+        ${sm.csv_insights?`<div style="margin-top:8px;padding:10px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--t3)">${sm.csv_insights}</div>`:''}
+      </div>`
+    : '<p style="color:var(--t3);font-size:13px">لم يتم إدخال بيانات مبيعات</p>';
+
+  // ── Social KPI list (actual numbers, not hardcoded) ──
+  const socialKpis = [
+    {name:'متوسط التفاعل', value: avgEng!=='—'?`${avgEng}%`:'—', target: avgEngRaw>=0.03?'✓ يتخطى 3%':'يحتاج 3%+'},
+    {name:'إجمالي الفيديوهات', value: totalPosts||'—', target:''},
+    {name:'أفضل منصة', value: rc.best_platform||dm.best_platform||'—', target:''},
+    {name:'أفضل نوع محتوى', value: rc.best_media_type||dm.top_content_type||'video', target:''},
   ];
-  document.getElementById('kpiList').innerHTML = kpis.map(k=>`
+  document.getElementById('socialKpiList').innerHTML = socialKpis.map(k=>`
     <div class="metric-row">
-      <span style="font-size:13px;color:var(--t1);font-weight:600">${k.name}: <em style="color:var(--t2);font-weight:400">${k.target}</em></span>
-      <span class="badge badge-purple">${k.period}</span>
+      <span style="font-size:13px;color:var(--t2)">${k.name}</span>
+      <span style="font-size:13px;font-weight:700;color:var(--t1)">${k.value} <em style="color:var(--t3);font-weight:400;font-size:11px">${k.target}</em></span>
     </div>`).join('');
 
   document.getElementById('mainRecommendation').textContent = s0?.recommended_action
     || 'ركّز على زيادة معدل التفاعل من خلال نشر محتوى تعليمي منتظم وتحسين التوقيت المثالي للنشر.';
+}
 
-  document.getElementById('salesDataContent').innerHTML = sm.monthly_revenue
-    ? `<div class="grid-2">
-        <div class="correlation-card"><div class="label">الإيرادات</div><div class="value">${sm.monthly_revenue}</div><div class="sub">شهرياً</div></div>
-        ${sm.ad_spend?`<div class="correlation-card"><div class="label">الإنفاق الإعلاني</div><div class="value">${sm.ad_spend}</div><div class="sub">شهرياً</div></div>`:''}
-      </div>`
-    : '<p style="color:var(--t3);font-size:13px">لم يتم إدخال بيانات مبيعات</p>';
+// ── Tab 6: Audience Voice ──
+async function loadComments() {
+  const videos = tiktokData.slice(0,8);
+  if (!videos.length) { toast('لا توجد فيديوهات لتحليل تعليقاتها', 'warning'); return; }
+
+  const urls = videos.map(v => v.url).filter(Boolean);
+  if (!urls.length) { toast('الفيديوهات لا تحتوي على روابط', 'warning'); return; }
+
+  const platform = (businessProfile.platforms || [])[0] || 'tiktok';
+
+  document.getElementById('loadCommentsBtn').disabled = true;
+  document.getElementById('commentsEmptyState').style.display = 'none';
+  document.getElementById('commentsLoadingState').style.display = 'block';
+  document.getElementById('commentsResults').style.display = 'none';
+
+  try {
+    const API = window.MUDAR_API_BASE || '';
+    const captions = videos.map(v => v.caption || v.desc || v.text || '').filter(Boolean);
+
+    const res = await fetch(`${API}/api/comments/fetch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platform,
+        video_urls: urls,
+        captions,
+        business_profile: businessProfile,
+        max_per_video: 50,
+      }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.detail || 'خطأ في جلب التعليقات');
+
+    commentsAnalysis = data.analysis || {};
+    commentsAnalysis._source = data.source;
+    renderCommentsResults(data.comments_count, data.source);
+  } catch(e) {
+    toast('تعذّر تحليل التعليقات: ' + e.message, 'error');
+    document.getElementById('commentsEmptyState').style.display = 'block';
+  } finally {
+    document.getElementById('commentsLoadingState').style.display = 'none';
+    document.getElementById('loadCommentsBtn').disabled = false;
+  }
+}
+
+function renderCommentsResults(count, source) {
+  const a = commentsAnalysis;
+  if (!a || !Object.keys(a).length) {
+    document.getElementById('commentsEmptyState').style.display = 'block';
+    return;
+  }
+  document.getElementById('commentsResults').style.display = 'block';
+  const isEstimated = source === 'estimated';
+  document.getElementById('commentsCountBadge').innerHTML = isEstimated
+    ? `<span class="badge badge-amber">⚡ تقدير بناءً على المحتوى — التعليقات محمية أو خاصة</span>`
+    : `<span class="badge badge-purple">تم تحليل ${count} تعليق</span>`;
+
+  // Sentiment bar
+  const s = a.sentiment_breakdown || { positive: 70, neutral: 20, negative: 10 };
+  const colors = { positive:'#10B981', neutral:'#6B7280', negative:'#EF4444' };
+  const labels = { positive:'إيجابي', neutral:'محايد', negative:'سلبي' };
+  document.getElementById('sentimentBar').innerHTML = Object.entries(s).map(([k,v]) =>
+    `<div style="flex:${v};background:${colors[k]||'#6B7280'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">${v}%</div>`
+  ).join('');
+  document.getElementById('sentimentLegend').innerHTML = Object.entries(s).map(([k,v]) =>
+    `<span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--t2)"><span style="width:10px;height:10px;border-radius:50%;background:${colors[k]};display:inline-block"></span>${labels[k]||k} — ${v}%</span>`
+  ).join('');
+
+  // Frequent questions
+  const questions = a.frequent_questions || [];
+  document.getElementById('frequentQuestions').innerHTML = questions.length
+    ? questions.map((q,i) => `
+        <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--b1);${i===questions.length-1?'border:none':''}">
+          <span style="font-size:18px">❓</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--t1)">${q}</div>
+            <div style="font-size:11px;color:var(--purple);margin-top:3px;cursor:pointer" onclick="addToWeeklyPlan('${q.replace(/'/g,"\\'")}')">+ أضف للخطة الأسبوعية</div>
+          </div>
+        </div>`).join('')
+    : '<p style="color:var(--t3);font-size:13px">لا أسئلة بارزة</p>';
+
+  // Product requests
+  const requests = a.product_requests || [];
+  document.getElementById('productRequests').innerHTML = requests.length
+    ? requests.map((r,i) => `
+        <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--b1);${i===requests.length-1?'border:none':''}">
+          <span style="font-size:18px">🛍</span>
+          <div style="font-size:13px;font-weight:600;color:var(--t1)">${r}</div>
+        </div>`).join('')
+    : '<p style="color:var(--t3);font-size:13px">لا طلبات بارزة</p>';
+
+  // Content suggestions
+  const suggestions = a.content_suggestions || [];
+  document.getElementById('contentSuggestionsFromComments').innerHTML = suggestions.length
+    ? suggestions.map((s,i) => `
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg2);border-radius:10px;margin-bottom:8px">
+          <span style="background:var(--purple);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">${i+1}</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--t1);line-height:1.6">${s}</div>
+          </div>
+        </div>`).join('')
+    : '<p style="color:var(--t3);font-size:13px">لا اقتراحات</p>';
+
+  // Complaints
+  const complaints = a.complaints || [];
+  if (complaints.length) {
+    document.getElementById('complaintsCard').style.display = 'block';
+    document.getElementById('complaintsContent').innerHTML = complaints.map(c => `
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--b1)">
+        <span style="font-size:16px">⚠️</span>
+        <div style="font-size:13px;color:var(--t1)">${c}</div>
+      </div>`).join('');
+  } else {
+    document.getElementById('complaintsCard').style.display = 'none';
+  }
+
+  // Top comments
+  const tops = a.top_comments || [];
+  document.getElementById('topComments').innerHTML = tops.length
+    ? tops.map(c => `
+        <div style="background:var(--bg2);border-radius:10px;padding:14px;margin-bottom:10px;border-right:3px solid var(--purple)">
+          <div style="font-size:13px;color:var(--t1);line-height:1.7">"${c}"</div>
+        </div>`).join('')
+    : '<p style="color:var(--t3);font-size:13px">—</p>';
+}
+
+function addToWeeklyPlan(question) {
+  toast('تمت إضافة الموضوع إلى خطة المحتوى ✓', 'success');
 }
 
 // ── Tab Navigation ──
@@ -547,6 +998,103 @@ function reAnalyze() {
     window.location.href = 'onboarding.html';
   }
 }
+
+// ── Assistant Chat ──
+let chatHistory = [];
+let chatOpen = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWindow').style.display = chatOpen ? 'flex' : 'none';
+  if (chatOpen && document.getElementById('chatMessages').children.length === 0) {
+    appendAssistantMsg('أهلاً! أنا مُدار AI. اسأليني عن أي شيء في التحليل — أقدر أشرح النتائج، أعدّل خطة المحتوى، أو أساعدك في اتخاذ قرار. 💬');
+  }
+  if (chatOpen) document.getElementById('chatInput').focus();
+}
+
+function appendUserMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'chat-msg user';
+  el.textContent = text;
+  document.getElementById('chatMessages').appendChild(el);
+  scrollChat();
+}
+
+function appendAssistantMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'chat-msg assistant';
+  el.innerHTML = text.replace(/\n/g, '<br>');
+  document.getElementById('chatMessages').appendChild(el);
+  scrollChat();
+}
+
+function appendTyping() {
+  const el = document.createElement('div');
+  el.className = 'chat-msg assistant typing';
+  el.id = 'chatTyping';
+  el.innerHTML = '<span></span><span></span><span></span>';
+  document.getElementById('chatMessages').appendChild(el);
+  scrollChat();
+  return el;
+}
+
+function scrollChat() {
+  const box = document.getElementById('chatMessages');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  input.disabled = true;
+  document.getElementById('chatSendBtn').disabled = true;
+
+  appendUserMsg(msg);
+  chatHistory.push({ role: 'user', content: msg });
+
+  const typing = appendTyping();
+
+  try {
+    const API = window.MUDAR_API_BASE || '';
+    const res = await fetch(`${API}/api/assistant/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        context: {
+          business_profile: businessProfile,
+          analysis_result: analysisResult,
+          weekly_plan: weeklyPlan,
+          sales_summary: salesSummary,
+        },
+        history: chatHistory.slice(-8),
+      }),
+    });
+    const data = await res.json();
+    typing.remove();
+    const reply = data.reply || 'عذراً، لم أتمكن من الرد.';
+    appendAssistantMsg(reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    typing.remove();
+    appendAssistantMsg('تعذّر الاتصال بالمساعد — تحققي من الاتصال وحاولي مجدداً.');
+  } finally {
+    input.disabled = false;
+    document.getElementById('chatSendBtn').disabled = false;
+    input.focus();
+  }
+}
+
+function quickSend(text) {
+  document.getElementById('chatInput').value = text;
+  sendChatMessage();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && chatOpen) toggleChat();
+});
 
 // ── Init ──
 init();

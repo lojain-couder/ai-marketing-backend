@@ -149,6 +149,68 @@ async def fetch_social_media(platform: str, username: str, limit: int = 30) -> d
         }
 
 
+# ── Comments fetcher ─────────────────────────────────────────────────────────
+
+COMMENT_ACTOR_IDS = {
+    "tiktok":    "clockworks~tiktok-comments-scraper",
+    "instagram": "apify~instagram-comment-scraper",
+}
+
+
+def _norm_tiktok_comment(item: dict) -> dict:
+    return {
+        "text":   item.get("text") or item.get("comment") or "",
+        "likes":  item.get("diggCount") or item.get("likes") or 0,
+        "author": item.get("uniqueId") or item.get("user") or "",
+    }
+
+
+def _norm_instagram_comment(item: dict) -> dict:
+    return {
+        "text":   item.get("text") or item.get("comment") or "",
+        "likes":  item.get("likesCount") or 0,
+        "author": item.get("ownerUsername") or "",
+    }
+
+
+_COMMENT_NORMALIZERS = {
+    "tiktok":    _norm_tiktok_comment,
+    "instagram": _norm_instagram_comment,
+}
+
+
+async def fetch_comments(platform: str, video_urls: list[str], max_per_video: int = 50) -> list[dict]:
+    platform = platform.lower().strip()
+    if platform not in COMMENT_ACTOR_IDS:
+        raise ValueError(f"المنصة '{platform}' غير مدعومة للكومنتس")
+    if not video_urls:
+        return []
+
+    actor_id  = COMMENT_ACTOR_IDS[platform]
+    normalize = _COMMENT_NORMALIZERS[platform]
+
+    if platform == "tiktok":
+        run_input = {"postURLs": video_urls[:10], "maxComments": max_per_video}
+    else:
+        run_input = {"directUrls": video_urls[:10], "resultsLimit": max_per_video * len(video_urls[:10])}
+
+    url = f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items"
+
+    async with httpx.AsyncClient(timeout=300.0) as client:
+        response = await client.post(
+            url,
+            json=run_input,
+            params={"token": APIFY_TOKEN},
+        )
+        if response.status_code not in (200, 201):
+            raise RuntimeError(f"Apify comments error {response.status_code}: {response.text[:400]}")
+        raw = response.json()
+        if not isinstance(raw, list):
+            return []
+        items = [r for r in raw if isinstance(r, dict) and "error" not in r]
+        return [normalize(item) for item in items if item.get("text") or item.get("comment")]
+
+
 # ── Legacy wrapper ────────────────────────────────────────────────────────────
 
 async def fetch_tiktok_videos(
