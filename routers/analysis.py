@@ -16,6 +16,10 @@ class SalesInsightsRequest(BaseModel):
     business_profile: dict = {}
 
 
+class StarterPlanRequest(BaseModel):
+    business_profile: dict
+
+
 @router.post("/run")
 async def run_analysis(request: AnalysisRequest):
     """
@@ -37,6 +41,19 @@ async def run_analysis(request: AnalysisRequest):
         result = pipeline.run(normalized)
         safe = json.loads(json.dumps(result, default=str))
         return {"success": True, **safe}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/starter-plan")
+async def starter_plan(req: StarterPlanRequest):
+    if not req.business_profile:
+        raise HTTPException(status_code=400, detail="يجب إدخال معلومات البزنس")
+    try:
+        result = groq.generate_starter_plan(req.business_profile)
+        if not result:
+            raise HTTPException(status_code=500, detail="تعذّر إنشاء الخطة — حاولي مرة ثانية")
+        return {"success": True, **result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -75,9 +75,9 @@
   <span id="navStepLabel" style="font-size:13px;color:var(--t3);font-weight:600">الخطوة 1 من 5</span>
 </nav>
 
-<div class="onboarding-wrap">
+<div class="onboarding-wrap" id="onboardingWrap">
 
-  <!-- Progress Bar -->
+  <!-- Progress Bar (existing businesses) -->
   <div class="progress-bar" id="progressBar">
     <div class="step-item">
       <div class="step-circle active" id="sc1">1</div>
@@ -102,6 +102,54 @@
     <div class="step-item">
       <div class="step-circle inactive" id="sc5">5</div>
       <div class="step-label" id="sl5">التحليل</div>
+    </div>
+  </div>
+
+  <!-- Progress Bar (new businesses) -->
+  <div class="progress-bar" id="progressBarNew" style="display:none">
+    <div class="step-item">
+      <div class="step-circle active" id="scN1">1</div>
+      <div class="step-label active" id="slN1">البزنس</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="scN2">2</div>
+      <div class="step-label" id="slN2">التفاصيل</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-circle inactive" id="scN3">3</div>
+      <div class="step-label" id="slN3">الخطة</div>
+    </div>
+  </div>
+
+  <!-- ── STEP 0: Type Selection ── -->
+  <div class="step active" id="step0">
+    <div class="card" style="text-align:center;padding:48px 32px">
+      <div style="font-size:42px;margin-bottom:16px">🚀</div>
+      <h2 style="font-size:26px;font-weight:800;color:var(--t1);margin-bottom:8px">أهلاً بك في مُدار</h2>
+      <p style="font-size:15px;color:var(--t2);margin-bottom:40px;line-height:1.7">ابدئي بتحديد وضع بزنسك على السوشيال ميديا</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:520px;margin:0 auto">
+        <div onclick="selectBizType('existing')" style="
+          border:2px solid var(--b1);border-radius:16px;padding:28px 20px;cursor:pointer;
+          transition:all .2s;background:var(--bg);text-align:center
+        " onmouseenter="this.style.borderColor='var(--acc)';this.style.background='var(--bg2)'"
+           onmouseleave="this.style.borderColor='var(--b1)';this.style.background='var(--bg)'">
+          <div style="font-size:36px;margin-bottom:12px">📊</div>
+          <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px">بزنس موجود</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6">عندي حسابات سوشيال ميديا فعّالة وأبغى أحلل أدائها</div>
+        </div>
+        <div onclick="selectBizType('new')" style="
+          border:2px solid var(--b1);border-radius:16px;padding:28px 20px;cursor:pointer;
+          transition:all .2s;background:var(--bg);text-align:center;position:relative
+        " onmouseenter="this.style.borderColor='#6B5CFF';this.style.background='#F5F3FF'"
+           onmouseleave="this.style.borderColor='var(--b1)';this.style.background='var(--bg)'">
+          <div style="position:absolute;top:12px;left:12px;background:#6B5CFF;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px">جديد</div>
+          <div style="font-size:36px;margin-bottom:12px">✨</div>
+          <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px">بزنس جديد</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6">أبدأ من الصفر وأبغى خطة محتوى مخصصة لبزنسي</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -203,6 +251,86 @@
 
       <div class="step-footer">
         <button class="btn-green-lg" onclick="goStep1()">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 1B: New Business Extra Info ── -->
+  <div class="step" id="step1B">
+    <div class="card">
+      <div class="step-header">
+        <h2>بعض التفاصيل الإضافية</h2>
+        <p>تساعد الذكاء الاصطناعي على بناء خطة مخصصة لبزنسك تحديداً</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ما هي ميزانيتك الشهرية للمحتوى؟</label>
+        <select class="input" id="newBizBudget">
+          <option value="">اختر النطاق</option>
+          <option value="أقل من 500 ريال">أقل من 500 ريال</option>
+          <option value="500 - 2000 ريال">500 - 2000 ريال</option>
+          <option value="2000 - 5000 ريال">2000 - 5000 ريال</option>
+          <option value="أكثر من 5000 ريال">أكثر من 5000 ريال</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">منافسون أو حسابات تعجبك (اختياري)</label>
+        <input class="input" type="text" id="newBizCompetitors" placeholder="مثال: @brand1، @brand2 — أو أسماء متاجر تعجبك">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">أي منصات تفضل البدء فيها؟</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
+            <input type="checkbox" value="TikTok" class="platform-check" style="accent-color:#6B5CFF"> 🎵 TikTok
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
+            <input type="checkbox" value="Instagram" class="platform-check" style="accent-color:#6B5CFF"> 📸 Instagram
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
+            <input type="checkbox" value="Snapchat" class="platform-check" style="accent-color:#6B5CFF"> 👻 Snapchat
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
+            <input type="checkbox" value="X" class="platform-check" style="accent-color:#6B5CFF"> 𝕏 X
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">هل عندك مصوّر أو تنتجين المحتوى بنفسك؟</label>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
+            <input type="radio" name="contentProd" value="self" style="accent-color:#6B5CFF"> بنفسي
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
+            <input type="radio" name="contentProd" value="team" style="accent-color:#6B5CFF"> فريق / مصوّر
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
+            <input type="radio" name="contentProd" value="both" style="accent-color:#6B5CFF"> الاثنين
+          </label>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn-ghost" onclick="setStepNew(1)" style="flex:0.4">رجوع</button>
+        <button class="btn-green-lg" onclick="goStep1B()">إنشاء الخطة ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 1C: Generating New Plan ── -->
+  <div class="step" id="step1C">
+    <div class="card" style="text-align:center;padding:60px 32px">
+      <div class="spinner" style="margin:0 auto 24px"></div>
+      <h2 style="font-size:22px;font-weight:800;color:var(--t1);margin-bottom:8px">الذكاء الاصطناعي يبني خطتك</h2>
+      <p style="font-size:14px;color:var(--t2);margin-bottom:32px">يحلل بزنسك ويبني استراتيجية مخصصة...</p>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto;text-align:right">
+        <div id="nls1" class="loading-step">تحليل طبيعة البزنس...</div>
+        <div id="nls2" class="loading-step">اختيار المنصة المناسبة...</div>
+        <div id="nls3" class="loading-step">بناء محاور المحتوى...</div>
+        <div id="nls4" class="loading-step">إعداد خطة أول 30 يوم...</div>
+        <div id="nls5" class="loading-step">كتابة hooks وسكريبتات جاهزة...</div>
       </div>
     </div>
   </div>
@@ -440,8 +568,49 @@
 loadState();
 let currentStep = 1;
 let selectedVideos = new Set();
+let bizType = 'existing'; // 'existing' | 'new'
 
-// ── Step Navigation ──
+// ── Business Type Selection ──
+function selectBizType(type) {
+  bizType = type;
+  window.appState.bizType = type;
+  saveState();
+  if (type === 'new') {
+    document.getElementById('progressBar').style.display = 'none';
+    document.getElementById('progressBarNew').style.display = 'flex';
+    document.getElementById('navStepLabel').textContent = 'الخطوة 1 من 3';
+  } else {
+    document.getElementById('progressBar').style.display = 'flex';
+    document.getElementById('progressBarNew').style.display = 'none';
+    document.getElementById('navStepLabel').textContent = 'الخطوة 1 من 5';
+  }
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step1').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── New Business Progress ──
+function updateProgressNew(n) {
+  for (let i = 1; i <= 3; i++) {
+    const sc = document.getElementById('scN' + i);
+    const sl = document.getElementById('slN' + i);
+    if (!sc) continue;
+    sc.className = 'step-circle ' + (i < n ? 'done' : i === n ? 'active' : 'inactive');
+    sc.textContent = i < n ? '✓' : i;
+    sl.className = 'step-label' + (i === n ? ' active' : '');
+  }
+}
+
+function setStepNew(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const idMap = { 1: 'step1', 2: 'step1B', 3: 'step1C' };
+  document.getElementById(idMap[n]).classList.add('active');
+  document.getElementById('navStepLabel').textContent = `الخطوة ${n} من 3`;
+  updateProgressNew(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Step Navigation (existing businesses) ──
 function setStep(n) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById('step' + n).classList.add('active');
@@ -450,7 +619,6 @@ function setStep(n) {
   currentStep = n;
   window.appState.currentStep = n;
   saveState();
-  // Expand wrap to full width on step 4 (data table)
   const wrap = document.querySelector('.onboarding-wrap');
   if (n === 4) wrap.classList.add('wide');
   else wrap.classList.remove('wide');
@@ -513,6 +681,7 @@ function goStep1() {
   window.appState.businessProfile = {
     business_name:   name,
     industry:        sector,
+    sector:          sector,
     products:        products,
     target_audience: gender.join(', '),
     age_groups:      getSelectedChips('age').join(', '),
@@ -522,7 +691,59 @@ function goStep1() {
     price_range:     getSelectedChips('price').join(', ')
   };
   saveState();
-  setStep(2);
+  if (bizType === 'new') {
+    setStepNew(2);
+  } else {
+    setStep(2);
+  }
+}
+
+// ── Step 1B: New Business Extra Info ──
+function goStep1B() {
+  const budget      = document.getElementById('newBizBudget').value;
+  const competitors = document.getElementById('newBizCompetitors').value.trim();
+  const platforms   = [...document.querySelectorAll('.platform-check:checked')].map(c => c.value);
+  const prodRadio   = document.querySelector('input[name="contentProd"]:checked');
+  const production  = prodRadio ? prodRadio.value : 'self';
+  Object.assign(window.appState.businessProfile, {
+    monthly_budget:      budget,
+    competitors:         competitors,
+    preferred_platforms: platforms,
+    content_production:  production,
+  });
+  saveState();
+  startNewBizPlan();
+}
+
+async function startNewBizPlan() {
+  setStepNew(3);
+  const steps = ['nls1','nls2','nls3','nls4','nls5'];
+  let si = 0;
+  document.getElementById(steps[0]).classList.add('active');
+  const interval = setInterval(() => {
+    if (si < steps.length - 1) {
+      document.getElementById(steps[si]).classList.remove('active');
+      document.getElementById(steps[si]).classList.add('done');
+      si++;
+      document.getElementById(steps[si]).classList.add('active');
+    }
+  }, 2500);
+  try {
+    const result = await apiCall(() => generateStarterPlan(window.appState.businessProfile));
+    clearInterval(interval);
+    if (result && result.success) {
+      sessionStorage.setItem('starterPlan', JSON.stringify(result));
+      sessionStorage.setItem('businessProfile', JSON.stringify(window.appState.businessProfile));
+      toast('اكتملت الخطة! 🎉', 'success');
+      setTimeout(() => { window.location.href = 'starter-plan.html'; }, 800);
+    } else {
+      throw new Error('فشل');
+    }
+  } catch(e) {
+    clearInterval(interval);
+    toast('حدث خطأ — حاولي مرة ثانية', 'error');
+    setStepNew(2);
+  }
 }
 
 // ── Step 2 ──
@@ -819,21 +1040,27 @@ async function startAnalysis() {
 }
 
 // ── Init ──
-// Guard: require login
 (function() {
   const user = sessionStorage.getItem('mudarUser');
   if (!user) { window.location.href = 'login.html'; return; }
 })();
 
 loadState();
+bizType = window.appState.bizType || 'existing';
+
+// Always start at step0 (type selection)
+document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+document.getElementById('step0').classList.add('active');
+document.getElementById('progressBar').style.display = 'none';
+document.getElementById('progressBarNew').style.display = 'none';
+document.getElementById('navStepLabel').textContent = '';
+
 if (window.appState.businessProfile?.business_name) {
   document.getElementById('bizName').value = window.appState.businessProfile.business_name;
-  if (window.appState.businessProfile.products) {
+  if (window.appState.businessProfile.products)
     document.getElementById('bizProducts').value = window.appState.businessProfile.products;
-  }
-  if (window.appState.businessProfile.industry) {
+  if (window.appState.businessProfile.industry)
     document.getElementById('bizSector').value = window.appState.businessProfile.industry;
-  }
 }
 </script>
 </body>

@@ -86,6 +86,16 @@ async function uploadSales(file) {
   return res.json();
 }
 
+async function generateStarterPlan(businessProfile) {
+  const res = await fetch(`${API_BASE}/api/analysis/starter-plan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ business_profile: businessProfile })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 async function saveBusinessProfile(profile) {
   const res = await fetch(`${API_BASE}/api/business/profile`, {
     method: 'POST',

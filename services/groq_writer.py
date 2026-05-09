@@ -228,6 +228,86 @@ JSON فقط بدون أي نص خارجه."""
             result = self._normalize_sentiment(result)
         return result
 
+    # ── Starter plan for new businesses ──────────────────────────────────────
+
+    def generate_starter_plan(self, business_profile: dict) -> dict:
+        """Generate a complete content strategy for a brand-new business with no social history."""
+        name       = business_profile.get("business_name") or "البزنس"
+        sector     = business_profile.get("sector") or business_profile.get("industry") or "غير محدد"
+        products   = business_profile.get("products") or "غير محدد"
+        audience   = business_profile.get("target_audience") or business_profile.get("target_gender") or "عام"
+        age        = business_profile.get("age_groups") or ""
+        tone       = business_profile.get("brand_tone") or "ودود"
+        goals      = business_profile.get("goals") or "زيادة المبيعات"
+        budget     = business_profile.get("monthly_budget") or "غير محدد"
+        competitors = business_profile.get("competitors") or "غير محدد"
+        platforms_pref = business_profile.get("preferred_platforms") or []
+
+        full_audience = f"{audience} {age}".strip()
+        platforms_line = (
+            f"منصات مفضلة: {', '.join(platforms_pref)}"
+            if platforms_pref else ""
+        )
+
+        prompt = f"""أنتِ استراتيجية تسويق رقمي خبيرة في السوق الخليجي. بزنس جديد يريد البدء من الصفر.
+
+معلومات البزنس:
+- الاسم: {name}
+- القطاع: {sector}
+- المنتجات/الخدمات: {products}
+- الجمهور: {full_audience}
+- الهدف: {goals}
+- النبرة: {tone}
+- الميزانية الشهرية: {budget}
+- منافسون للاستلهام: {competitors}
+{platforms_line}
+
+أرجعي JSON بهذا الهيكل بالضبط:
+{{
+  "recommended_platform": {{
+    "primary": "tiktok أو instagram أو snapchat",
+    "primary_reason": "سبب مرتبط بالمنتج والجمهور (جملتان)",
+    "secondary": "المنصة الثانية",
+    "secondary_reason": "السبب (جملة)",
+    "platform_comparison": [
+      {{"platform": "TikTok", "fit_score": 85, "reason": "سبب قصير"}},
+      {{"platform": "Instagram", "fit_score": 70, "reason": "سبب قصير"}},
+      {{"platform": "Snapchat", "fit_score": 55, "reason": "سبب قصير"}}
+    ]
+  }},
+  "content_pillars": [
+    {{"title": "اسم المحور", "description": "وصف المحور", "example_idea": "مثال محتوى", "frequency": "مرتان/أسبوع"}}
+  ],
+  "monthly_plan": [
+    {{
+      "week": 1,
+      "theme": "موضوع الأسبوع",
+      "days": [
+        {{"day": "الأحد", "content_type": "فيديو تعليمي", "idea": "فكرة المحتوى", "hook": "جملة الافتتاح الجذابة", "platform": "TikTok"}}
+      ]
+    }}
+  ],
+  "ready_hooks": [
+    {{"hook": "نص الـ hook جاهز للقراءة أمام الكاميرا", "content_type": "educational", "platform": "TikTok"}}
+  ],
+  "growth_strategy": {{
+    "first_week": "ماذا تفعل في الأسبوع الأول تحديداً",
+    "first_month": "هدف رقمي واقعي للشهر الأول",
+    "three_months": "هدف رقمي واقعي بعد 3 أشهر",
+    "key_habits": ["عادة يومية 1", "عادة يومية 2", "عادة يومية 3"],
+    "avoid": ["خطأ شائع 1", "خطأ شائع 2", "خطأ شائع 3"]
+  }},
+  "hashtag_strategy": {{
+    "primary": ["هاشتاق1", "هاشتاق2", "هاشتاق3", "هاشتاق4", "هاشتاق5"],
+    "niche": ["هاشتاق1", "هاشتاق2", "هاشتاق3", "هاشتاق4", "هاشتاق5"],
+    "trending_tip": "نصيحة عن نوع الهاشتاقات الترند المناسبة"
+  }}
+}}
+
+قواعد: المحتوى يجب أن يكون خليجياً ومحلياً. الـ monthly_plan يشمل 4 أسابيع، كل أسبوع 4-5 أيام. الـ ready_hooks تكون 8 hooks مختلفة. JSON فقط."""
+
+        return self._call_groq_json(prompt)
+
     # ── CSV sales analysis ────────────────────────────────────────────────────
 
     def analyze_csv_sales(
@@ -379,31 +459,66 @@ JSON فقط."""
         """Answer a user question using full analysis context. Returns Arabic text."""
 
         biz = context.get("business_profile", {})
+        sp  = context.get("starter_plan", {})       # new-business mode
         ar  = context.get("analysis_result", {})
         rc  = ar.get("root_cause", {})
         dm  = ar.get("dashboard_metrics", {})
         cp  = ar.get("content_patterns", {})
 
-        top_topics = ", ".join(
-            (t.get("topic") or t.get("label") or str(t)) if isinstance(t, dict) else str(t)
-            for t in (cp.get("repeated_topics") or rc.get("best_topics", []))[:4]
-        )
-        top_tags = ", ".join(
-            (h.get("label") or h.get("tag") or str(h)) if isinstance(h, dict) else str(h)
-            for h in (cp.get("best_hashtags") or rc.get("best_hashtags", []))[:4]
-        )
-        strategies_summary = "\n".join(
-            f"  - {s.get('title','')}: {(s.get('recommended_action') or '')[:80]}"
-            for s in (ar.get("strategies") or [])[:3]
-        )
-        plan_summary = "\n".join(
-            f"  - {d.get('day','')}: {d.get('content_type','')} — {(d.get('hook') or d.get('content_idea',''))[:60]}"
-            for d in (ar.get("weekly_plan") or context.get("weekly_plan") or [])[:7]
-        )
-        sales = context.get("sales_summary") or {}
-        sales_line = f"إيرادات شهرية: {sales.get('monthly_revenue','—')}" if sales else "لا توجد بيانات مبيعات"
+        # Detect mode
+        is_starter = bool(sp and sp.get("recommended_platform"))
 
-        system = f"""أنتِ "مُدار AI" — مساعدة تسويقية ذكية. تعرفين نتائج تحليل النشاط التجاري التالي وتساعدين في فهمها واتخاذ القرارات.
+        if is_starter:
+            rp = sp.get("recommended_platform", {})
+            gs = sp.get("growth_strategy", {})
+            pillars_summary = "\n".join(
+                f"  - {p.get('title','')}: {p.get('description','')[:60]}"
+                for p in (sp.get("content_pillars") or [])[:5]
+            )
+            system = f"""أنتِ "مُدار AI" — مساعدة تسويقية لبزنس يبدأ من الصفر على السوشيال ميديا.
+
+── معلومات البزنس ──
+الاسم: {biz.get('business_name','—')}
+القطاع: {biz.get('sector') or biz.get('industry','—')}
+المنتجات: {biz.get('products','—')}
+الجمهور: {biz.get('target_audience','—')}
+الهدف: {biz.get('goals','—')}
+
+── الخطة المُعدّة ──
+المنصة الأساسية: {rp.get('primary','—')} — {rp.get('primary_reason','')[:80]}
+المنصة الثانية: {rp.get('secondary','—')}
+محاور المحتوى:
+{pillars_summary or '—'}
+هدف الشهر الأول: {gs.get('first_month','—')}
+هدف 3 أشهر: {gs.get('three_months','—')}
+
+── طريقة تواصلك ──
+- تحدثي بالعربي الخليجي الواضح
+- ركّزي على التطبيق العملي — اذكري خطوات قابلة للتنفيذ
+- إذا سألوا عن تعديل، اقترحي البديل مباشرة
+- ردودك مختصرة — لا إطالة
+- لا تقولي "كمساعدة ذكاء اصطناعي..." — فقط أجيبي مباشرة"""
+        else:
+            top_topics = ", ".join(
+                (t.get("topic") or t.get("label") or str(t)) if isinstance(t, dict) else str(t)
+                for t in (cp.get("repeated_topics") or rc.get("best_topics", []))[:4]
+            )
+            top_tags = ", ".join(
+                (h.get("label") or h.get("tag") or str(h)) if isinstance(h, dict) else str(h)
+                for h in (cp.get("best_hashtags") or rc.get("best_hashtags", []))[:4]
+            )
+            strategies_summary = "\n".join(
+                f"  - {s.get('title','')}: {(s.get('recommended_action') or '')[:80]}"
+                for s in (ar.get("strategies") or [])[:3]
+            )
+            plan_summary = "\n".join(
+                f"  - {d.get('day','')}: {d.get('content_type','')} — {(d.get('hook') or d.get('content_idea',''))[:60]}"
+                for d in (ar.get("weekly_plan") or context.get("weekly_plan") or [])[:7]
+            )
+            sales = context.get("sales_summary") or {}
+            sales_line = f"إيرادات شهرية: {sales.get('monthly_revenue','—')}" if sales else "لا توجد بيانات مبيعات"
+
+            system = f"""أنتِ "مُدار AI" — مساعدة تسويقية ذكية. تعرفين نتائج تحليل النشاط التجاري التالي وتساعدين في فهمها واتخاذ القرارات.
 
 ── معلومات النشاط ──
 الاسم: {biz.get('business_name') or biz.get('name','—')}
