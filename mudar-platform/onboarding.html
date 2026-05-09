@@ -154,7 +154,7 @@
   </div>
 
   <!-- ── STEP 1: Business Profile ── -->
-  <div class="step active" id="step1">
+  <div class="step" id="step1">
     <div class="card">
       <div class="step-header">
         <h2>أخبرنا عن بزنسك</h2>
@@ -1048,12 +1048,19 @@ async function startAnalysis() {
 loadState();
 bizType = window.appState.bizType || 'existing';
 
-// Always start at step0 (type selection)
-document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-document.getElementById('step0').classList.add('active');
-document.getElementById('progressBar').style.display = 'none';
-document.getElementById('progressBarNew').style.display = 'none';
-document.getElementById('navStepLabel').textContent = '';
+// Check if user came with a biz type hint (from landing page CTA)
+const _bizHint = sessionStorage.getItem('mudarBizTypeHint');
+if (_bizHint) {
+  sessionStorage.removeItem('mudarBizTypeHint');
+  selectBizType(_bizHint);
+} else {
+  // Always start at step0 (type selection)
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step0').classList.add('active');
+  document.getElementById('progressBar').style.display = 'none';
+  document.getElementById('progressBarNew').style.display = 'none';
+  document.getElementById('navStepLabel').textContent = '';
+}
 
 if (window.appState.businessProfile?.business_name) {
   document.getElementById('bizName').value = window.appState.businessProfile.business_name;

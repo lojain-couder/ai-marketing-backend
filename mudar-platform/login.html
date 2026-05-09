@@ -99,7 +99,9 @@ function doLogin() {
   }
 
   err.style.display = 'none';
+  const bizTypeParam = new URLSearchParams(window.location.search).get('type') || '';
   sessionStorage.setItem('mudarUser', JSON.stringify({ name, email }));
+  if (bizTypeParam) sessionStorage.setItem('mudarBizTypeHint', bizTypeParam);
 
   const btn = document.getElementById('loginBtn');
   btn.textContent = 'جارٍ التحميل...';
