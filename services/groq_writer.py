@@ -306,7 +306,7 @@ JSON فقط بدون أي نص خارجه."""
 
 قواعد: المحتوى يجب أن يكون خليجياً ومحلياً. الـ monthly_plan يشمل 4 أسابيع، كل أسبوع 4-5 أيام. الـ ready_hooks تكون 8 hooks مختلفة. JSON فقط."""
 
-        return self._call_groq_json(prompt)
+        return self._call_groq_json(prompt, max_tokens=7000)
 
     # ── CSV sales analysis ────────────────────────────────────────────────────
 
@@ -566,7 +566,7 @@ JSON فقط."""
             print(f"[GroqWriter.chat error] {e}")
             return "عذراً، صار خطأ مؤقت. جربي مرة ثانية."
 
-    def _call_groq_json(self, prompt: str) -> dict[str, Any]:
+    def _call_groq_json(self, prompt: str, max_tokens: int = 3000) -> dict[str, Any]:
         try:
             res = self.client.chat.completions.create(
                 model=MODEL,
@@ -574,7 +574,7 @@ JSON فقط."""
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=3000,
+                max_tokens=max_tokens,
                 temperature=0.3,
             )
             text = res.choices[0].message.content.strip()
