@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مُدار — إعداد الحساب</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/api.js"></script>
 <style>
@@ -45,7 +45,7 @@
   .platform-tab .p-icon { font-size: 26px; line-height: 1; }
   .platform-tab .p-name { font-size: 13px; font-weight: 700; color: var(--t1); }
   .platform-tab .p-badge { font-size: 10px; font-weight: 600; color: var(--t3); background: var(--bg2); border-radius: 50px; padding: 2px 8px; }
-  .platform-tab.active .p-badge { background: var(--green-bg); color: var(--green-dark); }
+  .platform-tab.active .p-badge { background: var(--terra-pale); color: var(--terra-dark); }
   .social-loading { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 40px 0; text-align: center; }
   .social-loading.visible { display: flex; }
   .tiktok-form.hidden { display: none; }
@@ -63,14 +63,161 @@
     .manual-grid { grid-template-columns: 1fr; }
     .stats-mini { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ─── Sidebar Layout ─── */
+  body.has-sidebar { padding-right: 268px; }
+  body.has-sidebar .progress-bar { display: none !important; }
+
+  .ob-sidebar {
+    position: fixed; right: 0; top: 0; height: 100vh; width: 260px;
+    background: #2A2140;
+    display: none; flex-direction: column;
+    padding: 32px 20px 32px 24px;
+    z-index: 300; overflow-y: auto;
+    border-left: 1px solid rgba(255,255,255,.06);
+  }
+  .ob-sidebar.visible { display: flex; }
+
+  .ob-sb-back {
+    font-size: 12px; font-weight: 600; color: rgba(255,255,255,.28);
+    text-decoration: none; display: flex; align-items: center; gap: 4px;
+    margin-bottom: 28px; transition: color .2s;
+  }
+  .ob-sb-back:hover { color: rgba(255,255,255,.65); }
+
+  .ob-sb-logo {
+    font-size: 22px; font-weight: 900; color: white;
+    letter-spacing: -.5px; margin-bottom: 40px;
+  }
+
+  .ob-sb-steps { display: flex; flex-direction: column; }
+
+  .ob-sb-item {
+    display: flex; flex-direction: row-reverse;
+    gap: 14px; align-items: flex-start;
+  }
+
+  .ob-sb-left {
+    display: flex; flex-direction: column;
+    align-items: center; flex-shrink: 0; padding-top: 2px;
+  }
+
+  .ob-sb-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: rgba(255,255,255,.1);
+    border: 2px solid rgba(255,255,255,.15);
+    flex-shrink: 0; transition: all .3s;
+  }
+
+  .ob-sb-line {
+    width: 1.5px; height: 30px;
+    background: rgba(255,255,255,.08); margin-top: 3px;
+  }
+
+  .ob-sb-info { flex: 1; padding-bottom: 28px; text-align: right; }
+
+  .ob-sb-title {
+    font-size: 13px; font-weight: 700; color: rgba(255,255,255,.28);
+    transition: color .3s;
+  }
+
+  .ob-sb-sub { font-size: 11px; color: rgba(255,255,255,.16); margin-top: 2px; }
+
+  .ob-sb-item.active .ob-sb-dot {
+    background: #C17558; border-color: #C17558;
+    box-shadow: 0 0 0 3px rgba(193,117,88,.2);
+  }
+  .ob-sb-item.active .ob-sb-line { background: rgba(193,117,88,.22); }
+  .ob-sb-item.active .ob-sb-title { color: white; font-weight: 800; }
+  .ob-sb-item.active .ob-sb-sub  { color: rgba(255,255,255,.38); }
+
+  .ob-sb-item.done .ob-sb-dot  { background: var(--terra,#C17558); border-color: var(--terra,#C17558); }
+  .ob-sb-item.done .ob-sb-line { background: rgba(193,117,88,.2); }
+  .ob-sb-item.done .ob-sb-title { color: rgba(255,255,255,.45); }
+
+  @media (max-width: 900px) {
+    .ob-sidebar { display: none !important; }
+    body.has-sidebar { padding-right: 0; }
+    body.has-sidebar .progress-bar { display: flex !important; }
+  }
 </style>
 </head>
 <body>
 
+<!-- ══ Sidebar Navigation ══ -->
+<aside class="ob-sidebar" id="obSidebar">
+  <a href="index.html" class="ob-sb-back">← الرئيسية</a>
+  <div class="ob-sb-logo">مُدار</div>
+
+  <!-- Existing business: 5 steps -->
+  <div class="ob-sb-steps" id="obSbEx" style="display:none">
+    <div class="ob-sb-item inactive" id="sbItem1">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">البزنس</div>
+        <div class="ob-sb-sub">معلومات المشروع</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div><div class="ob-sb-line"></div></div>
+    </div>
+    <div class="ob-sb-item inactive" id="sbItem2">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">المبيعات</div>
+        <div class="ob-sb-sub">بيانات المبيعات</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div><div class="ob-sb-line"></div></div>
+    </div>
+    <div class="ob-sb-item inactive" id="sbItem3">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">TikTok</div>
+        <div class="ob-sb-sub">حسابات التواصل</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div><div class="ob-sb-line"></div></div>
+    </div>
+    <div class="ob-sb-item inactive" id="sbItem4">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">البيانات</div>
+        <div class="ob-sb-sub">مراجعة ومعالجة</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div><div class="ob-sb-line"></div></div>
+    </div>
+    <div class="ob-sb-item inactive" id="sbItem5">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">التحليل</div>
+        <div class="ob-sb-sub">إطلاق التحليل</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div></div>
+    </div>
+  </div>
+
+  <!-- New business: 3 steps -->
+  <div class="ob-sb-steps" id="obSbNew" style="display:none">
+    <div class="ob-sb-item inactive" id="sbItemN1">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">البزنس</div>
+        <div class="ob-sb-sub">معلومات المشروع</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div><div class="ob-sb-line"></div></div>
+    </div>
+    <div class="ob-sb-item inactive" id="sbItemN2">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">التفاصيل</div>
+        <div class="ob-sb-sub">بيانات إضافية</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div><div class="ob-sb-line"></div></div>
+    </div>
+    <div class="ob-sb-item inactive" id="sbItemN3">
+      <div class="ob-sb-info">
+        <div class="ob-sb-title">الخطة</div>
+        <div class="ob-sb-sub">خطة المحتوى</div>
+      </div>
+      <div class="ob-sb-left"><div class="ob-sb-dot"></div></div>
+    </div>
+  </div>
+</aside>
+
 <nav class="nav">
   <a href="index.html" class="brand">
-    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
-    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
+    <span style="font-size:20px;font-weight:800;color:var(--t1);font-family:'Cairo',sans-serif">مُدار</span>
+    <span style="font-size:11px;color:var(--t2);margin-right:6px">تسويق يُدار بالبيانات</span>
   </a>
   <span id="navStepLabel" style="font-size:13px;color:var(--t3);font-weight:600">الخطوة 1 من 5</span>
 </nav>
@@ -142,9 +289,9 @@
         <div onclick="selectBizType('new')" style="
           border:2px solid var(--b1);border-radius:16px;padding:28px 20px;cursor:pointer;
           transition:all .2s;background:var(--bg);text-align:center;position:relative
-        " onmouseenter="this.style.borderColor='#6B5CFF';this.style.background='#F5F3FF'"
+        " onmouseenter="this.style.borderColor='var(--terra)';this.style.background='var(--terra-pale)'"
            onmouseleave="this.style.borderColor='var(--b1)';this.style.background='var(--bg)'">
-          <div style="position:absolute;top:12px;left:12px;background:#6B5CFF;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px">جديد</div>
+          <div style="position:absolute;top:12px;left:12px;background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px">جديد</div>
           <div style="font-size:36px;margin-bottom:12px">✨</div>
           <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px">بزنس جديد</div>
           <div style="font-size:13px;color:var(--t2);line-height:1.6">أبدأ من الصفر وأبغى خطة محتوى مخصصة لبزنسي</div>
@@ -283,16 +430,16 @@
         <label class="form-label">أي منصات تفضل البدء فيها؟</label>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
-            <input type="checkbox" value="TikTok" class="platform-check" style="accent-color:#6B5CFF"> 🎵 TikTok
+            <input type="checkbox" value="TikTok" class="platform-check" style="accent-color:#7B75A8"> 🎵 TikTok
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
-            <input type="checkbox" value="Instagram" class="platform-check" style="accent-color:#6B5CFF"> 📸 Instagram
+            <input type="checkbox" value="Instagram" class="platform-check" style="accent-color:#7B75A8"> 📸 Instagram
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
-            <input type="checkbox" value="Snapchat" class="platform-check" style="accent-color:#6B5CFF"> 👻 Snapchat
+            <input type="checkbox" value="Snapchat" class="platform-check" style="accent-color:#7B75A8"> 👻 Snapchat
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
-            <input type="checkbox" value="X" class="platform-check" style="accent-color:#6B5CFF"> 𝕏 X
+            <input type="checkbox" value="X" class="platform-check" style="accent-color:#7B75A8"> 𝕏 X
           </label>
         </div>
       </div>
@@ -301,13 +448,13 @@
         <label class="form-label">هل عندك مصوّر أو تنتجين المحتوى بنفسك؟</label>
         <div style="display:flex;gap:10px;margin-top:8px">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
-            <input type="radio" name="contentProd" value="self" style="accent-color:#6B5CFF"> بنفسي
+            <input type="radio" name="contentProd" value="self" style="accent-color:#7B75A8"> بنفسي
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
-            <input type="radio" name="contentProd" value="team" style="accent-color:#6B5CFF"> فريق / مصوّر
+            <input type="radio" name="contentProd" value="team" style="accent-color:#7B75A8"> فريق / مصوّر
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:2px solid var(--b1);border-radius:10px;font-size:14px;font-weight:600;color:var(--t1)">
-            <input type="radio" name="contentProd" value="both" style="accent-color:#6B5CFF"> الاثنين
+            <input type="radio" name="contentProd" value="both" style="accent-color:#7B75A8"> الاثنين
           </label>
         </div>
       </div>
@@ -345,9 +492,9 @@
 
       <label class="upload-zone" id="salesUploadZone" for="salesFileInput">
         <div id="uploadIcon" style="font-size:36px;margin-bottom:12px">📊</div>
-        <div id="uploadText" style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px">ارفع ملف CSV للمبيعات</div>
-        <div style="font-size:13px;color:var(--t3)">اسحب الملف هنا أو اضغط للاختيار</div>
-        <input type="file" id="salesFileInput" accept=".csv">
+        <div id="uploadText" style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px">ارفع ملف المبيعات</div>
+        <div style="font-size:13px;color:var(--t3)">CSV أو Excel (xlsx) — اسحب الملف هنا أو اضغط للاختيار</div>
+        <input type="file" id="salesFileInput" accept=".csv,.xlsx,.xls">
       </label>
       <div id="uploadSummary" style="display:none;margin-top:12px;background:var(--bg2);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--t2)"></div>
 
@@ -384,58 +531,101 @@
   <div class="step" id="step3">
     <div class="card">
       <div class="step-header">
-        <h2>جلب بيانات المنصة</h2>
-        <p>اختاري المنصة وأدخلي اسم الحساب لجلب بيانات الأداء</p>
+        <h2>بيانات المنصة</h2>
+        <p>ادخل بيانات حسابك على السوشيال ميديا لتحليل أدائك</p>
       </div>
 
-      <div class="tiktok-form" id="tiktokForm">
-        <!-- Platform Selector -->
-        <div class="form-group">
-          <label class="form-label">اختاري المنصة</label>
-          <div class="platform-tabs">
-            <div class="platform-tab active" id="ptab-tiktok" onclick="selectPlatform('tiktok')">
-              <span class="p-icon">🎵</span>
-              <span class="p-name">TikTok</span>
-              <span class="p-badge">مدعوم</span>
-            </div>
-            <div class="platform-tab" id="ptab-instagram" onclick="selectPlatform('instagram')">
-              <span class="p-icon">📸</span>
-              <span class="p-name">Instagram</span>
-              <span class="p-badge">مدعوم</span>
-            </div>
-            <div class="platform-tab" id="ptab-x" onclick="selectPlatform('x')" style="opacity:.55;cursor:not-allowed">
-              <span class="p-icon">𝕏</span>
-              <span class="p-name">X (Twitter)</span>
-              <span class="p-badge" style="background:#fee2e2;color:#ef4444">غير متاح</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Username Input -->
-        <div class="form-group">
-          <label class="form-label" id="usernameLabel">أدخلي اسم الحساب على TikTok</label>
-          <div class="input-prefix">
-            <span class="prefix">@</span>
-            <input class="input" type="text" id="socialUsername" placeholder="username" style="padding-right:36px">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">عدد المنشورات</label>
-          <input class="input" type="number" id="socialLimit" value="30" min="5" max="50">
-        </div>
-
-        <button class="btn-green-lg" onclick="fetchSocialData()">جلب البيانات ←</button>
+      <!-- Method tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:20px">
+        <button id="mtab-auto" onclick="switchMethod('auto')"
+          style="flex:1;padding:11px;border-radius:10px;border:2px solid var(--t1);background:var(--t1);color:#fff;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">
+          ⬇ جلب تلقائي
+        </button>
+        <button id="mtab-manual" onclick="switchMethod('manual')"
+          style="flex:1;padding:11px;border-radius:10px;border:2px solid var(--b1);background:var(--bg);color:var(--t2);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">
+          ⬆ رفع من TikTok Studio
+        </button>
       </div>
 
-      <!-- Loading -->
-      <div class="social-loading" id="socialLoading">
-        <div class="spinner"></div>
-        <div>
-          <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px">جارٍ جلب البيانات...</div>
-          <div id="fetchStatusMsg" style="font-size:13px;color:var(--t2)">هذا قد يأخذ 30–60 ثانية</div>
+      <!-- Auto-fetch panel -->
+      <div id="panel-auto">
+        <div id="tiktokForm">
+
+          <p style="font-size:13px;color:var(--t3);margin-bottom:16px">أدخل اسم الحساب لكل منصة تريد تحليلها — يمكنك اختيار منصة واحدة أو كلتيهما</p>
+
+          <!-- TikTok row -->
+          <div style="border:1.5px solid var(--t1);border-radius:12px;padding:16px;margin-bottom:12px;transition:border-color .2s" id="tiktokRow">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">
+                <input type="checkbox" id="chkTikTok" checked onchange="togglePlatformRow('tiktok')"
+                  style="width:18px;height:18px;accent-color:#7B75A8;cursor:pointer">
+                <span style="font-size:22px">🎵</span>
+                <span style="font-size:15px;font-weight:800;color:var(--t1)">TikTok</span>
+              </label>
+              <span id="tiktokStatus" style="font-size:12px;font-weight:600;display:none"></span>
+            </div>
+            <div class="input-prefix" id="tiktokInputWrap">
+              <span class="prefix">@</span>
+              <input class="input" type="text" id="usernameTikTok" placeholder="اسم حسابك على TikTok" style="padding-right:36px">
+            </div>
+          </div>
+
+          <!-- Instagram row -->
+          <div style="border:1.5px solid var(--b1);border-radius:12px;padding:16px;margin-bottom:20px;transition:border-color .2s" id="instagramRow">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">
+                <input type="checkbox" id="chkInstagram" onchange="togglePlatformRow('instagram')"
+                  style="width:18px;height:18px;accent-color:#7B75A8;cursor:pointer">
+                <span style="font-size:22px">📸</span>
+                <span style="font-size:15px;font-weight:800;color:var(--t1)">Instagram</span>
+              </label>
+              <span id="instagramStatus" style="font-size:12px;font-weight:600;display:none"></span>
+            </div>
+            <div class="input-prefix" id="instagramInputWrap" style="opacity:.4;pointer-events:none">
+              <span class="prefix">@</span>
+              <input class="input" type="text" id="usernameInstagram" placeholder="اسم حسابك على Instagram" style="padding-right:36px">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">عدد المنشورات لكل منصة</label>
+            <input class="input" type="number" id="socialLimit" value="30" min="5" max="50">
+          </div>
+
+          <button class="btn-green-lg" onclick="fetchSocialData()">جلب البيانات ←</button>
         </div>
-        <button class="btn-ghost" style="font-size:13px;margin-top:8px" onclick="cancelFetch()">إلغاء</button>
+
+        <!-- Loading -->
+        <div class="social-loading" id="socialLoading">
+          <div class="spinner"></div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px">جارٍ جلب البيانات...</div>
+            <div id="fetchStatusMsg" style="font-size:13px;color:var(--t2)">هذا قد يأخذ 30–60 ثانية</div>
+          </div>
+          <button class="btn-ghost" style="font-size:13px;margin-top:8px" onclick="cancelFetch()">إلغاء</button>
+        </div>
+      </div>
+
+      <!-- Manual upload panel -->
+      <div id="panel-manual" style="display:none">
+        <div style="background:var(--bg2);border-radius:12px;padding:16px 18px;margin-bottom:18px;border-right:3px solid var(--terra)">
+          <p style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:8px">كيف تصدّر بياناتك من TikTok Studio؟</p>
+          <ol style="font-size:13px;color:var(--t2);line-height:2;margin-right:16px">
+            <li>افتح <strong>studio.tiktok.com</strong> وسجّل دخول</li>
+            <li>اضغط على <strong>Analytics</strong> ثم اختر تبويب <strong>Content</strong></li>
+            <li>اضغط <strong>Export data</strong> أو <strong>تصدير</strong></li>
+            <li>ارفع الملف هنا مباشرة</li>
+          </ol>
+        </div>
+
+        <label class="upload-zone" id="tiktokUploadZone" for="tiktokFileInput"
+          style="cursor:pointer;display:block;border:2px dashed var(--b2);border-radius:14px;padding:32px;text-align:center;transition:border-color .2s">
+          <div id="tiktokUploadIcon" style="font-size:36px;margin-bottom:10px">📂</div>
+          <div id="tiktokUploadText" style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:4px">ارفع ملف TikTok Studio</div>
+          <div style="font-size:12px;color:var(--t3)">CSV أو Excel (xlsx)</div>
+          <input type="file" id="tiktokFileInput" accept=".csv,.xlsx,.xls" style="display:none">
+        </label>
+        <div id="tiktokUploadResult" style="display:none;margin-top:12px;background:var(--bg2);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--t2)"></div>
       </div>
     </div>
   </div>
@@ -512,6 +702,14 @@
         </table>
       </div>
 
+      <!-- ── Audio Intelligence note ── -->
+      <div style="margin-top:24px;display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--bg2);border-radius:var(--r);border-right:3px solid #22c55e">
+        <span style="font-size:20px">🎙️</span>
+        <div style="font-size:13px;color:var(--t2)">
+          <strong style="color:var(--t1)">تحليل الصوت تلقائي</strong> — سيقوم النظام بتحليل الكلام الفعلي في فيديوهاتك تلقائياً لاستخراج الـ hooks والـ CTAs خلال التحليل
+        </div>
+      </div>
+
       <div class="step-footer">
         <button class="btn-green-lg" onclick="goStep4()">التالي ←</button>
       </div>
@@ -586,6 +784,17 @@ function selectBizType(type) {
   }
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById('step1').classList.add('active');
+
+  // Show sidebar
+  const sidebar = document.getElementById('obSidebar');
+  sidebar.classList.add('visible');
+  document.body.classList.add('has-sidebar');
+  document.getElementById('obSbEx').style.display  = (type === 'existing') ? 'flex' : 'none';
+  document.getElementById('obSbNew').style.display = (type === 'new')      ? 'flex' : 'none';
+  const firstId = (type === 'existing') ? 'sbItem1' : 'sbItemN1';
+  const first = document.getElementById(firstId);
+  if (first) first.className = 'ob-sb-item active';
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -598,6 +807,11 @@ function updateProgressNew(n) {
     sc.className = 'step-circle ' + (i < n ? 'done' : i === n ? 'active' : 'inactive');
     sc.textContent = i < n ? '✓' : i;
     sl.className = 'step-label' + (i === n ? ' active' : '');
+  }
+  // Sync sidebar
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('sbItemN' + i);
+    if (el) el.className = 'ob-sb-item ' + (i < n ? 'done' : i === n ? 'active' : 'inactive');
   }
 }
 
@@ -637,6 +851,11 @@ function updateProgress(n) {
       const ln = document.getElementById('ln' + i);
       ln.className = 'step-line' + (i < n ? ' done' : '');
     }
+  }
+  // Sync sidebar
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('sbItem' + i);
+    if (el) el.className = 'ob-sb-item ' + (i < n ? 'done' : i === n ? 'active' : 'inactive');
   }
 }
 
@@ -750,21 +969,43 @@ async function startNewBizPlan() {
 document.getElementById('salesFileInput').addEventListener('change', async function() {
   const file = this.files[0];
   if (!file) return;
-  const zone = document.getElementById('salesUploadZone');
-  zone.classList.add('has-file');
-  document.getElementById('uploadIcon').textContent = '✅';
-  document.getElementById('uploadText').textContent = file.name;
+  const zone     = document.getElementById('salesUploadZone');
+  const iconEl   = document.getElementById('uploadIcon');
+  const textEl   = document.getElementById('uploadText');
+  const summaryEl = document.getElementById('uploadSummary');
 
-  const result = await apiCall(() => uploadSales(file));
-  if (result && result.success) {
-    window.appState.salesSummary = result.summary;
+  // Loading state
+  zone.classList.add('has-file');
+  iconEl.textContent = '⏳';
+  textEl.textContent = 'جارٍ رفع الملف...';
+  summaryEl.style.display = 'none';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res  = await fetch(`${API_BASE}/api/business/upload-sales`, { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `خطأ ${res.status}`);
+    if (!data.success) throw new Error('فشل رفع الملف');
+
+    // Success
+    window.appState.salesSummary = data.summary;
     saveState();
-    const s = result.summary;
-    document.getElementById('uploadSummary').style.display = 'block';
-    document.getElementById('uploadSummary').innerHTML =
+    const s = data.summary;
+    iconEl.textContent = '✅';
+    textEl.textContent = file.name;
+    summaryEl.style.display = 'block';
+    summaryEl.innerHTML =
       `<strong>تم رفع الملف بنجاح ✓</strong> — ${s.rows} سجل | الأعمدة: ${s.columns.join(' · ')}`;
     toast('تم رفع ملف المبيعات بنجاح', 'success');
+  } catch(e) {
+    // Error — reset zone so user can retry
+    zone.classList.remove('has-file');
+    iconEl.textContent = '📊';
+    textEl.textContent = 'ارفع ملف المبيعات';
+    toast(e.message || 'فشل رفع الملف — حاولي مرة ثانية', 'error');
   }
+  this.value = null; // allow re-selecting same file
 });
 
 function skipStep2() {
@@ -795,76 +1036,156 @@ function saveSalesManual() {
   }
 }
 
-// ── Step 3: Platform Selection + Social Fetch ──
-let selectedPlatform = 'tiktok';
-const platformNames = { tiktok: 'TikTok', instagram: 'Instagram', x: 'X (Twitter)' };
-const platformMsgs = {
-  tiktok:    ['جارٍ الاتصال بـ TikTok...', 'جارٍ جلب الفيديوهات...', 'معالجة البيانات...'],
-  instagram: ['جارٍ الاتصال بـ Instagram...', 'جارٍ جلب المنشورات...', 'معالجة البيانات...'],
-  x:         ['جارٍ الاتصال بـ X...', 'جارٍ جلب التغريدات...', 'معالجة البيانات...'],
-};
+// ── Step 3: Method toggle ──
+function switchMethod(m) {
+  const isAuto = m === 'auto';
+  document.getElementById('panel-auto').style.display   = isAuto ? 'block' : 'none';
+  document.getElementById('panel-manual').style.display = isAuto ? 'none'  : 'block';
+  const activeStyle   = 'background:var(--t1);color:#fff;border-color:var(--t1)';
+  const inactiveStyle = 'background:var(--bg);color:var(--t2);border-color:var(--b1)';
+  document.getElementById('mtab-auto').style.cssText   = `flex:1;padding:11px;border-radius:10px;border:2px solid;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;${isAuto ? activeStyle : inactiveStyle}`;
+  document.getElementById('mtab-manual').style.cssText = `flex:1;padding:11px;border-radius:10px;border:2px solid;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;${isAuto ? inactiveStyle : activeStyle}`;
+}
 
-function selectPlatform(p) {
-  if (p === 'x') {
-    toast('X (Twitter) غير متاح على الخطة المجانية — استخدمي TikTok أو Instagram', 'info');
-    return;
-  }
-  selectedPlatform = p;
-  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('ptab-' + p).classList.add('active');
-  document.getElementById('usernameLabel').textContent =
-    `أدخلي اسم الحساب على ${platformNames[p]}`;
-  document.getElementById('socialUsername').placeholder = 'username';
-  document.getElementById('socialUsername').focus();
+// TikTok CSV manual upload
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('tiktokFileInput');
+  if (inp) inp.addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+    document.getElementById('tiktokUploadIcon').textContent = '⏳';
+    document.getElementById('tiktokUploadText').textContent = 'جارٍ قراءة الملف...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res  = await fetch(`${API_BASE}/api/social/parse-csv`, { method:'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'فشل قراءة الملف');
+      const posts = data.posts || [];
+      if (posts.length === 0) throw new Error('لم يتم العثور على بيانات في الملف');
+
+      document.getElementById('tiktokUploadIcon').textContent = '✅';
+      document.getElementById('tiktokUploadText').textContent = file.name;
+      document.getElementById('tiktokUploadResult').style.display = 'block';
+      document.getElementById('tiktokUploadResult').innerHTML =
+        `<strong>تم قراءة الملف ✓</strong> — ${posts.length} فيديو · `+
+        `متوسط المشاهدات: ${Math.round(posts.reduce((s,p)=>s+(p.views||0),0)/posts.length).toLocaleString('ar')}`;
+
+      window.appState.tiktokData      = posts;
+      window.appState.fetchedPlatform = 'tiktok';
+      saveState();
+      toast(`تم استيراد ${posts.length} فيديو من TikTok Studio ✓`, 'success');
+      renderTable(posts);
+      setStep(4);
+    } catch(e) {
+      document.getElementById('tiktokUploadIcon').textContent = '❌';
+      document.getElementById('tiktokUploadText').textContent = 'فشل قراءة الملف — حاول مرة ثانية';
+      toast(e.message || 'فشل قراءة الملف', 'error');
+    }
+  });
+});
+
+// ── Step 3: Platform Selection + Social Fetch ──
+const platformNames = { tiktok: 'TikTok', instagram: 'Instagram', x: 'X (Twitter)' };
+
+function togglePlatformRow(platform) {
+  const checked = document.getElementById(platform === 'tiktok' ? 'chkTikTok' : 'chkInstagram').checked;
+  const wrap    = document.getElementById(platform + 'InputWrap');
+  const row     = document.getElementById(platform + 'Row');
+  wrap.style.opacity        = checked ? '1' : '0.4';
+  wrap.style.pointerEvents  = checked ? '' : 'none';
+  row.style.borderColor     = checked ? 'var(--t1)' : 'var(--b1)';
 }
 
 function cancelFetch() {
-  document.getElementById('tiktokForm').classList.remove('hidden');
+  document.getElementById('tiktokForm').style.display = '';
   document.getElementById('socialLoading').classList.remove('visible');
 }
 
-async function fetchSocialData() {
-  const username = document.getElementById('socialUsername').value.trim().replace(/^@/, '');
-  const limit    = parseInt(document.getElementById('socialLimit').value) || 30;
-  if (!username) { toast('أدخلي اسم الحساب', 'error'); return; }
+async function _fetchOne(platform, username, limit) {
+  const res = await fetch(`${API_BASE}/api/social/fetch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ platform, username, limit })
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.detail || `فشل جلب ${platformNames[platform]}`);
+  const posts = result.posts || [];
+  if (!posts.length) throw new Error(`لم يتم إيجاد منشورات في ${platformNames[platform]}`);
+  return posts;
+}
 
-  document.getElementById('tiktokForm').classList.add('hidden');
+async function fetchSocialData() {
+  const wantTikTok   = document.getElementById('chkTikTok').checked;
+  const wantInstagram= document.getElementById('chkInstagram').checked;
+  const userTikTok   = document.getElementById('usernameTikTok').value.trim().replace(/^@/, '');
+  const userInstagram= document.getElementById('usernameInstagram').value.trim().replace(/^@/, '');
+  const limit        = parseInt(document.getElementById('socialLimit').value) || 30;
+
+  if (!wantTikTok && !wantInstagram) { toast('اختر منصة واحدة على الأقل', 'error'); return; }
+  if (wantTikTok   && !userTikTok)   { toast('أدخل اسم الحساب على TikTok', 'error'); return; }
+  if (wantInstagram && !userInstagram){ toast('أدخل اسم الحساب على Instagram', 'error'); return; }
+
+  document.getElementById('tiktokForm').style.display = 'none';
   document.getElementById('socialLoading').classList.add('visible');
 
-  const msgs = platformMsgs[selectedPlatform];
-  let mi = 0;
-  const msgInterval = setInterval(() => {
-    document.getElementById('fetchStatusMsg').textContent = msgs[mi++ % msgs.length];
-  }, 6000);
+  // Build status message based on what we're fetching
+  const fetching = [wantTikTok && 'TikTok', wantInstagram && 'Instagram'].filter(Boolean).join(' + ');
+  document.getElementById('fetchStatusMsg').textContent = `جارٍ جلب بيانات ${fetching}...`;
 
-  try {
-    const res = await fetch(`${API_BASE}/api/social/fetch`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ platform: selectedPlatform, username, limit })
-    });
-    const result = await res.json();
-    clearInterval(msgInterval);
+  const tasks = [];
+  if (wantTikTok)    tasks.push({ platform: 'tiktok',    username: userTikTok });
+  if (wantInstagram) tasks.push({ platform: 'instagram', username: userInstagram });
 
-    if (!res.ok) throw new Error(result.detail || 'فشل الجلب');
+  // Status indicators per platform
+  const setStatus = (platform, text, color) => {
+    const el = document.getElementById(platform + 'Status');
+    if (el) { el.style.display='inline'; el.style.color=color; el.textContent=text; }
+  };
 
-    const posts = result.posts || [];
-    if (posts.length === 0) throw new Error('لم يتم إيجاد منشورات');
+  let allPosts = [];
+  const errors = [];
 
-    window.appState.tiktokData     = posts;
-    window.appState.fetchedPlatform = selectedPlatform;
-    saveState();
-
-    toast(`تم جلب ${posts.length} منشور من ${platformNames[selectedPlatform]} ✓`, 'success');
-    renderTable(posts);
-    setStep(4);
-
-  } catch (e) {
-    clearInterval(msgInterval);
-    toast(e.message || 'فشل جلب البيانات — تأكدي من اسم الحساب', 'error');
-    document.getElementById('tiktokForm').classList.remove('hidden');
-    document.getElementById('socialLoading').classList.remove('visible');
+  // Fetch sequentially to avoid hammering Apify; update status per platform
+  for (const { platform, username } of tasks) {
+    document.getElementById('fetchStatusMsg').textContent =
+      `جارٍ جلب ${platformNames[platform]}...`;
+    try {
+      const posts = await _fetchOne(platform, username, limit);
+      allPosts = allPosts.concat(posts);
+      setStatus(platform, `✓ ${posts.length} منشور`, '#15803d');
+    } catch(e) {
+      errors.push(`${platformNames[platform]}: ${e.message}`);
+      setStatus(platform, '✗ فشل', '#dc2626');
+    }
   }
+
+  document.getElementById('socialLoading').classList.remove('visible');
+  document.getElementById('tiktokForm').style.display = '';
+
+  if (!allPosts.length) {
+    toast(errors.join(' | ') || 'فشل جلب البيانات', 'error');
+    setTimeout(() => switchMethod('manual'), 800);
+    return;
+  }
+
+  if (errors.length) {
+    toast(`تحذير: ${errors.join(' | ')}`, 'info');
+  }
+
+  window.appState.tiktokData      = allPosts;
+  window.appState.fetchedPlatform = allPosts.length ? allPosts[0].platform : 'tiktok';
+  saveState();
+
+  const summary = tasks
+    .filter(t => allPosts.some(p => p.platform === t.platform))
+    .map(t => `${platformNames[t.platform]} (${allPosts.filter(p=>p.platform===t.platform).length})`)
+    .join(' + ');
+  toast(`تم جلب ${allPosts.length} منشور — ${summary} ✓`, 'success');
+
+  renderTable(allPosts);
+  setStep(4);
 }
 
 // ── Step 4: Table ──
@@ -909,14 +1230,17 @@ function renderRows(videos) {
   const gT = window._getCaption  || (v => v.caption  ?? v.text ?? v.desc ?? '');
 
   const tbody = document.getElementById('videosTableBody');
+  const platformIcons = { tiktok:'🎵', instagram:'📸', x:'𝕏' };
   tbody.innerHTML = videos.map((v, i) => {
     const views = gV(v);
     const eng   = views ? (((gL(v)+gC(v)+gS(v))/views)*100).toFixed(1) : '0.0';
     const badge = engagementBadge(eng);
     const desc  = gT(v).substring(0, 80);
+    const pIcon = v.platform ? (platformIcons[v.platform] || '') : '';
+    const pBadge = v.platform ? `<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:var(--bg3);color:var(--t3);font-weight:600;margin-right:4px;flex-shrink:0">${pIcon} ${v.platform}</span>` : '';
     return `<tr id="row-${i}">
       <td><input type="checkbox" onchange="rowSelect(this,${i})"></td>
-      <td><div class="video-desc" title="${desc}">${desc || '—'}</div></td>
+      <td><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${pBadge}<div class="video-desc" title="${desc}" style="flex:1;min-width:0">${desc || '—'}</div></div></td>
       <td style="font-family:var(--mono);font-size:12px">${formatNumber(views)}</td>
       <td style="font-family:var(--mono);font-size:12px">${formatNumber(gL(v))}</td>
       <td style="font-family:var(--mono);font-size:12px">${formatNumber(gC(v))}</td>
@@ -1015,7 +1339,8 @@ async function startAnalysis() {
   try {
     const dataset = {
       videos: videos,
-      business_profile: window.appState.businessProfile
+      business_profile: window.appState.businessProfile,
+      transcripts: window.appState.transcripts || [],
     };
     const result = await runAnalysis(dataset);
     clearInterval(stepInterval);

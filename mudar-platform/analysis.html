@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مُدار — نتائج التحليل</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/api.js"></script>
 <style>
@@ -45,8 +45,8 @@
 
 <nav class="nav">
   <a href="index.html" class="brand">
-    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
-    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
+    <span style="font-size:20px;font-weight:800;color:#2A2140;font-family:'Cairo',sans-serif">مُدار</span>
+    <span style="font-size:11px;color:#7B75A8;margin-right:6px">تسويق يُدار بالبيانات</span>
   </a>
   <div style="display:flex;gap:10px;align-items:center">
     <button class="btn-ghost" style="font-size:13px" onclick="location.href='onboarding.html'">← تحليل جديد</button>
@@ -101,6 +101,7 @@
   <div class="tab-content">
     <p class="section-title">القرارات الاستراتيجية</p>
     <div id="strategyCards"></div>
+    <div id="conversionPlaybookAnalysis" style="margin-top:20px"></div>
   </div>
 </div>
 
@@ -119,6 +120,7 @@
       <p class="section-title" style="margin:0">خطة المحتوى الأسبوعي</p>
       <button class="btn-ghost" style="font-size:13px" onclick="reGenWeek()">↻ إعادة توليد الأسبوع</button>
     </div>
+    <div id="postingScheduleAnalysis" style="margin-bottom:20px"></div>
     <div class="day-tabs" id="dayTabsNav"></div>
     <div id="dayCards"></div>
   </div>
@@ -128,6 +130,7 @@
 <div class="tab-panel" id="tab4">
   <div class="tab-content">
     <p class="section-title">رؤى المحتوى</p>
+    <div id="audioIntelCard" style="margin-bottom:20px;display:none"></div>
     <div class="insights-grid">
       <div class="card">
         <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:16px">أبرز ثيمات المحتوى الناجح</p>
@@ -148,6 +151,7 @@
         <div id="videoPerfChart"></div>
       </div>
     </div>
+    <div id="perPlatformBreakdown" style="margin-top:20px;display:none"></div>
   </div>
 </div>
 
@@ -230,6 +234,9 @@
   <div class="tab-content">
     <p class="section-title">أداء المبيعات والمؤشرات</p>
 
+    <!-- Posting Schedule (always visible) -->
+    <div id="postingScheduleTab5" style="margin-bottom:24px"></div>
+
     <!-- KPI Cards row -->
     <div class="grid-3" id="salesMetrics" style="margin-bottom:24px"></div>
 
@@ -260,6 +267,7 @@
       <div class="card" id="salesDataCard">
         <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">بيانات المبيعات المُدخلة</p>
         <div id="salesDataContent"></div>
+        <div id="salesOutliers" style="display:none;margin-top:16px"></div>
       </div>
 
       <!-- Top Social Recommendation -->
@@ -281,15 +289,15 @@
 <div id="chatBubble" onclick="toggleChat()" title="مساعد مُدار AI" style="
   position:fixed;bottom:28px;left:28px;z-index:1000;
   width:54px;height:54px;border-radius:50%;
-  background:linear-gradient(135deg,#6B5CFF,#1F176E);
+  background:#7B75A8;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;box-shadow:0 4px 20px rgba(107,92,255,.4);
+  cursor:pointer;box-shadow:0 4px 20px rgba(123,117,168,.4);
   transition:transform .2s;font-size:24px;
 " onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">
   🤖
   <span style="
     position:absolute;top:-4px;right:-4px;
-    background:#10B981;color:#fff;border-radius:50%;
+    background:#C17558;color:#fff;border-radius:50%;
     width:16px;height:16px;font-size:9px;
     display:flex;align-items:center;justify-content:center;font-weight:800;
   ">AI</span>
@@ -300,12 +308,12 @@
   position:fixed;bottom:94px;left:28px;z-index:1000;
   width:360px;max-height:520px;
   background:var(--bg);border:1px solid var(--b1);
-  border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.15);
+  border-radius:16px;box-shadow:0 8px 40px rgba(42,33,64,.15);
   overflow:hidden;
 ">
   <!-- Header -->
   <div style="
-    background:linear-gradient(135deg,#6B5CFF,#1F176E);
+    background:#2A2140;
     padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
   ">
     <div style="display:flex;align-items:center;gap:10px">
@@ -343,7 +351,7 @@
       oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'">
     </textarea>
     <button id="chatSendBtn" onclick="sendChatMessage()" style="
-      background:linear-gradient(135deg,#6B5CFF,#1F176E);
+      background:#7B75A8;
       color:#fff;border:none;border-radius:10px;
       padding:9px 14px;cursor:pointer;font-size:16px;flex-shrink:0;
       transition:opacity .2s;
@@ -361,7 +369,7 @@
   word-wrap: break-word;
 }
 .chat-msg.user {
-  background: linear-gradient(135deg,#6B5CFF,#1F176E);
+  background: #2A2140;
   color: #fff;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
@@ -420,47 +428,117 @@ let commentsAnalysis = null;
 function renderAll() {
   const fns = [renderHeader, renderTab0, renderTab1, renderTab2, renderTab3, renderTab4, renderTab5];
   fns.forEach(fn => { try { fn(); } catch(e) { console.error(fn.name, e); } });
+
+  const warn = analysisResult._groq_warning;
+  if (warn) {
+    const msg = warn === 'groq_quota_exhausted'
+      ? '⚠️ انتهى رصيد Groq API — النتائج تعتمد على التحليل الأساسي فقط بدون إثراء نصي. أضف رصيداً على console.groq.com'
+      : warn === 'groq_auth_error'
+      ? '⚠️ مفتاح Groq API غير صالح — تحقق من GROQ_API_KEY'
+      : '⚠️ خدمة توليد النصوص غير متاحة مؤقتاً — التحليل مكتمل بدونها';
+    toast(msg, 'info');
+  }
+}
+
+// ── Platform helpers ──
+const _platformIcons = { tiktok:'🎵', instagram:'📸', x:'𝕏' };
+const _platformLabels = { tiktok:'TikTok', instagram:'Instagram', x:'X' };
+function platformIcon(p) { return _platformIcons[(p||'').toLowerCase()] || '📱'; }
+function platformLabel(p) { return _platformLabels[(p||'').toLowerCase()] || p; }
+
+// Derive per-platform post counts from tiktokData (client-side truth)
+function getLocalPlatformCounts() {
+  const counts = {};
+  (tiktokData || []).forEach(v => {
+    const p = (v.platform || 'tiktok').toLowerCase();
+    counts[p] = (counts[p] || 0) + 1;
+  });
+  return counts;
 }
 
 // ── Header ──
 function renderHeader() {
   const rc  = analysisResult.root_cause || {};
+  const dq  = analysisResult.data_quality || {};
   const biz = businessProfile.business_name || 'بزنسك';
   document.getElementById('headerBizName').textContent = 'تحليل ' + biz;
+
+  const analyzedPlatforms = dq.analyzed_platforms || (rc.best_platform ? [rc.best_platform.toLowerCase()] : ['tiktok']);
+  const postCounts        = dq.posts_analyzed_per_platform || getLocalPlatformCounts();
+  const totalPosts        = rc.total_posts || tiktokData.length;
+
+  const platformSummary = analyzedPlatforms.map(p =>
+    `${platformIcon(p)} ${platformLabel(p)}${postCounts[p] ? ' ('+postCounts[p]+')' : ''}`
+  ).join(' + ');
   document.getElementById('headerMeta').textContent =
-    `${rc.total_posts || tiktokData.length} فيديو · مُدار AI · ${new Date().toLocaleDateString('ar-SA')}`;
+    `${totalPosts} منشور · ${platformSummary} · مُدار AI · ${new Date().toLocaleDateString('ar-SA')}`;
+
   const badges = document.getElementById('headerBadges');
   if (businessProfile.sector || businessProfile.industry)
     badges.innerHTML += `<span class="badge badge-purple">${businessProfile.sector || businessProfile.industry}</span>`;
-  if (rc.best_platform)
-    badges.innerHTML += `<span class="badge badge-navy">${rc.best_platform}</span>`;
+  analyzedPlatforms.forEach(p => {
+    badges.innerHTML += `<span class="badge badge-navy">${platformIcon(p)} ${platformLabel(p)}</span>`;
+  });
+  if (analyzedPlatforms.length > 1 && rc.best_platform)
+    badges.innerHTML += `<span class="badge badge-green">🏆 ${platformLabel(rc.best_platform)}</span>`;
 }
 
 // ── Tab 0: Summary ──
 function renderTab0() {
   const rc  = analysisResult.root_cause || {};
   const dm  = analysisResult.dashboard_metrics || {};
+  const dq  = analysisResult.data_quality || {};
+  const pc  = analysisResult.platform_comparison || {};
   const avgEngPct = rc.avg_engagement ? (rc.avg_engagement * 100).toFixed(1)
                   : dm.avg_engagement_rate ? (dm.avg_engagement_rate * 100).toFixed(1) : 0;
   const totalViews = rc.total_views || dm.total_views || 0;
   const totalPosts = rc.total_posts || dm.total_posts || tiktokData.length;
 
-  document.getElementById('metricsRow').innerHTML = `
-    <div class="metric-card">
-      <div class="metric-label">إجمالي المشاهدات</div>
-      <div class="metric-value">${formatNumber(totalViews)}</div>
-      <div class="metric-trend up">↑ ${totalPosts} فيديو محلّل</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">متوسط التفاعل</div>
-      <div class="metric-value">${avgEngPct}%</div>
-      <div class="metric-trend ${parseFloat(avgEngPct)>=3?'up':'down'}">${parseFloat(avgEngPct)>=3?'↑ ممتاز':'↓ يحتاج تحسين'}</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">أفضل منصة</div>
-      <div class="metric-value" style="font-size:22px">${rc.best_platform || 'TikTok'}</div>
-      <div class="metric-trend up">↑ الأعلى تفاعلاً</div>
-    </div>`;
+  // Per-platform engagement rates from engine
+  const engByPlatform = dm.average_engagement_rate_by_platform || {};
+  const localCounts   = getLocalPlatformCounts();
+  const analyzedPlatforms = dq.analyzed_platforms
+    || Object.keys(localCounts)
+    || (rc.best_platform ? [rc.best_platform.toLowerCase()] : ['tiktok']);
+
+  // KPI cards — if multi-platform, show one card per platform instead of single "best platform"
+  if (analyzedPlatforms.length > 1) {
+    document.getElementById('metricsRow').innerHTML =
+      `<div class="metric-card">
+         <div class="metric-label">إجمالي المشاهدات</div>
+         <div class="metric-value">${formatNumber(totalViews)}</div>
+         <div class="metric-trend up">↑ ${totalPosts} منشور</div>
+       </div>`
+      + analyzedPlatforms.map(p => {
+          const eng = engByPlatform[p] ? (engByPlatform[p]*100).toFixed(1) : null;
+          const cnt = (dq.posts_analyzed_per_platform || localCounts)[p] || 0;
+          const isWinner = rc.best_platform && rc.best_platform.toLowerCase() === p;
+          return `<div class="metric-card" ${isWinner ? 'style="border-right:3px solid var(--green)"' : ''}>
+            <div class="metric-label">${platformIcon(p)} ${platformLabel(p)}</div>
+            <div class="metric-value" style="font-size:20px">${eng ? eng+'%' : cnt+' منشور'}</div>
+            <div class="metric-trend ${eng&&parseFloat(eng)>=3?'up':eng?'down':''}">
+              ${isWinner ? '🏆 الأعلى تفاعلاً · ' : ''}${cnt} منشور
+            </div>
+          </div>`;
+        }).join('');
+  } else {
+    document.getElementById('metricsRow').innerHTML = `
+      <div class="metric-card">
+        <div class="metric-label">إجمالي المشاهدات</div>
+        <div class="metric-value">${formatNumber(totalViews)}</div>
+        <div class="metric-trend up">↑ ${totalPosts} منشور محلّل</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">متوسط التفاعل</div>
+        <div class="metric-value">${avgEngPct}%</div>
+        <div class="metric-trend ${parseFloat(avgEngPct)>=3?'up':'down'}">${parseFloat(avgEngPct)>=3?'↑ ممتاز':'↓ يحتاج تحسين'}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">المنصة المحللة</div>
+        <div class="metric-value" style="font-size:22px">${platformIcon(analyzedPlatforms[0])} ${platformLabel(analyzedPlatforms[0])}</div>
+        <div class="metric-trend up">${totalPosts} منشور</div>
+      </div>`;
+  }
 
   const iconMap = { good:'✅', warning:'⚠️', info:'📊' };
   const insights = analysisResult.insights || [];
@@ -485,6 +563,19 @@ function renderTab0() {
   document.getElementById('summaryText').innerHTML = s0
     ? `<strong>${s0.title}</strong><br><br>${s0.why_this_matters}<br><br><em>${s0.recommended_action}</em>`
     : markdownToHtml(rootText || 'اكتمل التحليل بنجاح.');
+}
+
+// ── Shared: Goal badge ──
+const _goalColors = {
+  'تحويل': { bg:'#dcfce7', color:'#15803d', border:'#22c55e' },
+  'ثقة':   { bg:'#dbeafe', color:'#1d4ed8', border:'#3b82f6' },
+  'وعي':   { bg:'#ede9f5', color:'#3d3a6b', border:'#7B75A8' },
+  'تفاعل': { bg:'#fef3c7', color:'#92400e', border:'#F59E0B' },
+};
+function goalBadgeA(goal) {
+  if (!goal) return '';
+  const c = _goalColors[goal] || { bg:'var(--bg3)', color:'var(--t2)', border:'var(--b1)' };
+  return `<span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:800;background:${c.bg};color:${c.color};border:1.5px solid ${c.border}">${goal}</span>`;
 }
 
 // ── Tab 1: Strategic Decisions ──
@@ -516,6 +607,68 @@ function renderTab1() {
       </div>
     </div>`;
   }).join('') || `<div class="card" style="padding:32px;text-align:center;color:var(--t3)">لا توجد استراتيجيات كافية بعد</div>`;
+
+  // Platform Comparison (only shown when multi-platform)
+  const pcCmp = analysisResult.platform_comparison || {};
+  const cpEl0 = document.getElementById('conversionPlaybookAnalysis');
+  if (cpEl0 && pcCmp.available && (pcCmp.platforms || []).length > 1) {
+    const sorted = [...pcCmp.platforms].sort((a,b) => b.avg_engagement_rate - a.avg_engagement_rate);
+    const winner = sorted[0];
+    const platformCompHtml = `
+      <div class="card" style="border-right:3px solid var(--navy);margin-bottom:20px">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">📊 مقارنة المنصات — من أين تجي أفضل النتائج؟</p>
+        ${pcCmp.summary_text ? `<div style="font-size:13px;color:var(--t2);margin-bottom:14px;padding:10px 14px;background:var(--bg2);border-radius:8px">${pcCmp.summary_text}</div>` : ''}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+          ${sorted.map((p,i) => `
+            <div style="background:var(--bg2);border-radius:10px;padding:14px;${i===0?'border:1.5px solid var(--green)':''}">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+                <span style="font-size:18px">${platformIcon(p.platform)}</span>
+                <span style="font-size:13px;font-weight:800;color:var(--t1)">${platformLabel(p.platform)}</span>
+                ${i===0?'<span style="font-size:10px;font-weight:700;background:#dcfce7;color:#15803d;padding:2px 7px;border-radius:20px;margin-right:auto">🏆 الأفضل</span>':''}
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="display:flex;justify-content:space-between;font-size:12px">
+                  <span style="color:var(--t3)">التفاعل</span>
+                  <span style="font-weight:800;color:var(--t1)">${(p.avg_engagement_rate*100).toFixed(1)}%</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px">
+                  <span style="color:var(--t3)">المشاهدات</span>
+                  <span style="font-weight:700;color:var(--t1)">${formatNumber(p.total_views)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px">
+                  <span style="color:var(--t3)">المنشورات</span>
+                  <span style="font-weight:700;color:var(--t1)">${p.posting_frequency}</span>
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    cpEl0.innerHTML = platformCompHtml + cpEl0.innerHTML;
+  }
+
+  // Conversion Playbook
+  const cp = analysisResult.conversion_playbook || {};
+  const cpEl = document.getElementById('conversionPlaybookAnalysis');
+  if (cpEl && cp.what_makes_them_buy) {
+    cpEl.innerHTML = `
+      <div class="card" style="border-right:3px solid #22c55e">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">💰 محتوى يبيع — ما الذي يخلي الناس يشترون</p>
+        <div style="background:#dcfce7;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+          <div style="font-size:14px;font-weight:700;color:#15803d;line-height:1.6">${cp.what_makes_them_buy}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div>
+            <p style="font-size:11px;font-weight:800;color:var(--t3);margin-bottom:8px;letter-spacing:.5px">🔑 محفزات الشراء</p>
+            ${(cp.top_triggers||[]).map((t,i) => `<div style="display:flex;gap:8px;margin-bottom:6px"><span style="font-weight:800;color:#22c55e;flex-shrink:0">${i+1}</span><span style="font-size:13px;color:var(--t2)">${t}</span></div>`).join('')}
+          </div>
+          <div>
+            <p style="font-size:11px;font-weight:800;color:var(--t3);margin-bottom:8px;letter-spacing:.5px">🎬 أنواع المحتوى الرابحة</p>
+            ${(cp.money_content_types||[]).map(t => `<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#22c55e;flex-shrink:0">✓</span><span style="font-size:13px;color:var(--t2)">${t}</span></div>`).join('')}
+          </div>
+        </div>
+        ${cp.weak_spots ? `<div style="background:#fee2e2;border-radius:8px;padding:10px 14px"><span style="font-size:11px;font-weight:800;color:#dc2626">⚠️ تجنبي: </span><span style="font-size:13px;color:#7f1d1d">${cp.weak_spots}</span></div>` : ''}
+      </div>`;
+  }
 }
 
 // ── Tab 2: Execution Plan ──
@@ -562,17 +715,20 @@ function toggleAccordion(header) {
 function renderTab3() {
   const plan = analysisResult.weekly_plan || [];
   weeklyPlan = plan.slice(0,7).map((d, i) => ({
-    day:      dayNames[i] || d.day,
-    type:     d.content_type || 'تعليمي',
-    time:     d.best_posting_time || '19:00',
-    goal:     d.goal || 'زيادة التفاعل',
-    hook:     d.hook || '',
-    idea:     d.content_idea || d.caption_or_script || '',
-    script:   d.script || d.caption_or_script || '',
-    caption:  d.caption || '',
-    hashtags: d.hashtags || [],
-    platform: d.platform || 'tiktok',
-    cta:      d.cta || ''
+    day:           dayNames[i] || d.day,
+    type:          d.content_type || 'تعليمي',
+    time:          d.best_posting_time || '19:00',
+    goal:          d.goal || 'زيادة التفاعل',
+    content_goal:  d.content_goal || null,
+    hook:          d.hook || '',
+    idea:          d.content_idea || d.caption_or_script || '',
+    script:        d.script || d.caption_or_script || '',
+    caption:       d.caption || '',
+    hashtags:      d.hashtags || [],
+    platform:      d.platform || 'tiktok',
+    cta:           d.cta || '',
+    season:        d.season || null,
+    seasonal:      d.theme === 'seasonal',
   }));
   while (weeklyPlan.length < 7) {
     const i = weeklyPlan.length;
@@ -580,6 +736,29 @@ function renderTab3() {
       hook:'ابدأ بسؤال يشد الجمهور', idea:'محتوى تعليمي قصير',
       script:'[محتوى اليوم]', caption:'', hashtags:[], platform:'tiktok', cta:'' });
   }
+  // Posting schedule
+  const ps = analysisResult.posting_schedule || {};
+  const psKeys = Object.keys(ps);
+  const psEl = document.getElementById('postingScheduleAnalysis');
+  if (psEl && psKeys.length) {
+    psEl.innerHTML = `
+      <div class="card" style="padding:20px;margin-bottom:0">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">🕐 أفضل أوقات النشر</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+          ${psKeys.map(platform => {
+            const p = ps[platform];
+            return `<div style="background:var(--bg2);border-radius:10px;padding:14px">
+              <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:8px">${platform}</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:4px"><span style="font-weight:700">الأيام: </span>${(p.best_days||[]).join('، ')}</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:4px"><span style="font-weight:700">الأوقات: </span>${(p.best_times||[]).join(' / ')}</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:8px"><span style="font-weight:700">التكرار: </span>${p.frequency_per_week||'—'} مرات/أسبوع</div>
+              ${p.why ? `<div style="font-size:11px;color:var(--t3);line-height:1.5;background:var(--bg);border-radius:6px;padding:6px 8px">💡 ${p.why}</div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+
   document.getElementById('dayTabsNav').innerHTML =
     dayNames.map((d,i)=>`<button class="day-tab ${i===0?'active':''}" onclick="showDay(${i})">${d}</button>`).join('');
   renderDayCards();
@@ -595,8 +774,9 @@ function renderDayCards() {
             <div class="day-card-pills">
               <span class="badge badge-purple">${day.type}</span>
               <span style="background:#F3F4F6;color:#6B7280;border-radius:50px;padding:3px 10px;font-size:12px;font-weight:600">⏰ ${day.time}</span>
-              <span class="badge badge-green">${day.goal}</span>
+              ${day.content_goal ? goalBadgeA(day.content_goal) : `<span class="badge badge-green">${day.goal}</span>`}
               <span style="background:var(--bg);border:1px solid var(--b1);color:var(--t2);border-radius:50px;padding:3px 10px;font-size:12px;font-weight:600">${day.platform}</span>
+              ${day.seasonal ? `<span style="background:#FEF3C7;color:#92400E;border-radius:50px;padding:3px 10px;font-size:12px;font-weight:700">🗓️ ${day.season}</span>` : ''}
             </div>
           </div>
           <div class="day-card-actions">
@@ -661,6 +841,30 @@ function renderTab4() {
   const rc = analysisResult.root_cause || {};
   const cp = analysisResult.content_patterns || {};
 
+  // ── Audio Intelligence ──
+  const transcribed = tiktokData.filter(v => v.transcript || v.spoken_hook);
+  const audioEl = document.getElementById('audioIntelCard');
+  if (transcribed.length && audioEl) {
+    audioEl.style.display = 'block';
+    audioEl.innerHTML = `
+      <div class="card" style="border-right:3px solid #22c55e;padding:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:20px">🎙️</span>
+          <p style="font-size:15px;font-weight:800;color:var(--t1);margin:0">تحليل الصوت — ما قيل فعلاً في فيديوهاتك</p>
+          <span style="margin-right:4px;font-size:11px;font-weight:700;background:#dcfce7;color:#15803d;padding:2px 10px;border-radius:20px;flex-shrink:0">${transcribed.length} فيديو محلّل صوتياً</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">
+          ${transcribed.map(v => `
+            <div style="background:var(--bg2);border-radius:10px;padding:12px 14px">
+              <div style="font-size:11px;color:var(--t3);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(v.caption||'فيديو').substring(0,55)}</div>
+              ${v.spoken_hook ? `<div style="display:flex;gap:6px;margin-bottom:5px"><span style="font-size:12px;font-weight:800;color:#15803d;flex-shrink:0">🎤 Hook:</span><span style="font-size:12px;font-weight:700;color:var(--t1);line-height:1.5">"${v.spoken_hook}"</span></div>` : ''}
+              ${v.spoken_topic ? `<div style="display:flex;gap:6px;margin-bottom:5px"><span style="font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0">📍</span><span style="font-size:12px;color:var(--t2)">${v.spoken_topic}</span></div>` : ''}
+              ${v.spoken_cta ? `<div style="display:flex;gap:6px"><span style="font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0">📢 CTA:</span><span style="font-size:12px;color:var(--t2)">${v.spoken_cta}</span></div>` : ''}
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
   // Themes
   const topics = cp.repeated_topics || rc.best_topics || [];
   document.getElementById('themesChart').innerHTML = topics.length
@@ -701,12 +905,77 @@ function renderTab4() {
     || '<p style="color:var(--t3);font-size:13px">لا توجد بيانات</p>';
 
   setTimeout(()=>{ document.querySelectorAll('.bar-fill').forEach(b=>{ b.style.width=(b.dataset.width||0)+'%'; }); }, 200);
+
+  // ── Per-platform breakdown (multi-platform only) ──
+  const ppEl = document.getElementById('perPlatformBreakdown');
+  if (ppEl && tiktokData.length) {
+    const byPlatform = {};
+    tiktokData.forEach(v => {
+      const p = (v.platform || 'tiktok').toLowerCase();
+      if (!byPlatform[p]) byPlatform[p] = [];
+      byPlatform[p].push(v);
+    });
+    const platforms = Object.keys(byPlatform);
+    if (platforms.length > 1) {
+      ppEl.style.display = 'block';
+      ppEl.innerHTML = `
+        <p class="section-title" style="margin-bottom:14px">أداء المحتوى حسب المنصة</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+          ${platforms.map(p => {
+            const vids = byPlatform[p];
+            const totalV = vids.reduce((s,v) => s+(v.views||0), 0);
+            const avgEng = vids.length
+              ? (vids.reduce((s,v) => {
+                  const views = v.views||0;
+                  return s + (views ? ((v.likes||0)+(v.comments||0)+(v.shares||0))/views*100 : 0);
+                }, 0) / vids.length).toFixed(1)
+              : '0';
+            const topVid = [...vids].sort((a,b)=>(b.views||0)-(a.views||0))[0];
+            const topCaption = (topVid?.caption || '').substring(0, 60);
+            // Content types breakdown
+            const typeCount = {};
+            vids.forEach(v => { const t=v.content_type||v._type||'—'; typeCount[t]=(typeCount[t]||0)+1; });
+            const topTypes = Object.entries(typeCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
+            return `
+              <div class="card" style="padding:18px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+                  <span style="font-size:22px">${platformIcon(p)}</span>
+                  <div>
+                    <div style="font-size:15px;font-weight:800;color:var(--t1)">${platformLabel(p)}</div>
+                    <div style="font-size:12px;color:var(--t3)">${vids.length} منشور</div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                  <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
+                    <div style="font-size:11px;color:var(--t3);margin-bottom:3px">إجمالي المشاهدات</div>
+                    <div style="font-size:16px;font-weight:800;color:var(--t1)">${formatNumber(totalV)}</div>
+                  </div>
+                  <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
+                    <div style="font-size:11px;color:var(--t3);margin-bottom:3px">متوسط التفاعل</div>
+                    <div style="font-size:16px;font-weight:800;color:${parseFloat(avgEng)>=3?'#15803d':'var(--t1)'}">${avgEng}%</div>
+                  </div>
+                </div>
+                ${topTypes.length ? `
+                  <div style="margin-bottom:10px">
+                    <div style="font-size:11px;font-weight:700;color:var(--t3);margin-bottom:6px">أنواع المحتوى</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:5px">
+                      ${topTypes.map(([t,c])=>`<span class="badge badge-purple" style="font-size:11px">${t} (${c})</span>`).join('')}
+                    </div>
+                  </div>` : ''}
+                ${topCaption ? `
+                  <div style="font-size:11px;color:var(--t3);margin-bottom:4px">أفضل منشور</div>
+                  <div style="font-size:12px;color:var(--t2);line-height:1.5;background:var(--bg2);padding:8px 10px;border-radius:8px">${topCaption}${topVid?.caption?.length>60?'...':''}</div>` : ''}
+              </div>`;
+          }).join('')}
+        </div>`;
+    }
+  }
 }
 
 // ── Tab 5: Sales Performance ──
 function ratingColor(r) {
   if (!r || r==='غير محدد') return '#94a3b8';
-  if (r==='ممتاز') return '#10B981';
+  if (r==='ممتاز') return '#C17558';
   if (r==='مقبول') return '#F59E0B';
   return '#EF4444';
 }
@@ -722,7 +991,44 @@ async function renderTab5() {
   const totalViews = rc.total_views || dm.total_views || 0;
   const totalPosts = rc.total_posts || dm.total_posts || 0;
 
+  // ── Posting schedule (always show at top of Tab 5) ──
+  const ps = analysisResult.posting_schedule || {};
+  const psKeys = Object.keys(ps);
+  const ps5El = document.getElementById('postingScheduleTab5');
+  if (ps5El) {
+    if (psKeys.length) {
+      // Find earliest best_time across platforms for the KPI card
+      const firstPlatform = ps[psKeys[0]] || {};
+      const bestTimeStr = (firstPlatform.best_times || [])[0] || rc.top_posting_time || dm.top_posting_time || '—';
+
+      ps5El.innerHTML = `
+        <div class="card" style="padding:20px">
+          <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">🕐 أفضل أوقات النشر لبزنسك</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px">
+            ${psKeys.map(platform => {
+              const p = ps[platform];
+              return `<div style="background:var(--bg2);border-radius:10px;padding:14px">
+                <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:8px">${platform}</div>
+                <div style="font-size:12px;color:var(--t2);margin-bottom:4px"><span style="font-weight:700">الأيام: </span>${(p.best_days||[]).join('، ')}</div>
+                <div style="font-size:12px;color:var(--t2);margin-bottom:4px"><span style="font-weight:700">الأوقات: </span>${(p.best_times||[]).join(' / ')}</div>
+                <div style="font-size:12px;color:var(--t2);margin-bottom:8px"><span style="font-weight:700">التكرار: </span>${p.frequency_per_week||'—'} مرات/أسبوع</div>
+                ${p.why ? `<div style="font-size:11px;color:var(--t3);line-height:1.5;background:var(--bg);border-radius:6px;padding:6px 8px">💡 ${p.why}</div>` : ''}
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+
+      // Update KPI card time from actual schedule
+      const kpiTime = bestTimeStr;
+      document.getElementById('salesMetrics').dataset.bestTime = kpiTime;
+    } else {
+      ps5El.innerHTML = '';
+    }
+  }
+
   // ── Row 1: Social KPI cards ──
+  const scheduleTime = document.getElementById('salesMetrics')?.dataset?.bestTime
+    || rc.top_posting_time || dm.top_posting_time || (psKeys.length ? (ps[psKeys[0]]?.best_times||[])[0] : '') || '—';
   document.getElementById('salesMetrics').innerHTML = `
     <div class="metric-card">
       <div class="metric-label">متوسط التفاعل</div>
@@ -736,7 +1042,7 @@ async function renderTab5() {
     </div>
     <div class="metric-card">
       <div class="metric-label">أفضل وقت نشر</div>
-      <div class="metric-value" style="font-size:22px">${rc.top_posting_time||dm.top_posting_time||'—'}</div>
+      <div class="metric-value" style="font-size:${scheduleTime.length>6?'16px':'22px'}">${scheduleTime}</div>
     </div>`;
 
   // ── Row 2: Derived business KPIs ──
@@ -809,8 +1115,8 @@ async function renderTab5() {
           ${data.main_gap?`<div class="card" style="margin:0;padding:14px;border-right:3px solid #F59E0B">
             <div style="font-size:11px;font-weight:700;color:#F59E0B;margin-bottom:6px">الفجوة الرئيسية</div>
             <div style="font-size:13px;color:var(--t2)">${data.main_gap}</div></div>`:''}
-          ${data.top_action?`<div class="card" style="margin:0;padding:14px;border-right:3px solid #10B981">
-            <div style="font-size:11px;font-weight:700;color:#10B981;margin-bottom:6px">الإجراء الأهم</div>
+          ${data.top_action?`<div class="card" style="margin:0;padding:14px;border-right:3px solid #C17558">
+            <div style="font-size:11px;font-weight:700;color:#C17558;margin-bottom:6px">الإجراء الأهم</div>
             <div style="font-size:13px;color:var(--t2)">${data.top_action}</div></div>`:''}`;
         document.getElementById('salesInsightLoading').style.display = 'none';
         document.getElementById('salesInsightBody').style.display = 'block';
@@ -823,15 +1129,40 @@ async function renderTab5() {
   }
 
   // ── Raw sales data card ──
-  document.getElementById('salesDataContent').innerHTML = (rev||ord||ads||cvr)
+  document.getElementById('salesDataContent').innerHTML = (rev||ord||ads||cvr||sm.csv_insights||sm.rows)
     ? `<div style="display:flex;flex-direction:column;gap:10px">
+        ${sm.filename?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">الملف</span><span style="font-weight:700;color:var(--t1)">${sm.filename}</span></div>`:''}
+        ${sm.rows?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">عدد السجلات</span><span style="font-weight:700;color:var(--t1)">${sm.rows} سجل</span></div>`:''}
         ${rev?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">الإيرادات الشهرية</span><span style="font-weight:700;color:var(--t1)">${formatNumber(rev)} ر</span></div>`:''}
         ${ord?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">عدد الطلبات</span><span style="font-weight:700;color:var(--t1)">${formatNumber(ord)} طلب</span></div>`:''}
         ${ads?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">الإنفاق الإعلاني</span><span style="font-weight:700;color:var(--t1)">${formatNumber(ads)} ر</span></div>`:''}
         ${cvr?`<div class="metric-row"><span style="color:var(--t2);font-size:13px">نسبة التحويل</span><span style="font-weight:700;color:var(--t1)">${cvr}%</span></div>`:''}
         ${sm.csv_insights?`<div style="margin-top:8px;padding:10px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--t3)">${sm.csv_insights}</div>`:''}
       </div>`
-    : '<p style="color:var(--t3);font-size:13px">لم يتم إدخال بيانات مبيعات</p>';
+    : `<div style="text-align:center;padding:28px 16px">
+        <div style="font-size:36px;margin-bottom:10px">📊</div>
+        <div style="font-size:14px;font-weight:800;color:var(--t1);margin-bottom:6px">لا توجد بيانات مبيعات</div>
+        <div style="font-size:13px;color:var(--t3);line-height:1.7;margin-bottom:16px;max-width:280px;margin-left:auto;margin-right:auto">
+          أضف بيانات المبيعات لتفعيل ربط المحتوى بالأرقام الفعلية — إيرادات، طلبات، إنفاق إعلاني، نسبة تحويل
+        </div>
+        <button class="btn-ghost" style="font-size:13px" onclick="location.href='onboarding.html'">+ أضف بيانات المبيعات</button>
+      </div>`;
+
+  // ── Sales outliers ──
+  const outliers = sm.outliers || [];
+  const outliersEl = document.getElementById('salesOutliers');
+  if (outliers.length > 0) {
+    outliersEl.style.display = 'block';
+    outliersEl.innerHTML = `
+      <p style="font-size:13px;font-weight:800;color:#F59E0B;margin-bottom:10px">⚠️ تقلبات غير عادية في المبيعات</p>
+      ${outliers.map(o => `
+        <div style="background:#FEF3C7;border-radius:10px;padding:12px 14px;margin-bottom:10px;border-right:3px solid #F59E0B">
+          <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:4px">
+            ${o.direction} ${o.date ? '· ' + o.date : ''} · ${o.pct_diff}% عن المعدل
+          </div>
+          <div style="font-size:13px;color:#78350F;line-height:1.6">${o.question}</div>
+        </div>`).join('')}`;
+  }
 
   // ── Social KPI list (actual numbers, not hardcoded) ──
   const socialKpis = [
@@ -909,7 +1240,7 @@ function renderCommentsResults(count, source) {
 
   // Sentiment bar
   const s = a.sentiment_breakdown || { positive: 70, neutral: 20, negative: 10 };
-  const colors = { positive:'#10B981', neutral:'#6B7280', negative:'#EF4444' };
+  const colors = { positive:'#C17558', neutral:'#6B7280', negative:'#EF4444' };
   const labels = { positive:'إيجابي', neutral:'محايد', negative:'سلبي' };
   document.getElementById('sentimentBar').innerHTML = Object.entries(s).map(([k,v]) =>
     `<div style="flex:${v};background:${colors[k]||'#6B7280'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">${v}%</div>`

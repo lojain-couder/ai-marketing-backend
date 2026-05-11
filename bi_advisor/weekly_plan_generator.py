@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
+from .seasons import get_active_seasons
+
 
 # 7-day content framework — each day has a different purpose and hook style
 _DAY_THEMES = [
@@ -100,9 +102,7 @@ class WeeklyMarketingPlanGenerator:
         best_time_by_platform = self._best_time_by_platform(social_rows)
         content_patterns = analysis.get("content_patterns", {})
 
-        # Extract varied topics from data (up to 7)
         topics = self._extract_topics(social_rows, content_patterns, business_profile)
-        # Extract real hashtag groups from data
         hashtag_groups = self._extract_hashtag_groups(content_patterns)
 
         audience = (
@@ -117,29 +117,59 @@ class WeeklyMarketingPlanGenerator:
         )
         product = business_profile.get("products") or business_profile.get("product") or "منتجك"
 
+        # Detect active/upcoming seasons and inject seasonal days
+        active_seasons = get_active_seasons(lookahead_days=30)
+
         plan: list[dict[str, Any]] = []
+        season_idx = 0  # pointer into active_seasons for seasonal injection
+
         for index, theme in enumerate(_DAY_THEMES):
             platform = strongest_platforms[index % len(strongest_platforms)]
-            topic = topics[index % len(topics)]
-            hashtags = hashtag_groups[index % len(hashtag_groups)] if hashtag_groups else []
             posting_time = best_time_by_platform.get(platform) or "19:00"
 
-            hook = self._build_hook(theme, topic, audience, product)
-            idea = self._build_idea(theme, topic, business_name, product)
-            caption = self._build_caption(theme, platform, topic, business_name, audience, product, theme["cta_default"])
+            # Inject a seasonal day every 3rd slot when a season is active/upcoming
+            if active_seasons and index % 3 == 1 and season_idx < len(active_seasons):
+                season = active_seasons[season_idx]
+                season_idx += 1
+                season_hashtags = season["hashtags"] + (
+                    hashtag_groups[index % len(hashtag_groups)] if hashtag_groups else []
+                )[:6]
+                plan.append({
+                    "day":               f"اليوم {index + 1}",
+                    "platform":          platform,
+                    "content_type":      "موسمي",
+                    "hook":              f"{season['emoji']} {season['name']} — فرصة لا تُفوَّت",
+                    "content_idea":      season["angles"][index % len(season["angles"])],
+                    "caption_or_script": f"بمناسبة {season['name']} {season['emoji']} — {season['angles'][0]}",
+                    "goal":              f"استثمار موسم {season['name']}",
+                    "cta":               "لا تفوّتوا العرض",
+                    "best_posting_time": posting_time,
+                    "hashtags":          season_hashtags,
+                    "theme":             "seasonal",
+                    "season":            season["name"],
+                    "season_urgency":    season["urgency"],
+                })
+                continue
+
+            topic = topics[index % len(topics)]
+            hashtags = hashtag_groups[index % len(hashtag_groups)] if hashtag_groups else []
+
+            hook    = self._build_hook(theme, topic, audience, product)
+            idea    = self._build_idea(theme, topic, business_name, product)
+            caption = self._build_caption(theme, topic, business_name, audience, product, theme["cta_default"])
 
             plan.append({
-                "day": f"اليوم {index + 1}",
-                "platform": platform,
-                "content_type": self._content_type_for_purpose(theme["purpose"], platform),
-                "hook": hook,
-                "content_idea": idea,
+                "day":               f"اليوم {index + 1}",
+                "platform":          platform,
+                "content_type":      self._content_type_for_purpose(theme["purpose"]),
+                "hook":              hook,
+                "content_idea":      idea,
                 "caption_or_script": caption,
-                "goal": theme["goal"],
-                "cta": theme["cta_default"],
+                "goal":              theme["goal"],
+                "cta":               theme["cta_default"],
                 "best_posting_time": posting_time,
-                "hashtags": hashtags,
-                "theme": theme["purpose"],
+                "hashtags":          hashtags,
+                "theme":             theme["purpose"],
             })
 
         return plan
@@ -170,29 +200,56 @@ class WeeklyMarketingPlanGenerator:
                 return False
             return clean not in self._SKIP_TOPICS
 
-        # 1. Topics from Gemini enrichment (semantic, best quality)
+        # 1. Business profile always anchors the plan first
+        product  = (business_profile.get("products") or business_profile.get("product") or "").strip()
+        sector   = (business_profile.get("industry") or business_profile.get("sector") or "").strip()
+        audience = (business_profile.get("target_audience") or business_profile.get("audience_type") or "").strip()
+
+        for val in [product, sector]:
+            for part in val.split("،"):
+                part = part.strip()
+                if part and is_valid(part) and part not in topics:
+                    topics.append(part)
+                    if len(topics) >= 3:
+                        break
+
+        # 2. Gemini-enriched semantic topics (when available)
         repeated = content_patterns.get("repeated_topics", [])
-        for t in repeated[:5]:
+        for t in repeated[:4]:
             label = t.get("label") or t.get("topic") or ""
             if label and is_valid(label) and label not in topics:
                 topics.append(label)
 
-        # 2. Meaningful hashtags as topic proxies (filtered)
+        # 3. Meaningful hashtags as supplements (skip generic ones)
         for h in content_patterns.get("best_hashtags", [])[:8]:
             label = (h.get("label") or "").lstrip("#").replace("_", " ").strip()
             if label and is_valid(label) and label not in topics:
                 topics.append(label)
 
-        # 3. Topics from business profile (sector, products)
-        if len(topics) < 3:
-            for field in ("products", "industry", "sector"):
-                value = (business_profile.get(field) or "").split("،")[0].strip()
-                if value and value not in topics:
-                    topics.append(value)
+        # 4. Derive product-specific topic ideas when still short
+        if len(topics) < 4 and product:
+            extras = [
+                f"فوائد {product}",
+                f"كيف تختار {product} المناسب",
+                f"أسئلة شائعة عن {product}",
+                f"وراء الكواليس — كيف نصنع {product}",
+            ]
+            for e in extras:
+                if e not in topics:
+                    topics.append(e)
+                if len(topics) >= 7:
+                    break
 
-        # 4. Last resort generic topics matching the sector
+        # 5. Last resort with audience context
         if not topics:
-            topics = ["نصيحة يومية", "وراء الكواليس", "عرض خاص", "قصة نجاح", "روتين سريع"]
+            label = audience or "عملائنا"
+            topics = [
+                f"نصيحة لـ {label}",
+                "وراء الكواليس",
+                "عرض خاص",
+                "قصة نجاح",
+                "روتين سريع",
+            ]
 
         # Pad to 7 by cycling
         base = topics[:]
@@ -259,7 +316,6 @@ class WeeklyMarketingPlanGenerator:
     def _build_caption(
         self,
         theme: dict[str, Any],
-        platform: str,
         topic: str,
         business_name: str,
         audience: str,
@@ -299,7 +355,7 @@ class WeeklyMarketingPlanGenerator:
         }
         return captions.get(purpose, f"محتوى حول {topic} من {business_name}. {cta}")
 
-    def _content_type_for_purpose(self, purpose: str, platform: str) -> str:
+    def _content_type_for_purpose(self, purpose: str) -> str:
         mapping = {
             "educational": "تعليمي",
             "social_proof": "قصة نجاح",

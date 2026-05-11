@@ -6,7 +6,7 @@ APIFY_TOKEN = os.getenv("APIFY_TOKEN")
 
 ACTOR_IDS = {
     "tiktok":    "novi~tiktok-user-api",
-    "instagram": "apify~instagram-post-scraper",   # fixed: correct actor
+    "instagram": "apify~instagram-post-scraper",
     "x":         "quacker~twitter-scraper",
 }
 
@@ -14,22 +14,33 @@ ACTOR_IDS = {
 # ── Normalizers ───────────────────────────────────────────────────────────────
 
 def _norm_tiktok(item: dict) -> dict:
-    stats  = item.get("statistics") or {}
-    author = item.get("author") or {}
-    video  = item.get("video") or {}
-    vid_id = item.get("aweme_id") or item.get("id", "")
-    uname  = author.get("unique_id") or author.get("uniqueId", "")
-    ts     = item.get("create_time") or item.get("createTime") or 0
+    # Support both old server-API schema (statistics/author/video) and
+    # free-scraper schema (top-level fields + authorMeta/videoMeta)
+    stats      = item.get("statistics") or {}
+    author     = item.get("author") or item.get("authorMeta") or {}
+    video_meta = item.get("video") or item.get("videoMeta") or {}
+    vid_id     = item.get("aweme_id") or item.get("id", "")
+    uname      = (author.get("unique_id") or author.get("uniqueId")
+                  or author.get("name") or "")
+    ts         = item.get("create_time") or item.get("createTime") or 0
+    url        = (item.get("share_url") or item.get("webVideoUrl")
+                  or f"https://www.tiktok.com/@{uname}/video/{vid_id}")
+    duration   = (video_meta.get("duration", 0)
+                  if isinstance(video_meta, dict) else 0)
     return {
         "id":        vid_id,
-        "url":       item.get("share_url") or f"https://www.tiktok.com/@{uname}/video/{vid_id}",
-        "views":     stats.get("play_count") or stats.get("playCount") or item.get("playCount") or 0,
-        "likes":     stats.get("digg_count") or stats.get("diggCount") or item.get("diggCount") or 0,
-        "comments":  stats.get("comment_count") or stats.get("commentCount") or item.get("commentCount") or 0,
-        "shares":    stats.get("share_count") or stats.get("shareCount") or item.get("shareCount") or 0,
+        "url":       url,
+        "views":     (stats.get("play_count") or stats.get("playCount")
+                      or item.get("playCount") or 0),
+        "likes":     (stats.get("digg_count") or stats.get("diggCount")
+                      or item.get("diggCount") or 0),
+        "comments":  (stats.get("comment_count") or stats.get("commentCount")
+                      or item.get("commentCount") or 0),
+        "shares":    (stats.get("share_count") or stats.get("shareCount")
+                      or item.get("shareCount") or 0),
         "caption":   item.get("desc") or item.get("text") or "",
         "posted_at": str(ts),
-        "duration":  video.get("duration", 0) if isinstance(video, dict) else 0,
+        "duration":  duration,
     }
 
 
@@ -122,7 +133,10 @@ async def fetch_social_media(platform: str, username: str, limit: int = 30) -> d
         )
 
         if response.status_code not in (200, 201):
-            raise RuntimeError(f"Apify error {response.status_code}: {response.text[:400]}")
+            body = response.text[:400]
+            if "not-enough-usage" in body or "paid-actor" in body:
+                raise RuntimeError("not-enough-usage-to-run-paid-actor")
+            raise RuntimeError(f"Apify error {response.status_code}: {body}")
 
         raw = response.json()
 
@@ -140,6 +154,8 @@ async def fetch_social_media(platform: str, username: str, limit: int = 30) -> d
             raise RuntimeError("لم يتم العثور على منشورات — تأكدي من اسم الحساب")
 
         posts = [normalize(item) for item in items]
+        for p in posts:
+            p["platform"] = platform
 
         return {
             "platform": platform,

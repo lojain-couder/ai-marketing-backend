@@ -33,12 +33,17 @@ class GeminiAnalyzer:
         if not videos:
             return videos
 
-        captions = [
-            {"index": i, "caption": str(v.get("caption") or v.get("text") or "")[:300]}
-            for i, v in enumerate(videos)
-        ]
+        captions = []
+        for i, v in enumerate(videos):
+            caption_text = str(v.get("caption") or v.get("text") or "")[:300]
+            entry: dict = {"index": i, "caption": caption_text}
+            transcript = str(v.get("transcript", "")).strip()
+            if transcript:
+                entry["transcript"] = transcript[:400]
+            captions.append(entry)
 
-        prompt = f"""أنتِ محللة محتوى تسويقي رقمي. حللي الكابشن التالية لفيديوهات سوشيال ميديا وصنّفيها.
+        prompt = f"""أنتِ محللة محتوى تسويقي رقمي. حللي البيانات التالية لفيديوهات سوشيال ميديا وصنّفيها.
+إذا توفّر النص المنطوق (transcript) فاستخدميه مع الكابشن لتحليل أدق.
 
 البيانات:
 {json.dumps(captions, ensure_ascii=False)}
