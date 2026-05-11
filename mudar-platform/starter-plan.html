@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>خطة البداية — مُدار</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/api.js"></script>
 <style>
@@ -13,7 +13,7 @@
   .tab-btn {
     padding:9px 18px; border-radius:10px; border:2px solid var(--b1);
     font-size:13px; font-weight:700; color:var(--t2); cursor:pointer;
-    background:var(--bg); transition:all .2s; font-family:'Tajawal',sans-serif;
+    background:var(--bg); transition:all .2s; font-family:'Cairo',sans-serif;
   }
   .tab-btn.active { background:var(--t1); color:#fff; border-color:var(--t1); }
   .tab-panel { display:none; }
@@ -23,18 +23,18 @@
     display:flex; align-items:flex-start; gap:16px; margin-bottom:12px;
     background:var(--bg); transition:border-color .2s;
   }
-  .platform-card.primary { border-color:#6B5CFF; background:#F5F3FF; }
+  .platform-card.primary { border-color:#7B75A8; background:#EDE9F5; }
   .platform-icon { font-size:36px; flex-shrink:0; }
   .platform-name { font-size:16px; font-weight:800; color:var(--t1); margin-bottom:4px; }
   .platform-reason { font-size:13px; color:var(--t2); line-height:1.7; }
   .fit-bar { height:8px; border-radius:4px; background:var(--b1); margin-top:10px; overflow:hidden; }
-  .fit-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#6B5CFF,#10B981); transition:width .8s ease; }
+  .fit-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#7B75A8,#C17558); transition:width .8s ease; }
   .pillar-card {
     background:var(--bg); border:2px solid var(--b1); border-radius:14px;
     padding:20px; display:flex; gap:16px; align-items:flex-start; margin-bottom:12px;
   }
   .pillar-num {
-    width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#6B5CFF,#1F176E);
+    width:36px; height:36px; border-radius:50%; background:#7B75A8;
     color:#fff; font-size:14px; font-weight:800; display:flex; align-items:center;
     justify-content:center; flex-shrink:0;
   }
@@ -57,7 +57,7 @@
   .day-type { font-size:11px; font-weight:700; padding:3px 8px; border-radius:20px;
     background:var(--bg3); color:var(--t2); flex-shrink:0; }
   .day-idea { color:var(--t2); flex:1; line-height:1.6; }
-  .day-hook { font-size:12px; color:#6B5CFF; margin-top:4px; font-style:italic; }
+  .day-hook { font-size:12px; color:#7B75A8; margin-top:4px; font-style:italic; }
   .hook-card {
     background:var(--bg); border:2px solid var(--b1); border-radius:12px;
     padding:18px 20px; margin-bottom:10px;
@@ -71,6 +71,18 @@
   }
   .timeline-period { font-size:12px; font-weight:700; color:var(--t3); margin-bottom:8px; }
   .timeline-goal { font-size:14px; font-weight:700; color:var(--t1); line-height:1.6; }
+  .rating-bar { display:flex; gap:8px; margin-top:14px; align-items:center; }
+  .rating-btn { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; border:1.5px solid var(--b1); background:var(--bg); color:var(--t2); cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:5px; }
+  .rating-btn:hover { border-color:#7B75A8; color:#7B75A8; }
+  .rating-btn.liked { background:#22c55e22; border-color:#22c55e; color:#16a34a; }
+  .rating-btn.disliked { background:#fee2e222; border-color:#ef4444; color:#dc2626; }
+  .feedback-panel { display:none; margin-top:12px; padding:14px; background:var(--bg2); border-radius:10px; }
+  .feedback-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .feedback-chip { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; border:1.5px solid var(--b1); background:var(--bg); color:var(--t2); cursor:pointer; transition:all .15s; }
+  .feedback-chip.selected { background:#7B75A855; border-color:#7B75A8; color:#3d3a6b; }
+  .regen-btn { width:100%; padding:9px; border-radius:10px; font-size:13px; font-weight:700; border:none; background:#7B75A8; color:#fff; cursor:pointer; margin-top:10px; transition:opacity .15s; }
+  .regen-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .regen-loading { text-align:center; padding:16px; font-size:13px; color:var(--t2); }
   .hashtag-pill {
     display:inline-block; padding:6px 14px; border-radius:20px;
     font-size:13px; font-weight:700; margin:4px; cursor:pointer;
@@ -89,8 +101,8 @@
 
 <nav class="nav">
   <a href="index.html" class="brand">
-    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
-    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
+    <span style="font-size:20px;font-weight:800;color:#2A2140;font-family:'Cairo',sans-serif">مُدار</span>
+    <span style="font-size:11px;color:#7B75A8;margin-right:6px">تسويق يُدار بالبيانات</span>
   </a>
   <div style="display:flex;gap:10px;align-items:center">
     <span id="bizNameLabel" style="font-size:13px;font-weight:700;color:var(--t2)"></span>
@@ -105,45 +117,40 @@
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
       <span style="font-size:28px">✨</span>
       <h1 style="font-size:26px;font-weight:800;color:var(--t1)">خطة البداية لبزنسك</h1>
-      <span style="background:#6B5CFF;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px">AI Generated</span>
+      <span style="background:#7B75A8;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px">AI Generated</span>
     </div>
     <p style="font-size:14px;color:var(--t2)" id="headerSub">خطة محتوى مخصصة من الصفر — مبنية على طبيعة بزنسك وجمهورك</p>
   </div>
 
   <!-- Tabs -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="showTab(1,this)">🏆 المنصة المناسبة</button>
-    <button class="tab-btn" onclick="showTab(2,this)">🎯 محاور المحتوى</button>
-    <button class="tab-btn" onclick="showTab(3,this)">📅 خطة أول شهر</button>
-    <button class="tab-btn" onclick="showTab(4,this)">⚡ محتوى جاهز</button>
-    <button class="tab-btn" onclick="showTab(5,this)">📈 استراتيجية النمو</button>
+    <button class="tab-btn active" onclick="showTab(1,this)">🏆 المنصة</button>
+    <button class="tab-btn" onclick="showTab(2,this)">📅 خطة أول شهر</button>
+    <button class="tab-btn" onclick="showTab(3,this)">⚡ محتوى جاهز</button>
+    <button class="tab-btn" onclick="showTab(4,this)">📈 استراتيجية النمو</button>
   </div>
 
   <!-- Tab 1: Platform -->
   <div class="tab-panel active" id="stab1">
-    <p class="section-title">أي منصة تناسب بزنسك؟</p>
+    <p class="section-title">المنصة المناسبة لبزنسك</p>
     <div id="platformRecommendation"></div>
     <div id="platformComparison" style="margin-top:24px"></div>
   </div>
 
-  <!-- Tab 2: Content Pillars -->
+  <!-- Tab 2: Monthly Plan + Pillars -->
   <div class="tab-panel" id="stab2">
-    <p class="section-title">محاور المحتوى الأساسية</p>
-    <p style="font-size:13px;color:var(--t2);margin-bottom:20px">هذه المحاور الـ 5 تبني هوية بزنسك على السوشيال ميديا — كل محور يمثل سبب يتابعك الناس</p>
-    <div id="contentPillars"></div>
-  </div>
-
-  <!-- Tab 3: Monthly Plan -->
-  <div class="tab-panel" id="stab3">
     <p class="section-title">خطة المحتوى — أول 30 يوم</p>
-    <p style="font-size:13px;color:var(--t2);margin-bottom:20px">خطة أسبوعية جاهزة — الهدف الأول بناء الحضور والمصداقية قبل البيع</p>
+
+    <!-- Pillars as compact pills above the plan -->
+    <div id="pillarsCompact" style="margin-bottom:24px"></div>
+
     <div id="monthlyPlan"></div>
   </div>
 
-  <!-- Tab 4: Ready Hooks -->
-  <div class="tab-panel" id="stab4">
-    <p class="section-title">محتوى جاهز للنشر</p>
-    <p style="font-size:13px;color:var(--t2);margin-bottom:20px">hooks مكتوبة جاهزة — افتحي الكاميرا واقرئيها مباشرة</p>
+  <!-- Tab 3: Instant Content -->
+  <div class="tab-panel" id="stab3">
+    <p class="section-title">⚡ صوّري الآن</p>
+    <p style="font-size:13px;color:var(--t2);margin-bottom:20px">8 أفكار جاهزة — بدون تخطيط، بدون سكريبت، افتحي الكاميرا وابدئي</p>
     <div id="readyHooks"></div>
 
     <div style="margin-top:32px">
@@ -158,9 +165,17 @@
     </div>
   </div>
 
-  <!-- Tab 5: Growth -->
-  <div class="tab-panel" id="stab5">
+  <!-- Tab 4: Growth -->
+  <div class="tab-panel" id="stab4">
     <p class="section-title">استراتيجية النمو من الصفر</p>
+
+    <!-- Conversion Playbook -->
+    <div id="conversionPlaybook" style="margin-bottom:24px"></div>
+
+    <!-- Posting Schedule -->
+    <div id="postingSchedule" style="margin-bottom:24px"></div>
+
+    <!-- Timeline -->
     <div class="growth-timeline" id="growthTimeline"></div>
     <div class="insights-grid" style="margin-top:8px">
       <div class="card">
@@ -180,9 +195,9 @@
 <div id="chatBubble" onclick="toggleChat()" title="مساعد مُدار AI" style="
   position:fixed;bottom:28px;left:28px;z-index:1000;
   width:54px;height:54px;border-radius:50%;
-  background:linear-gradient(135deg,#6B5CFF,#1F176E);
+  background:#7B75A8;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;box-shadow:0 4px 20px rgba(107,92,255,.4);
+  cursor:pointer;box-shadow:0 4px 20px rgba(123,117,168,.4);
   transition:transform .2s;font-size:24px;
 " onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">🤖</div>
 
@@ -192,7 +207,7 @@
   background:var(--bg);box-shadow:0 8px 40px rgba(31,23,110,.2);
   overflow:hidden;display:none;flex-direction:column;
 ">
-  <div style="background:linear-gradient(135deg,#6B5CFF,#1F176E);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+  <div style="background:#2A2140;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
     <div>
       <div style="font-size:15px;font-weight:800;color:#fff">مُدار AI</div>
       <div style="font-size:11px;color:rgba(255,255,255,.7)">مساعد خطة البداية</div>
@@ -209,7 +224,7 @@
       <button onclick="quickSend('ما أعرف كيف أصور')" class="tab-btn" style="padding:5px 10px;font-size:11px">ما أعرف أصور</button>
     </div>
     <div style="display:flex;gap:8px">
-      <textarea id="chatInput" placeholder="اسأليني أي شيء..." style="flex:1;resize:none;border:1px solid var(--b1);border-radius:10px;padding:8px 12px;font-family:'Tajawal',sans-serif;font-size:13px;background:var(--bg2);color:var(--t1);outline:none" rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea>
+      <textarea id="chatInput" placeholder="اسأليني أي شيء..." style="flex:1;resize:none;border:1px solid var(--b1);border-radius:10px;padding:8px 12px;font-family:'Cairo',sans-serif;font-size:13px;background:var(--bg2);color:var(--t1);outline:none" rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea>
       <button onclick="sendChatMessage()" style="background:var(--t1);color:#fff;border:none;border-radius:10px;width:40px;cursor:pointer;font-size:18px">↑</button>
     </div>
   </div>
@@ -250,7 +265,6 @@ function init() {
   }
 
   renderPlatform();
-  renderPillars();
   renderMonthlyPlan();
   renderHooks();
   renderGrowth();
@@ -282,7 +296,7 @@ function renderPlatform() {
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <div class="platform-name">${primary}</div>
-          <span style="background:#6B5CFF;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px">المنصة الأساسية</span>
+          <span style="background:#7B75A8;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px">المنصة الأساسية</span>
         </div>
         <div class="platform-reason">${rp.primary_reason || ''}</div>
       </div>
@@ -320,10 +334,28 @@ function renderPlatform() {
   }
 }
 
-// ── Tab 2: Pillars ──
+// ── Pillars compact (shown above monthly plan) ──
+function renderPillarsCompact() {
+  const pillars = starterPlan.content_pillars || [];
+  if (!pillars.length) return;
+  document.getElementById('pillarsCompact').innerHTML = `
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:800;color:var(--t2);margin-bottom:10px">محاور المحتوى الأساسية لبزنسك</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${pillars.map((p,i) => `
+          <div style="background:var(--bg2);border-radius:10px;padding:10px 14px;flex:1;min-width:160px">
+            <div style="font-size:12px;font-weight:800;color:var(--t1);margin-bottom:3px">${i+1}. ${p.title||''}</div>
+            <div style="font-size:11px;color:var(--t3)">${p.frequency||''}</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:4px;line-height:1.5">${(p.description||'').slice(0,80)}${(p.description||'').length>80?'...':''}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ── OLD Pillars renderer (kept for reference, no longer called) ──
 function renderPillars() {
   const pillars = starterPlan.content_pillars || [];
-  document.getElementById('contentPillars').innerHTML = pillars.map((p, i) => `
+  document.getElementById('contentPillars') && (document.getElementById('contentPillars').innerHTML = pillars.map((p, i) => `
     <div class="pillar-card">
       <div class="pillar-num">${i + 1}</div>
       <div style="flex:1">
@@ -334,41 +366,111 @@ function renderPillars() {
         <div class="pillar-desc">${p.description||''}</div>
         ${p.example_idea ? `<div class="pillar-example">💡 مثال: ${p.example_idea}</div>` : ''}
       </div>
-    </div>`).join('') || '<p style="color:var(--t3)">لا توجد بيانات</p>';
+    </div>`).join('') || '<p style="color:var(--t3)">لا توجد بيانات</p>');
 }
 
-// ── Tab 3: Monthly Plan ──
+// ── Tab 2: Monthly Plan ──
+const goalColors = {
+  'تحويل': { bg:'#dcfce7', color:'#15803d', border:'#22c55e' },
+  'ثقة':   { bg:'#dbeafe', color:'#1d4ed8', border:'#3b82f6' },
+  'وعي':   { bg:'#ede9f5', color:'#3d3a6b', border:'#7B75A8' },
+  'تفاعل': { bg:'#fef3c7', color:'#92400e', border:'#F59E0B' },
+};
+function goalBadge(goal) {
+  if (!goal) return '';
+  const c = goalColors[goal] || { bg:'var(--bg3)', color:'var(--t2)', border:'var(--b1)' };
+  return `<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;background:${c.bg};color:${c.color};border:1.5px solid ${c.border}">${goal}</span>`;
+}
+
 function renderMonthlyPlan() {
+  renderPillarsCompact();
   const weeks = starterPlan.monthly_plan || [];
-  document.getElementById('monthlyPlan').innerHTML = weeks.map(w => `
-    <div class="week-card card" style="padding:0;overflow:hidden">
-      <div class="week-title" style="margin:0;border-radius:0">الأسبوع ${w.week} — ${w.theme||''}</div>
-      ${(w.days||[]).map(d => `
-        <div class="day-row">
-          <div class="day-label">${d.day||''}</div>
-          <span class="day-type">${d.content_type||''}</span>
-          <div class="day-idea">
-            ${d.idea||''}
-            ${d.hook ? `<div class="day-hook">"${d.hook}"</div>` : ''}
+  document.getElementById('monthlyPlan').innerHTML = weeks.map((w, wi) => `
+    <div class="week-card card" style="padding:0;overflow:hidden;margin-bottom:20px">
+      <div class="week-title" style="margin:0;border-radius:0;padding:14px 18px;display:flex;align-items:center;gap:10px">
+        <span>الأسبوع ${w.week} — ${w.theme||''}</span>
+        ${goalBadge(w.week_goal)}
+        ${w.focus ? `<span style="margin-right:auto;font-size:11px;font-weight:600;opacity:.7">${w.focus}</span>` : ''}
+      </div>
+      ${(w.days||[]).map((d, di) => `
+        <div style="padding:18px;border-bottom:1px solid var(--border)">
+
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:13px;font-weight:800;color:var(--t1)">${d.day||''}</span>
+            <span class="day-type">${d.content_type||''}</span>
+            ${goalBadge(d.content_goal)}
+            <span style="font-size:11px;color:var(--t3);margin-right:auto">${platformIcon(d.platform||'')} ${d.platform||''}</span>
           </div>
-          <span style="font-size:11px;color:var(--t3);flex-shrink:0">${platformIcon(d.platform||'')} ${d.platform||''}</span>
+
+          ${d.hook ? `
+          <div style="background:#f0f0ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;border-right:3px solid #7B75A8">
+            <div style="font-size:10px;font-weight:800;color:#7B75A8;margin-bottom:6px;letter-spacing:.5px">🎯 HOOK — الجملة الافتتاحية</div>
+            <div style="font-size:14px;font-weight:700;color:#3d3a6b;line-height:1.6">"${d.hook}"</div>
+          </div>` : ''}
+
+          ${d.script ? `
+          <div style="background:var(--bg2);border-radius:8px;padding:12px 14px;margin-bottom:12px">
+            <div style="font-size:10px;font-weight:800;color:var(--t2);margin-bottom:8px;letter-spacing:.5px">🎤 السكريبت — كلمات تُقال أمام الكاميرا</div>
+            <div style="font-size:13px;color:var(--t1);line-height:1.9;white-space:pre-line">${d.script.replace(/\|/g,'\n')}</div>
+          </div>` : ''}
+
+          ${d.visual_setup ? `
+          <div style="background:#fff8f0;border-radius:8px;padding:12px 14px;margin-bottom:12px;border-right:3px solid #F59E0B">
+            <div style="font-size:10px;font-weight:800;color:#b45309;margin-bottom:6px;letter-spacing:.5px">🎬 ماذا تصوّرين</div>
+            <div style="font-size:13px;color:var(--t1);line-height:1.6">${d.visual_setup}</div>
+          </div>` : ''}
+
+          ${d.caption ? `
+          <div style="background:var(--bg2);border-radius:8px;padding:10px 14px;margin-bottom:10px">
+            <div style="font-size:10px;font-weight:800;color:var(--t3);margin-bottom:6px;letter-spacing:.5px">📝 الكابشن</div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.6">${d.caption}</div>
+          </div>` : ''}
+
+          ${d.hashtags?.length ? `
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+            ${d.hashtags.map(h => `<span style="background:var(--bg3);color:var(--t2);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px">${h}</span>`).join('')}
+            ${d.cta ? `<span style="background:#22c55e22;color:#16a34a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">👉 ${d.cta}</span>` : ''}
+          </div>` : ''}
+
+          ${dayRatingHtml(wi, di)}
+
         </div>`).join('')}
     </div>`).join('') || '<p style="color:var(--t3)">لا توجد بيانات</p>';
 }
 
-// ── Tab 4: Hooks ──
+// ── Tab 3: Instant Content ──
 function renderHooks() {
-  const hooks = starterPlan.ready_hooks || [];
-  const typeColors = { educational:'#10B981', promotional:'#6B5CFF', entertaining:'#F59E0B', lifestyle:'#EC4899' };
-  document.getElementById('readyHooks').innerHTML = hooks.map((h, i) => `
-    <div class="hook-card">
-      <div style="font-size:11px;font-weight:700;color:var(--t3);margin-bottom:8px">Hook ${i+1}</div>
-      <div class="hook-text">${h.hook||''}</div>
-      <div class="hook-meta">
-        <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;background:${typeColors[h.content_type]||'#6B5CFF'}">${h.content_type||''}</span>
-        <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--bg3);color:var(--t2)">${platformIcon(h.platform||'')} ${h.platform||''}</span>
-        <button onclick="copyHook(this,'${encodeURIComponent(h.hook||'')}')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--b1);background:var(--bg);color:var(--t2);cursor:pointer">نسخ</button>
+  const items = starterPlan.instant_content || [];
+  document.getElementById('readyHooks').innerHTML = items.map((item, i) => `
+    <div class="hook-card" style="padding:18px 20px;margin-bottom:14px">
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:800;color:var(--t1);line-height:1.5;flex:1">${item.title||''}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+          ${item.conversion_goal ? goalBadge(item.conversion_goal) : ''}
+          ${item.time_needed ? `<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#FEF3C7;color:#92400E">⏱ ${item.time_needed}</span>` : ''}
+          ${item.platform ? `<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--bg3);color:var(--t2)">${platformIcon(item.platform)} ${item.platform}</span>` : ''}
+        </div>
       </div>
+
+      <div style="background:#FFF7ED;border-radius:10px;padding:12px 14px;margin-bottom:10px;border-right:3px solid #F97316">
+        <div style="font-size:10px;font-weight:800;color:#EA580C;margin-bottom:6px;letter-spacing:.5px">🎬 افتحي الكاميرا الآن وصوّري</div>
+        <div style="font-size:13px;color:var(--t1);line-height:1.7">${item.what_to_film||''}</div>
+      </div>
+
+      <div style="background:#F0F0FF;border-radius:10px;padding:12px 14px;margin-bottom:10px;border-right:3px solid #7B75A8">
+        <div style="font-size:10px;font-weight:800;color:#7B75A8;margin-bottom:6px;letter-spacing:.5px">🎤 أول جملة تقوليها</div>
+        <div style="font-size:14px;font-weight:700;color:#3d3a6b;line-height:1.6">"${item.hook||''}"</div>
+      </div>
+
+      ${item.caption ? `
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:10px;font-weight:800;color:var(--t3);margin-bottom:6px;letter-spacing:.5px">📝 كابشن جاهز</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.8">${item.caption}</div>
+        <button onclick="copyInstant(this,${i})" style="margin-top:8px;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--b1);background:var(--bg);color:var(--t2);cursor:pointer">نسخ الكابشن</button>
+      </div>` : ''}
+
+      ${ratingHtml(i)}
     </div>`).join('') || '<p style="color:var(--t3)">لا توجد بيانات</p>';
 
   const hs = starterPlan.hashtag_strategy || {};
@@ -385,14 +487,72 @@ function copyHook(btn, encoded) {
   btn.textContent = 'تم ✓';
   setTimeout(() => btn.textContent = 'نسخ', 1500);
 }
+function copyInstant(btn, idx) {
+  const item = (starterPlan.instant_content || [])[idx];
+  if (!item) return;
+  const text = [item.hook, item.caption].filter(Boolean).join('\n\n');
+  navigator.clipboard.writeText(text);
+  btn.textContent = 'تم ✓';
+  setTimeout(() => btn.textContent = 'نسخ الكابشن', 1500);
+}
 function copyTag(el) {
   navigator.clipboard.writeText(el.textContent);
   toast('تم نسخ الهاشتاق', 'success');
 }
 
-// ── Tab 5: Growth ──
+// ── Tab 4: Growth ──
 function renderGrowth() {
   const gs = starterPlan.growth_strategy || {};
+
+  // Conversion Playbook
+  const cp = starterPlan.conversion_playbook || {};
+  if (cp.what_makes_them_buy) {
+    document.getElementById('conversionPlaybook').innerHTML = `
+      <div class="card" style="border-right:3px solid #22c55e;margin-bottom:0">
+        <p style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:14px">💰 محتوى يبيع — ما الذي يخلي الناس يشترون</p>
+        <div style="background:#dcfce7;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+          <div style="font-size:14px;font-weight:700;color:#15803d;line-height:1.6">${cp.what_makes_them_buy}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div>
+            <p style="font-size:11px;font-weight:800;color:var(--t3);margin-bottom:8px;letter-spacing:.5px">🔑 محفزات الشراء</p>
+            ${(cp.top_triggers||[]).map((t,i) => `<div style="display:flex;gap:8px;margin-bottom:6px"><span style="font-weight:800;color:#22c55e;flex-shrink:0">${i+1}</span><span style="font-size:13px;color:var(--t2)">${t}</span></div>`).join('')}
+          </div>
+          <div>
+            <p style="font-size:11px;font-weight:800;color:var(--t3);margin-bottom:8px;letter-spacing:.5px">🎬 أنواع المحتوى الرابحة</p>
+            ${(cp.money_content_types||[]).map(t => `<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#22c55e;flex-shrink:0">✓</span><span style="font-size:13px;color:var(--t2)">${t}</span></div>`).join('')}
+          </div>
+        </div>
+        ${cp.weak_spots ? `<div style="background:#fee2e2;border-radius:8px;padding:10px 14px"><span style="font-size:11px;font-weight:800;color:#dc2626">⚠️ تجنبي: </span><span style="font-size:13px;color:#7f1d1d">${cp.weak_spots}</span></div>` : ''}
+      </div>`;
+  }
+
+  // Posting Schedule
+  const ps = starterPlan.posting_schedule || {};
+  const psKeys = Object.keys(ps);
+  if (psKeys.length) {
+    document.getElementById('postingSchedule').innerHTML = `
+      <p class="section-title" style="margin-bottom:14px">🕐 أفضل أوقات النشر</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        ${psKeys.map(platform => {
+          const p = ps[platform];
+          return `<div class="card" style="padding:16px">
+            <div style="font-size:14px;font-weight:800;color:var(--t1);margin-bottom:10px">${platformIcon(platform)} ${platform}</div>
+            <div style="font-size:12px;color:var(--t2);margin-bottom:6px">
+              <span style="font-weight:700;color:var(--t1)">أفضل الأيام: </span>${(p.best_days||[]).join('، ')}
+            </div>
+            <div style="font-size:12px;color:var(--t2);margin-bottom:6px">
+              <span style="font-weight:700;color:var(--t1)">أفضل الأوقات: </span>${(p.best_times||[]).join(' / ')}
+            </div>
+            <div style="font-size:12px;color:var(--t2);margin-bottom:10px">
+              <span style="font-weight:700;color:var(--t1)">التكرار: </span>${p.frequency_per_week||'—'} مرات/أسبوع
+            </div>
+            ${p.why ? `<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--t2);line-height:1.5">💡 ${p.why}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
   document.getElementById('growthTimeline').innerHTML = `
     <div class="timeline-card">
       <div class="timeline-period">الأسبوع الأول</div>
@@ -408,7 +568,7 @@ function renderGrowth() {
     </div>`;
 
   document.getElementById('keyHabits').innerHTML = (gs.key_habits||[]).map(h =>
-    `<div class="metric-row"><span style="color:#10B981;font-weight:700;margin-left:8px">✓</span><span style="font-size:13px;color:var(--t2)">${h}</span></div>`).join('');
+    `<div class="metric-row"><span style="color:#C17558;font-weight:700;margin-left:8px">✓</span><span style="font-size:13px;color:var(--t2)">${h}</span></div>`).join('');
 
   document.getElementById('avoidList').innerHTML = (gs.avoid||[]).map(a =>
     `<div class="metric-row"><span style="color:#EF4444;font-weight:700;margin-left:8px">✕</span><span style="font-size:13px;color:var(--t2)">${a}</span></div>`).join('');
@@ -486,6 +646,167 @@ async function sendChatMessage() {
 }
 
 init();
+
+// ── Day Rating & Regeneration (Monthly Plan) ──
+function dayRatingHtml(wi, di) {
+  const id = `${wi}_${di}`;
+  return `
+    <div class="rating-bar" id="dayRatingBar_${id}">
+      <button class="rating-btn" onclick="rateDay('${id}','like')">👍 مناسب</button>
+      <button class="rating-btn" onclick="rateDay('${id}','dislike')">👎 غيّري المحتوى</button>
+    </div>
+    <div class="feedback-panel" id="dayFeedbackPanel_${id}">
+      <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">ليش ما ناسبك؟</div>
+      <div class="feedback-chips">
+        <span class="feedback-chip" onclick="toggleChip(this,'formal')">رسمي جداً</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'irrelevant')">مو مرتبط بالمنتج</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'hard')">صعب التصوير</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'dialect')">مو بلهجتي</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'generic')">عام جداً</span>
+      </div>
+      <input class="input" type="text" id="dayFeedbackText_${id}" placeholder="أو اكتبي ملاحظة..." style="font-size:12px;padding:8px 12px;margin-bottom:0">
+      <button class="regen-btn" id="dayRegenBtn_${id}" onclick="regenerateDay('${id}',${wi},${di})">🔄 ولّدي محتوى جديد</button>
+    </div>`;
+}
+
+function rateDay(id, rating) {
+  document.getElementById(`dayRatingBar_${id}`)?.querySelectorAll('.rating-btn').forEach(b => {
+    b.classList.remove('liked','disliked');
+  });
+  const btns = document.getElementById(`dayRatingBar_${id}`)?.querySelectorAll('.rating-btn');
+  if (btns) {
+    btns[0].classList.toggle('liked',    rating === 'like');
+    btns[1].classList.toggle('disliked', rating === 'dislike');
+  }
+  const panel = document.getElementById(`dayFeedbackPanel_${id}`);
+  if (panel) panel.style.display = rating === 'dislike' ? 'block' : 'none';
+}
+
+async function regenerateDay(id, wi, di) {
+  const weeks = starterPlan.monthly_plan || [];
+  const original = weeks[wi]?.days?.[di];
+  if (!original) return;
+
+  const panel = document.getElementById(`dayFeedbackPanel_${id}`);
+  const feedbackText = document.getElementById(`dayFeedbackText_${id}`)?.value || '';
+  const selectedChips = panel?.querySelectorAll('.feedback-chip.selected') || [];
+  const dislikeReason = selectedChips[0]?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1] || '';
+
+  const btn = document.getElementById(`dayRegenBtn_${id}`);
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التوليد...';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/analysis/regenerate-hook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        original: original,
+        business_profile: businessProfile,
+        feedback: feedbackText,
+        dislike_reason: dislikeReason,
+        liked_examples: likedHooks.slice(-3),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.detail || 'فشل');
+
+    // Merge new content into the day
+    starterPlan.monthly_plan[wi].days[di] = { ...original, ...data };
+    renderMonthlyPlan();
+    toast('تم توليد محتوى جديد ✓', 'success');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '🔄 ولّدي محتوى جديد';
+    toast('تعذّر التوليد — حاولي مرة ثانية', 'error');
+  }
+}
+
+// ── Hook Rating & Regeneration ──
+const likedHooks = [];
+
+function ratingHtml(hookIndex) {
+  return `
+    <div class="rating-bar" id="ratingBar_${hookIndex}">
+      <button class="rating-btn" id="likeBtn_${hookIndex}" onclick="rateHook(${hookIndex}, 'like')">👍 أعجبني</button>
+      <button class="rating-btn" id="dislikeBtn_${hookIndex}" onclick="rateHook(${hookIndex}, 'dislike')">👎 ما ناسبني</button>
+    </div>
+    <div class="feedback-panel" id="feedbackPanel_${hookIndex}">
+      <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px">ليش ما ناسبك؟</div>
+      <div class="feedback-chips">
+        <span class="feedback-chip" onclick="toggleChip(this,'formal')">رسمي جداً</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'irrelevant')">مو مرتبط بالمنتج</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'hard')">صعب التصوير</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'dialect')">مو بلهجتي</span>
+        <span class="feedback-chip" onclick="toggleChip(this,'generic')">عام جداً</span>
+      </div>
+      <input class="input" type="text" id="feedbackText_${hookIndex}" placeholder="أو اكتبي ملاحظة..." style="font-size:12px;padding:8px 12px;margin-bottom:0">
+      <button class="regen-btn" onclick="regenerateHook(${hookIndex})">🔄 اقترحي بديل</button>
+    </div>`;
+}
+
+function rateHook(idx, rating) {
+  const likeBtn    = document.getElementById(`likeBtn_${idx}`);
+  const dislikeBtn = document.getElementById(`dislikeBtn_${idx}`);
+  const panel      = document.getElementById(`feedbackPanel_${idx}`);
+
+  likeBtn.classList.toggle('liked',    rating === 'like');
+  dislikeBtn.classList.toggle('disliked', rating === 'dislike');
+  likeBtn.classList.toggle('disliked', false);
+  dislikeBtn.classList.toggle('liked', false);
+
+  if (rating === 'like') {
+    panel.style.display = 'none';
+    const items = starterPlan.instant_content || [];
+    if (items[idx]) likedHooks.push(items[idx]);
+  } else {
+    panel.style.display = 'block';
+  }
+}
+
+function toggleChip(el, _reason) {
+  el.classList.toggle('selected');
+}
+
+async function regenerateHook(idx) {
+  const items = starterPlan.instant_content || [];
+  const original = items[idx];
+  if (!original) return;
+
+  const panel   = document.getElementById(`feedbackPanel_${idx}`);
+  const feedbackText = document.getElementById(`feedbackText_${idx}`)?.value || '';
+  const selectedChips = panel.querySelectorAll('.feedback-chip.selected');
+  const dislikeReason = selectedChips.length ? selectedChips[0].getAttribute('onclick').match(/'(\w+)'/)?.[1] || '' : '';
+
+  const btn = panel.querySelector('.regen-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التوليد...';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/analysis/regenerate-hook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        original: original,
+        business_profile: businessProfile,
+        feedback: feedbackText,
+        dislike_reason: dislikeReason,
+        liked_examples: likedHooks.slice(-3),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.detail || 'فشل');
+
+    // Update in-memory instant content and re-render
+    starterPlan.instant_content[idx] = { ...original, ...data };
+    renderHooks();
+    toast('تم توليد فكرة جديدة ✓', 'success');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '🔄 اقترحي بديل';
+    toast('تعذّر التوليد — حاولي مرة ثانية', 'error');
+  }
+}
 </script>
 </body>
 </html>

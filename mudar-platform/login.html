@@ -4,80 +4,294 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مُدار — تسجيل الدخول</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  body { background: var(--bg2); min-height: 100vh; display: flex; flex-direction: column; }
-  .login-wrap {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    padding: 40px 20px;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+
+  :root {
+    --dark:   #2A2140;
+    --dark2:  #1C1730;
+    --purple: #7B75A8;
+    --terra:  #C17558;
+    --font:   'Cairo', sans-serif;
   }
-  .login-box {
-    background: var(--bg); border: 1px solid var(--b1);
-    border-radius: 20px; padding: 48px 40px;
-    width: 100%; max-width: 420px;
-    box-shadow: var(--shadow);
+
+  body {
+    font-family: var(--font);
+    display: flex;
+    direction: rtl;
+    height: 100vh;
   }
-  .login-logo {
-    font-size: 26px; font-weight: 800; color: var(--t1);
-    text-align: center; margin-bottom: 8px;
+
+  /* ═══ LEFT PANEL — decoration ═══ */
+  .l-panel {
+    width: 44%;
+    background: var(--dark);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 44px;
+    overflow: hidden;
+    flex-shrink: 0;
   }
-  .login-sub {
-    text-align: center; font-size: 14px; color: var(--t3);
-    margin-bottom: 36px; line-height: 1.6;
+
+  /* Large diagonal X lines */
+  .l-lines {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
   }
-  .login-divider {
-    height: 1px; background: var(--b1);
-    margin: 28px 0;
+
+  /* Subtle radial glow */
+  .l-glow {
+    position: absolute;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(123,117,168,.18) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
-  .login-note {
-    text-align: center; font-size: 12px; color: var(--t3);
-    margin-top: 20px; line-height: 1.6;
+
+  /* Asterisk star in center */
+  .l-star-wrap {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1;
   }
-  .error-msg {
-    background: #fee2e2; color: #ef4444;
+  .l-star { width: 96px; height: 96px; }
+
+  .l-logo {
+    font-size: 22px; font-weight: 900;
+    color: white; letter-spacing: -.5px;
+    position: relative; z-index: 2;
+  }
+
+  .l-footer {
+    position: relative; z-index: 2;
+    font-size: 11px; color: rgba(255,255,255,.18);
+    line-height: 1.6;
+  }
+
+  /* ═══ RIGHT PANEL — form ═══ */
+  .r-panel {
+    flex: 1;
+    background: var(--dark2);
+    display: flex;
+    flex-direction: column;
+    padding: 40px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle terra glow bottom */
+  .r-panel::after {
+    content: '';
+    position: absolute; bottom: -80px; left: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(193,117,88,.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .r-top {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .r-back {
+    font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,.28);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 5px;
+    transition: color .2s;
+  }
+  .r-back:hover { color: rgba(255,255,255,.65); }
+
+  /* Centered form */
+  .r-form {
+    flex: 1;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    max-width: 360px;
+    margin: 0 auto;
+    width: 100%;
+    position: relative; z-index: 1;
+  }
+
+  .r-eyebrow {
+    font-size: 12px; font-weight: 700;
+    color: rgba(255,255,255,.28);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .r-title {
+    font-size: 52px; font-weight: 900;
+    color: white; line-height: 1.05;
+    margin-bottom: 48px;
+    letter-spacing: -2px;
+  }
+
+  /* Error */
+  .r-error {
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.2);
+    color: #fca5a5;
     border-radius: 10px; padding: 10px 14px;
     font-size: 13px; font-weight: 600;
-    margin-bottom: 16px; display: none;
+    margin-bottom: 20px; display: none;
+  }
+
+  /* Underline input field */
+  .r-field { margin-bottom: 36px; }
+  .r-field label {
+    display: block;
+    font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,.3);
+    margin-bottom: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+  .r-input {
+    width: 100%; background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.14);
+    padding: 10px 0;
+    font-family: var(--font); font-size: 17px; font-weight: 500;
+    color: white; outline: none;
+    direction: rtl; transition: border-color .25s;
+  }
+  .r-input:focus { border-bottom-color: rgba(255,255,255,.5); }
+  .r-input::placeholder { color: rgba(255,255,255,.15); }
+
+  /* Trust row */
+  .r-trust {
+    display: flex; gap: 20px;
+    margin-top: 36px; flex-wrap: wrap;
+  }
+  .r-trust-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 600;
+    color: rgba(255,255,255,.2);
+  }
+  .r-trust-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #7B75A8; opacity: .7;
+  }
+
+  /* Circular CTA button — bottom-left (RTL start-end) */
+  .r-cta {
+    position: absolute;
+    bottom: 44px; left: 56px;
+    width: 86px; height: 86px; border-radius: 50%;
+    background: white; color: var(--dark);
+    border: none; cursor: pointer;
+    font-family: var(--font);
+    font-size: 12px; font-weight: 900;
+    letter-spacing: .5px;
+    transition: all .22s;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    z-index: 10;
+  }
+  .r-cta-arrow { font-size: 22px; line-height: 1; }
+  .r-cta:hover { transform: scale(1.07); box-shadow: 0 14px 48px rgba(0,0,0,.5); }
+  .r-cta:active { transform: scale(.97); }
+  .r-cta:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 780px) {
+    html, body { overflow: auto; height: auto; }
+    body { flex-direction: column; }
+    .l-panel { width: 100%; height: 220px; padding: 28px 32px; }
+    .l-star   { width: 64px; height: 64px; }
+    .r-panel  { padding: 36px 28px 110px; overflow: visible; }
+    .r-title  { font-size: 38px; margin-bottom: 32px; }
+    .r-form   { max-width: 100%; margin: 0; }
+    .r-cta    { bottom: 28px; left: 28px; width: 74px; height: 74px; }
   }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <a href="index.html" class="brand">
-    <span style="font-size:20px;font-weight:800;color:#1F176E;font-family:'Tajawal',sans-serif">مُدار</span>
-    <span style="font-size:11px;color:#6B5CFF;margin-right:6px">تسويق يُدار بالبيانات</span>
-  </a>
-</nav>
+<!-- ════ LEFT: Brand & Decoration ════ -->
+<div class="l-panel">
+  <!-- Large X lines across panel -->
+  <svg class="l-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <line x1="0" y1="0" x2="100" y2="100"
+          stroke="rgba(255,255,255,0.065)" stroke-width=".4"
+          vector-effect="non-scaling-stroke"/>
+    <line x1="100" y1="0" x2="0" y2="100"
+          stroke="rgba(255,255,255,0.065)" stroke-width=".4"
+          vector-effect="non-scaling-stroke"/>
+  </svg>
 
-<div class="login-wrap">
-  <div class="login-box">
-    <div class="login-logo">أهلاً بك في مُدار 👋</div>
-    <div class="login-sub">أدخل معلوماتك للبدء — لن نرسل لك أي رسائل غير مرغوبة</div>
+  <!-- Radial glow -->
+  <div class="l-glow"></div>
 
-    <div class="error-msg" id="errorMsg">يرجى إدخال الاسم والبريد الإلكتروني</div>
+  <!-- 8-ray asterisk -->
+  <div class="l-star-wrap">
+    <svg class="l-star" viewBox="0 0 120 120" fill="none">
+      <!-- Vertical -->
+      <line x1="60" y1="2"  x2="60" y2="118" stroke="white" stroke-width="2.2"/>
+      <!-- Horizontal -->
+      <line x1="2"  y1="60" x2="118" y2="60" stroke="white" stroke-width="2.2"/>
+      <!-- Diagonal \ -->
+      <line x1="16.4" y1="16.4" x2="103.6" y2="103.6" stroke="white" stroke-width="2.2"/>
+      <!-- Diagonal / -->
+      <line x1="103.6" y1="16.4" x2="16.4" y2="103.6" stroke="white" stroke-width="2.2"/>
+    </svg>
+  </div>
 
-    <div class="form-group">
-      <label class="form-label">الاسم *</label>
-      <input class="input" type="text" id="loginName" placeholder="اسمك الكامل" autocomplete="name">
+  <div class="l-logo">مُدار</div>
+
+  <div class="l-footer">
+    © ٢٠٢٦ مُدار<br>تسويق يُدار بالبيانات
+  </div>
+</div>
+
+<!-- ════ RIGHT: Form ════ -->
+<div class="r-panel">
+  <div class="r-top">
+    <a href="index.html" class="r-back">← الرئيسية</a>
+  </div>
+
+  <div class="r-form">
+    <div class="r-eyebrow">أدخل بياناتك للمتابعة</div>
+    <h1 class="r-title">تسجيل<br>الدخول</h1>
+
+    <div class="r-error" id="errorMsg"></div>
+
+    <div class="r-field">
+      <label>الاسم الكامل</label>
+      <input class="r-input" type="text" id="loginName"
+             placeholder="اكتب اسمك" autocomplete="name">
     </div>
 
-    <div class="form-group">
-      <label class="form-label">البريد الإلكتروني *</label>
-      <input class="input" type="email" id="loginEmail" placeholder="example@email.com" autocomplete="email" style="direction:ltr;text-align:right">
+    <div class="r-field">
+      <label>البريد الإلكتروني</label>
+      <input class="r-input" type="email" id="loginEmail"
+             placeholder="example@email.com"
+             autocomplete="email"
+             style="direction:ltr;text-align:right">
     </div>
 
-    <div style="margin-top:28px">
-      <button class="btn-navy-lg" onclick="doLogin()" id="loginBtn">
-        ابدأ الآن ←
-      </button>
-    </div>
-
-    <div class="login-note">
-      بالضغط على "ابدأ الآن" أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بمُدار.
+    <div class="r-trust">
+      <div class="r-trust-item"><span class="r-trust-dot"></span>مجاني للبدء</div>
+      <div class="r-trust-item"><span class="r-trust-dot"></span>لا بطاقة</div>
+      <div class="r-trust-item"><span class="r-trust-dot"></span>بيانات محمية</div>
     </div>
   </div>
+
+  <!-- Circular submit button -->
+  <button class="r-cta" onclick="doLogin()" id="loginBtn">
+    <span class="r-cta-arrow">←</span>
+    ابدأ
+  </button>
 </div>
 
 <script>
@@ -87,15 +301,13 @@ function doLogin() {
   const err   = document.getElementById('errorMsg');
 
   if (!name || !email) {
-    err.style.display = 'block';
-    return;
+    err.textContent = 'يرجى إدخال الاسم والبريد الإلكتروني';
+    err.style.display = 'block'; return;
   }
-
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRe.test(email)) {
     err.textContent = 'البريد الإلكتروني غير صحيح';
-    err.style.display = 'block';
-    return;
+    err.style.display = 'block'; return;
   }
 
   err.style.display = 'none';
@@ -104,27 +316,19 @@ function doLogin() {
   if (bizTypeParam) sessionStorage.setItem('mudarBizTypeHint', bizTypeParam);
 
   const btn = document.getElementById('loginBtn');
-  btn.textContent = 'جارٍ التحميل...';
+  btn.innerHTML = '<span style="font-size:22px;line-height:1">⋯</span>';
   btn.disabled = true;
-
   setTimeout(() => { window.location.href = 'pricing.html'; }, 400);
 }
 
-// Allow Enter key
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-// If already logged in, go directly to onboarding
 const existing = sessionStorage.getItem('mudarUser');
 if (existing) {
   try {
     const u = JSON.parse(existing);
-    if (u.name && u.email) {
-      // Pre-fill fields
-      document.getElementById('loginName').value  = u.name;
-      document.getElementById('loginEmail').value = u.email;
-    }
+    if (u.name)  document.getElementById('loginName').value  = u.name;
+    if (u.email) document.getElementById('loginEmail').value = u.email;
   } catch(e) {}
 }
 </script>

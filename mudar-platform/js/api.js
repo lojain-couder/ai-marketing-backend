@@ -25,17 +25,17 @@ function loadState() {
 // ── Toast ──
 function toast(msg, type = 'success') {
   const colors = {
-    success: { bg: '#C9F03A', text: '#1F176E' },
+    success: { bg: '#2A2140', text: '#ffffff' },
     error:   { bg: '#fee2e2', text: '#ef4444' },
-    info:    { bg: '#EDE9FF', text: '#1F176E' }
+    info:    { bg: '#EDE9F5', text: '#7B75A8' }
   };
   const t = document.createElement('div');
   t.style.cssText = `
     position:fixed;bottom:24px;right:24px;
     background:${colors[type].bg};color:${colors[type].text};
-    padding:12px 20px;border-radius:10px;font-family:'Tajawal',sans-serif;
+    padding:12px 20px;border-radius:10px;font-family:'Cairo',sans-serif;
     font-size:14px;font-weight:700;z-index:9999;
-    box-shadow:0 4px 20px rgba(31,23,110,0.15);
+    box-shadow:0 4px 20px rgba(42,33,64,0.2);
     animation:slideUp .3s ease;max-width:320px;
   `;
   t.textContent = msg;
