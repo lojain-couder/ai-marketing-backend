@@ -4,448 +4,127 @@
   <meta charset="UTF-8">
   <title>مُدار — تسويق يُدار بالبيانات</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<!-- ════════════════ NAV ════════════════ -->
-<nav class="navbar">
-  <a href="#" class="logo">مُدار</a>
-  <ul class="nav-menu">
-    <li><a href="#how">كيف يعمل</a></li>
-    <li><a href="#features">المميزات</a></li>
-    <li><a href="pricing.html">التسعير</a></li>
-    <li><a href="#cta">تواصل</a></li>
-  </ul>
-  <a href="login.html" class="start-btn">ابدأ مجاناً ←</a>
-</nav>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <h1 class="logo">مُدار</h1>
 
-<!-- ════════════════ HERO ════════════════ -->
-<section class="hero">
+    <ul class="nav-menu">
+      <li><a href="#about">عن مُدار</a></li>
+      <li><a href="#how">كيف يعمل</a></li>
+      <li><a href="#features">المميزات</a></li>
+      <li><a href="#contact">تواصل معنا</a></li>
+      <li><a href="pricing.html">التسعير</a></li>
+    </ul>
 
-  <!-- Text side -->
-  <div class="fade-in">
-    <div class="hero-badge">
-      <span class="badge-dot"></span>
-      ذكاء اصطناعي تسويقي بالعربي
-    </div>
+    <a href="login.html" class="start-btn">ابدأ</a>
+  </nav>
 
-    <h1>
-      بيانات حساباتك<br>
-      <span class="hi">تحلّل.</span>
-      <span class="ht">تُفهم.</span>
-      <span class="hi">تنمو.</span>
-    </h1>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-card">
+      <span class="badge">AI Marketing Advisor</span>
 
-    <p class="hero-sub">
-      مُدار يحلل منشوراتك على TikTok و Instagram ويحوّل الأرقام إلى خطة تسويق واضحة ومنفذة — بالعربي الكامل.
-    </p>
+      <h2>
+        منصة ذكية تساعدك
+        <span>تسوق مشروعك بذكاء</span>
+      </h2>
 
-    <div class="hero-ctas">
-      <a href="login.html" class="btn-terra">
-        ابدأ تحليلك مجاناً
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </a>
-      <a href="#how" class="btn-ghost">كيف يعمل؟</a>
-    </div>
-  </div>
-
-  <!-- Dashboard visual -->
-  <div class="hero-visual fade-in-2">
-
-    <!-- Top floating pill -->
-    <div class="float-pill top">
-      <span class="fp-num">↑ ٣٤٪</span>
-      <span style="color:var(--muted)">معدل التفاعل</span>
-    </div>
-
-    <!-- Dashboard card -->
-    <div class="hero-dash">
-      <svg viewBox="0 0 480 300" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
-
-        <!-- Top bar -->
-        <rect x="0" y="0" width="480" height="46" rx="0" fill="rgba(255,255,255,.05)"/>
-        <circle cx="24" cy="23" r="11" fill="#7B75A8" opacity=".7"/>
-        <rect x="42" y="18" width="52" height="8" rx="4" fill="rgba(255,255,255,.55)"/>
-        <rect x="42" y="29" width="36" height="6" rx="3" fill="rgba(255,255,255,.18)"/>
-        <!-- Platform badges -->
-        <rect x="370" y="13" width="48" height="20" rx="10" fill="#C17558"/>
-        <rect x="425" y="13" width="44" height="20" rx="10" fill="rgba(255,255,255,.1)"/>
-        <rect x="379" y="20" width="30" height="6" rx="3" fill="rgba(255,255,255,.9)"/>
-        <rect x="434" y="20" width="26" height="6" rx="3" fill="rgba(255,255,255,.5)"/>
-
-        <!-- Divider -->
-        <line x1="0" y1="46" x2="480" y2="46" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
-
-        <!-- Metric cards row -->
-        <!-- Card 1: Views -->
-        <rect x="12" y="58" width="142" height="68" rx="12" fill="rgba(255,255,255,.05)"/>
-        <rect x="24" y="70" width="48" height="6" rx="3" fill="rgba(255,255,255,.25)"/>
-        <rect x="24" y="83" width="80" height="12" rx="6" fill="white"/>
-        <rect x="24" y="102" width="40" height="8" rx="4" fill="rgba(255,255,255,.55)" opacity=".8"/>
-
-        <!-- Card 2: Engagement -->
-        <rect x="166" y="58" width="142" height="68" rx="12" fill="rgba(255,255,255,.05)"/>
-        <rect x="178" y="70" width="48" height="6" rx="3" fill="rgba(255,255,255,.25)"/>
-        <rect x="178" y="83" width="68" height="12" rx="6" fill="white"/>
-        <rect x="178" y="102" width="52" height="8" rx="4" fill="#C17558" opacity=".9"/>
-
-        <!-- Card 3: Revenue (purple tint) -->
-        <rect x="320" y="58" width="148" height="68" rx="12" fill="rgba(123,117,168,.22)"/>
-        <rect x="332" y="70" width="48" height="6" rx="3" fill="rgba(255,255,255,.3)"/>
-        <rect x="332" y="83" width="84" height="12" rx="6" fill="white"/>
-        <rect x="332" y="102" width="56" height="8" rx="4" fill="#7B75A8" opacity=".8"/>
-
-        <!-- Chart area -->
-        <rect x="12" y="138" width="292" height="148" rx="12" fill="rgba(255,255,255,.03)"/>
-
-        <!-- Subtle grid lines -->
-        <line x1="20" y1="258" x2="296" y2="258" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
-        <line x1="20" y1="232" x2="296" y2="232" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
-        <line x1="20" y1="206" x2="296" y2="206" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
-        <line x1="20" y1="180" x2="296" y2="180" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
-
-        <!-- Bars (7 bars, each 26px wide) -->
-        <rect x="28"  y="238" width="26" height="42" rx="6" fill="#7B75A8" opacity=".35"/>
-        <rect x="66"  y="222" width="26" height="58" rx="6" fill="#7B75A8" opacity=".5"/>
-        <rect x="104" y="208" width="26" height="72" rx="6" fill="#7B75A8" opacity=".65"/>
-        <rect x="142" y="196" width="26" height="84" rx="6" fill="#7B75A8"/>
-        <rect x="180" y="186" width="26" height="94" rx="6" fill="#C17558"/>
-        <rect x="218" y="174" width="26" height="106" rx="6" fill="#C17558" opacity=".85"/>
-        <rect x="256" y="162" width="26" height="118" rx="6" fill="#C17558"/>
-
-        <!-- Trend line -->
-        <polyline
-          points="41,236 79,220 117,206 155,194 193,184 231,172 269,160"
-          stroke="rgba(255,255,255,.6)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="269" cy="160" r="5" fill="rgba(255,255,255,.55)" stroke="#2A2140" stroke-width="2.5"/>
-
-        <!-- Right insight panel -->
-        <!-- Insight 1 -->
-        <rect x="320" y="138" width="148" height="70" rx="12" fill="rgba(255,255,255,.06)"/>
-        <rect x="332" y="152" width="40" height="6" rx="3" fill="rgba(255,255,255,.25)"/>
-        <rect x="332" y="164" width="76" height="10" rx="5" fill="white"/>
-        <rect x="332" y="181" width="44" height="8" rx="4" fill="rgba(255,255,255,.55)" opacity=".8"/>
-
-        <!-- Insight 2 -->
-        <rect x="320" y="220" width="148" height="66" rx="12" fill="rgba(193,117,88,.22)"/>
-        <rect x="332" y="234" width="40" height="6" rx="3" fill="rgba(255,255,255,.3)"/>
-        <rect x="332" y="246" width="84" height="10" rx="5" fill="white"/>
-        <rect x="332" y="263" width="56" height="8" rx="4" fill="#C17558"/>
-
-      </svg>
-    </div>
-
-    <!-- Bottom floating pill -->
-    <div class="float-pill bottom">
-      <span class="fp-num">٥٠٠+</span>
-      <span style="color:rgba(255,255,255,.55)">تحليل أُجري</span>
-    </div>
-
-  </div>
-</section>
-
-<!-- ════════════════ STATS STRIP ════════════════ -->
-<div class="stats-strip">
-  <div class="stats-inner">
-    <div class="stat-item">
-      <div class="stat-num"><span id="statCounter">٠</span>+</div>
-      <div class="stat-label">تحليل ناجح</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">٨٧٪</div>
-      <div class="stat-label">دقة التوصيات</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">٣</div>
-      <div class="stat-label">دقائق للتحليل الكامل</div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════ SPLIT: Stat + Demo ════════════════ -->
-<section class="split-section" style="padding-top:60px">
-  <div class="split-inner">
-
-    <!-- Dark stat card -->
-    <div class="stat-card">
-      <div>
-        <div class="sc-label">تحليلات أُجريت</div>
-        <div class="sc-number">٥٠٠+</div>
-        <div class="sc-sub">تحليل ناجح</div>
-      </div>
-      <div>
-        <p class="sc-desc">
-          مُدار يجلب بيانات منصاتك ويحول الأرقام إلى توصيات تسويقية واضحة ومنفذة — بدل التخمين.
-        </p>
-        <div class="sc-tags">
-          <span class="sc-tag">TikTok</span>
-          <span class="sc-tag">Instagram</span>
-          <span class="sc-tag">AI · Groq</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Demo card -->
-    <div class="demo-card">
-      <div class="demo-title">جرّبه الآن — أدخل حسابك</div>
-      <div class="demo-sub">اختر المنصة وأدخل اسم المستخدم للبدء</div>
-
-      <div class="platform-tabs">
-        <button class="plat-tab active" onclick="selectPlat(this,'tiktok')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 000 12.68 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/>
-          </svg>
-          TikTok
-        </button>
-        <button class="plat-tab" onclick="selectPlat(this,'instagram')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-          </svg>
-          Instagram
-        </button>
-        <button class="plat-tab" style="opacity:.38;cursor:not-allowed;position:relative" onclick="return false">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-          </svg>
-          X
-          <span style="position:absolute;top:-7px;left:-7px;background:var(--terra);color:#fff;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:800">قريباً</span>
-        </button>
-      </div>
-
-      <div class="demo-row">
-        <div class="demo-at">@</div>
-        <input class="demo-input" id="demoInput" placeholder="اسم الحساب" oninput="onDemoInput(this)">
-      </div>
-
-      <p class="demo-hint">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-left:3px">
-          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2" opacity=".4"/>
-          <path d="M6 5v3.5M6 3.5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".4"/>
-        </svg>
-        يجب أن يكون الحساب عاماً لإجراء التحليل
+      <p>
+        مُدار يحلل مشروعك، جمهورك، وأهدافك، ثم يعطيك توصيات تسويقية واضحة
+        مبنية على البيانات بدل التخمين.
       </p>
 
-      <a href="login.html" class="btn-terra-full" id="demoCta">
-        ابدأ التحليل المجاني ←
-      </a>
+      <a href="login.html" class="cta">ابدأ تحليل مشروعك ←</a>
+    </div>
+  </section>
 
-      <div class="demo-disclaimer">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M6 1L7.5 4.5H11L8.25 6.75L9.25 10L6 8L2.75 10L3.75 6.75L1 4.5H4.5L6 1Z" fill="var(--terra)"/>
-        </svg>
-        مجاني تماماً · لا يلزم بطاقة
+  <!-- ABOUT -->
+  <section id="about" class="section">
+    <div class="section-card">
+      <h2>عن مُدار</h2>
+      <p>
+        مُدار هو مستشارك التسويقي الذكي، يساعدك على فهم مشروعك
+        وتحويل بياناتك إلى قرارات واضحة وخطة تسويق قابلة للتنفيذ.
+      </p>
+      <p>
+        نؤمن أن كل مشروع يحتاج إلى تحليل حقيقي، لذلك يعتمد مُدار على البيانات
+        لبناء توصيات دقيقة ومناسبة لهوية البراند.
+      </p>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section id="how" class="section">
+    <div class="section-card">
+      <h2>كيف يعمل مُدار؟</h2>
+
+      <div class="grid">
+        <div class="card">
+          <span class="card-number">01</span>
+          <h3>أدخل معلوماتك</h3>
+          <p>أضف بيانات مشروعك، القطاع، والجمهور المستهدف.</p>
+        </div>
+
+        <div class="card">
+          <span class="card-number">02</span>
+          <h3>تحليل ذكي</h3>
+          <p>مُدار يحلل المعلومات ويربطها بأهدافك التسويقية.</p>
+        </div>
+
+        <div class="card">
+          <span class="card-number">03</span>
+          <h3>توصيات جاهزة</h3>
+          <p>تحصل على خطة تسويقية واضحة وقابلة للتنفيذ.</p>
+        </div>
       </div>
     </div>
+  </section>
 
-  </div>
-</section>
+  <!-- FEATURES -->
+  <section id="features" class="section">
+    <div class="section-card">
+      <h2>المميزات</h2>
 
-<!-- ════════════════ HOW IT WORKS ════════════════ -->
-<section class="how-section" id="how">
-  <div class="how-inner">
+      <div class="grid">
+        <div class="card">
+          <h3>تحليل مبني على البيانات</h3>
+          <p>يساعدك على فهم الاتجاه بدل الاعتماد على التخمين.</p>
+        </div>
 
-    <div class="section-head">
-      <div class="s-pill">العملية</div>
-      <h2 class="s-h2">كيف يعمل مُدار؟</h2>
-      <p class="s-sub">ثلاث خطوات بسيطة — من إدخال البيانات إلى خطة جاهزة للتنفيذ</p>
+        <div class="card">
+          <h3>تجربة استخدام بسيطة</h3>
+          <p>تدخل معلومات قليلة وتحصل على تصور تسويقي واضح.</p>
+        </div>
+
+        <div class="card">
+          <h3>توصيات قابلة للتنفيذ</h3>
+          <p>يعطيك خطوات عملية تساعدك تبدأ مباشرة.</p>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="steps-row">
+  <!-- CONTACT -->
+  <section id="contact" class="section">
+    <div class="section-card contact-card">
+      <h2>تواصل معنا</h2>
+      <p>نسعد بتواصلك معنا عبر منصة اكس.</p>
 
-      <div class="step-card fade-in">
-        <div class="step-icon-wrap">
-          <span class="step-num-badge">١</span>
-          🏪
-        </div>
-        <div class="step-title">أدخل بيانات مشروعك</div>
-        <div class="step-desc">اكتب اسم بزنسك، القطاع، والجمهور المستهدف — لا يستغرق أكثر من دقيقة.</div>
+      <div class="contact-links">
+        <a href="https://x.com/MudarMarketing/status/2050679453198524696?s=20" target="_blank">X</a>
       </div>
-
-      <div class="step-card fade-in-2">
-        <div class="step-icon-wrap">
-          <span class="step-num-badge">٢</span>
-          📊
-        </div>
-        <div class="step-title">اختر المنصة وأدخل الحساب</div>
-        <div class="step-desc">حدد TikTok أو Instagram وأدخل اسم الحساب — مُدار يجلب بياناتك تلقائياً.</div>
-      </div>
-
-      <div class="step-card fade-in-3">
-        <div class="step-icon-wrap">
-          <span class="step-num-badge">٣</span>
-          🚀
-        </div>
-        <div class="step-title">احصل على خطتك جاهزة</div>
-        <div class="step-desc">توصيات مخصصة، هاشتاقات مثبتة، وخطة محتوى أسبوعية كاملة — بالعربي.</div>
-      </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ════════════════ FEATURES ════════════════ -->
-<section class="features-section" id="features">
-  <div class="features-inner">
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2026 مُدار — جميع الحقوق محفوظة</p>
+  </footer>
 
-    <div class="section-head">
-      <div class="s-pill">المميزات</div>
-      <h2 class="s-h2">لماذا مُدار؟</h2>
-      <p class="s-sub">ليس مجرد تحليل — نظام تسويقي متكامل مبني على بياناتك الفعلية</p>
-    </div>
-
-    <div class="bento">
-
-      <!-- Wide dark card -->
-      <div class="b-card dark bento-wide">
-        <div class="b-icon">📈</div>
-        <div class="b-h3">تحليل حقيقي مبني على أرقام حقيقية</div>
-        <div class="b-p" style="max-width:600px">
-          مُدار يجلب views, likes, comments مباشرة من TikTok و Instagram ويحلل كل منشور على حدة —
-          ليس تخميناً، بل قرارات مبنية على بياناتك الفعلية.
-        </div>
-        <div class="b-metrics">
-          <div class="b-metric">
-            <div class="b-metric-num">٥٠٠+</div>
-            <div class="b-metric-label">تحليل أُجري</div>
-          </div>
-          <div class="b-metric">
-            <div class="b-metric-num">٨٧٪</div>
-            <div class="b-metric-label">دقة التوصيات</div>
-          </div>
-          <div class="b-metric">
-            <div class="b-metric-num">٣ دق</div>
-            <div class="b-metric-label">وقت التحليل</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature card 2 -->
-      <div class="b-card terra">
-        <div class="b-icon">🇸🇦</div>
-        <div class="b-h3">توصيات بالعربي الكامل</div>
-        <div class="b-p">
-          كل التحليل والاقتراحات والأفكار تخرج بالعربي، مفهومة ومباشرة وجاهزة للتنفيذ فوراً — بدون ترجمة.
-        </div>
-      </div>
-
-      <!-- Feature card 3 -->
-      <div class="b-card">
-        <div class="b-icon">📅</div>
-        <div class="b-h3">خطة محتوى أسبوعية</div>
-        <div class="b-p">
-          ليس فقط تحليل — مُدار يعطيك خطة محتوى كاملة مع هاشتاقات وأفكار بوستات لأسبوع كامل قابلة للتطبيق فوراً.
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════ CTA ════════════════ -->
-<section class="cta-section" id="cta">
-  <div class="cta-inner">
-    <div class="cta-badge">✨ جاهز تبدأ؟</div>
-    <h2 class="cta-h2">سوّق بالبيانات<br>مش بالتخمين</h2>
-    <p class="cta-sub">
-      انضم لأصحاب البزنس الذين يعتمدون على الأرقام في قراراتهم التسويقية — وشوف الفرق
-    </p>
-    <div class="cta-btns">
-      <a href="login.html" class="btn-terra-lg">
-        ابدأ تحليلك المجاني
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
-          <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </a>
-      <a href="https://x.com/MudarMarketing" target="_blank" class="btn-white-ghost">تواصل معنا</a>
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════ FOOTER ════════════════ -->
-<footer class="footer">
-  <span class="footer-logo">مُدار</span>
-  <span class="footer-copy">© ٢٠٢٦ مُدار — جميع الحقوق محفوظة</span>
-  <a href="https://x.com/MudarMarketing" target="_blank" class="footer-link">X ←</a>
-</footer>
-
-<script>
-  // ── Platform tab ──
-  let activePlatform = 'tiktok';
-  function selectPlat(btn, platform) {
-    document.querySelectorAll('.plat-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    activePlatform = platform;
-  }
-
-  // ── Demo input → dynamic CTA ──
-  function onDemoInput(input) {
-    const val = input.value.trim();
-    const cta = document.getElementById('demoCta');
-    if (val) {
-      cta.textContent = `تحليل @${val} ←`;
-      cta.style.background = 'var(--dark)';
-      cta.style.boxShadow = 'none';
-      cta.onclick = function(e) {
-        e.preventDefault();
-        sessionStorage.setItem('prefill_username', val);
-        sessionStorage.setItem('prefill_platform', activePlatform);
-        window.location.href = 'login.html';
-      };
-    } else {
-      cta.textContent = 'ابدأ التحليل المجاني ←';
-      cta.style.background = '';
-      cta.style.boxShadow = '';
-      cta.onclick = null;
-    }
-  }
-
-  // ── Animated counter ──
-  function animateNum(el, target, duration) {
-    const start = Date.now();
-    function tick() {
-      const elapsed  = Date.now() - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased    = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.floor(eased * target).toLocaleString('ar-SA');
-      if (progress < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        animateNum(document.getElementById('statCounter'), 500, 1800);
-        io.disconnect();
-      }
-    });
-  }, { threshold: 0.4 });
-
-  const strip = document.querySelector('.stats-strip');
-  if (strip) io.observe(strip);
-
-  // ── Scroll fade-in ──
-  const fadeEls = document.querySelectorAll('.step-card, .b-card');
-  const fadeObs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.style.opacity = '1';
-        e.target.style.transform = 'translateY(0)';
-      }
-    });
-  }, { threshold: 0.12 });
-
-  fadeEls.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(18px)';
-    el.style.transition = 'opacity .5s ease, transform .5s ease';
-    fadeObs.observe(el);
-  });
-</script>
 </body>
 </html>
