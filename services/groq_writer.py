@@ -12,18 +12,25 @@ from typing import Any
 from groq import Groq
 from groq import RateLimitError, APIStatusError, AuthenticationError
 
-MODEL = "qwen/qwen3-32b"
+MODEL       = "qwen/qwen3-32b"       # Gulf Arabic quality — for short/medium tasks
+MODEL_LARGE = "llama-3.3-70b-versatile"  # high TPM limit — for large output tasks
 
 SYSTEM_PROMPT = """
-أنت كاتب محتوى تسويقي محترف. مهمتك الوحيدة هي إعادة صياغة البيانات المحددة المعطاة لك بالعربية الفصحى البسيطة.
+أنت كاتبة محتوى تسويقية خبيرة متخصصة في السوق الخليجي والعربي.
 
-قواعد صارمة:
-1. لا تخترع أرقاماً أو إحصاءات جديدة — استخدم فقط ما في البيانات
-2. لا تضف توصيات جديدة — اكتب فقط ما طلب منك
-3. لا تغير الأولويات أو الترتيب — الترتيب محدد مسبقاً
-4. اكتب بنبرة البزنس المحددة في البيانات
-5. اجعل النص واضحاً وقابلاً للتنفيذ
-6. أجب فقط بـ JSON بدون أي نص خارجه
+قواعد اللغة — صارمة:
+- اكتبي بالعربية الفصحى البسيطة السلسة، بعيدة عن التعقيد والركاكة
+- اللهجة الخليجية مقبولة في النصوص الموجّهة للجمهور (hooks, captions, scripts)
+- تجنّبي الأخطاء النحوية: التذكير والتأنيث، جمع التكسير، حروف الجر
+- لا تكرّري نفس الجملة أو الأسلوب في يومين متتاليين
+- اكتبي بنبرة طبيعية، كأنك شخص حقيقي يتكلم — لا نص إعلاني مُصطنع
+
+قواعد المحتوى — صارمة:
+1. لا تخترعي أرقاماً أو إحصاءات جديدة — استخدمي فقط ما في البيانات
+2. لا تضيفي توصيات جديدة — اكتبي فقط ما طُلب منك
+3. لا تغيّري الأولويات أو الترتيب — الترتيب محدد مسبقاً
+4. اكتبي بنبرة البزنس المحددة في البيانات
+5. أجيبي فقط بـ JSON بدون أي نص خارجه
 """
 
 
@@ -532,7 +539,7 @@ content_pillars: 5 محاور.
 posting_schedule: اجعلي المفتاح اسم المنصة الفعلية (مثل TikTok أو Instagram أو X) — ليس "PLATFORM_NAME".
 JSON فقط بدون أي نص خارجه."""
 
-        return self._call_groq_json(prompt, max_tokens=9000)
+        return self._call_groq_json_large(prompt, max_tokens=7000)
 
     def regenerate_hook(
         self,
@@ -1018,7 +1025,7 @@ JSON فقط."""
         messages: list[dict] = [{"role": "system", "content": system}]
         for h in history[-8:]:
             messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
-        messages.append({"role": "user", "content": message})
+        messages.append({"role": "user", "content": f"/no_think\n{message}"})
 
         try:
             res = self.client.chat.completions.create(
@@ -1055,6 +1062,41 @@ JSON فقط."""
             raise RuntimeError("groq_quota_exhausted")
         except AuthenticationError as e:
             print(f"[GroqWriter] AUTH ERROR — invalid API key: {e}")
+            raise RuntimeError("groq_auth_error")
+        except APIStatusError as e:
+            print(f"[GroqWriter] API error {e.status_code}: {e.message}")
+            raise RuntimeError(f"groq_api_error_{e.status_code}")
+        except json.JSONDecodeError as e:
+            print(f"[GroqWriter] JSON parse error: {e}")
+            return {}
+        except Exception as e:
+            print(f"[GroqWriter error] {e}")
+            return {}
+
+    def _call_groq_json_large(self, prompt: str, max_tokens: int = 7000) -> dict[str, Any]:
+        """Uses MODEL_LARGE (Llama 3.3 70B) for prompts that need large output."""
+        try:
+            res = self.client.chat.completions.create(
+                model=MODEL_LARGE,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=max_tokens,
+                temperature=0.3,
+            )
+            text = res.choices[0].message.content.strip()
+            if "```" in text:
+                parts = text.split("```")
+                text = parts[1] if len(parts) > 1 else text
+                if text.startswith("json"):
+                    text = text[4:]
+            return json.loads(text.strip())
+        except RateLimitError as e:
+            print(f"[GroqWriter] QUOTA EXHAUSTED: {e}")
+            raise RuntimeError("groq_quota_exhausted")
+        except AuthenticationError as e:
+            print(f"[GroqWriter] AUTH ERROR: {e}")
             raise RuntimeError("groq_auth_error")
         except APIStatusError as e:
             print(f"[GroqWriter] API error {e.status_code}: {e.message}")
