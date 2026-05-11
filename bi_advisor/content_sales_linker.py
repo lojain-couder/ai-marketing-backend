@@ -20,6 +20,7 @@ def analyze_content_sales_links(
             "top_correlated_content": [],
             "platform_sales_signals": [],
             "correlation_windows": {},
+            "content_revenue_segments": {"available": False},
             "attribution_notes": [
                 "لا توجد بيانات كافية لربط المحتوى بالمبيعات في هذه المرحلة."
             ],
@@ -66,12 +67,17 @@ def analyze_content_sales_links(
     )
 
     platform_signals = _platform_sales_signals(social_rows, sales_rows)
+
+    from .sales_metrics_extractor import revenue_by_content_segment
+    content_revenue_segments = revenue_by_content_segment(social_rows, sales_rows)
+
     return {
         "sales_included": True,
         "summary": _sales_summary(linked_posts, sales_rows),
         "limitations": _sales_limitations(sales_rows),
         "top_correlated_content": linked_posts[:5],
         "platform_sales_signals": platform_signals,
+        "content_revenue_segments": content_revenue_segments,
         "correlation_windows": {
             "same_day": "0d",
             "plus_1_day": "1d",
