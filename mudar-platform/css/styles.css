@@ -31,8 +31,9 @@
   --green: var(--terra); --green-dark: var(--terra-dark); --green-bg: var(--terra-pale);
   --amber: #F59E0B; --red: #ef4444;
 
-  --font: 'Cairo', sans-serif;
-  --mono: 'DM Mono', monospace;
+  --font:    'Cairo', sans-serif;
+  --font-en: 'Plus Jakarta Sans', sans-serif;
+  --mono:    'DM Mono', monospace;
   --r: 20px; 
   --r-sm: 12px;
   --r-lg: 32px;
@@ -165,7 +166,7 @@ button:hover, .btn-primary:hover, .btn-green:hover, .btn-terra:hover, .btn-cta:h
 .section-dark { background: var(--t1); color: #fff; }
 .section-dark .section-title { color: #fff; }
 .section-dark .section-label { color: var(--terra-pale); }
-.section-dark .card { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #fff; }
+.section-dark .card { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: #fff; }
 
 /* ── SPECIFIC ELEMENTS FROM INDEX ── */
 .hero-mockup { position: relative; background: var(--surface); border: 1px solid var(--b1); border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow-hover); }
@@ -185,4 +186,21 @@ button:hover, .btn-primary:hover, .btn-green:hover, .btn-terra:hover, .btn-cta:h
   .grid-2, .grid-3, .steps-grid, .bento, .reviews-grid { grid-template-columns: 1fr; }
   .nav, .navbar { padding: 0 20px; }
   .nav-menu { display: none; }
+  .section { padding: 64px 0; }
+  .container { padding: 0 24px; }
+}
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 36px; letter-spacing: -1px; }
+  .section-title, .s-h2 { font-size: 24px; }
+  .hero { padding: 48px 20px; min-height: unset; }
+  .container { padding: 0 16px; }
+  .section { padding: 48px 0; }
+  .card, .step-card { padding: 20px; border-radius: var(--r-sm); }
+  .tabs-nav { padding: 0 16px; }
+  .tab-btn { padding: 14px 16px; font-size: 13px; }
+  .logos-strip { padding: 24px 16px; }
+  .logos-row { gap: 16px; }
+  .logo-chip { font-size: 14px; }
+  .footer { padding: 24px 16px; }
 }
