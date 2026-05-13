@@ -21,7 +21,7 @@ body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); fo
   overflow-y: auto;
   position: relative;
   z-index: 2;
-  box-shadow: 4px 0 40px rgba(42,33,64,0.08);
+  box-shadow: -4px 0 40px rgba(42,33,64,0.08);
 }
 .fs-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: auto; }
 .fs-logo { font-size: 22px; font-weight: 900; color: var(--dark); }
@@ -246,31 +246,6 @@ body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); fo
 </head>
 <body>
 
-<!-- Form -->
-<div class="form-side">
-  <div class="fs-top">
-    <div class="fs-logo">مُدار</div>
-    <a href="index.html" class="fs-back">← الرئيسية</a>
-  </div>
-  <div class="fs-form">
-    <div class="fs-eyebrow">ابدأ مجاناً</div>
-    <h1 class="fs-title">أهلاً بك</h1>
-    <p class="fs-subtitle">أدخل بياناتك وابدأ تحليل مشروعك في دقائق.</p>
-    <div class="fs-error" id="errorMsg"></div>
-    <div class="fs-field">
-      <label>الاسم الكامل</label>
-      <input class="fs-input" type="text" id="loginName" placeholder="اكتب اسمك" autocomplete="name">
-    </div>
-    <div class="fs-field">
-      <label>البريد الإلكتروني</label>
-      <input class="fs-input" type="email" id="loginEmail" placeholder="example@email.com"
-             autocomplete="email" style="direction:ltr;text-align:right">
-    </div>
-    <button class="fs-cta" onclick="doLogin()" id="loginBtn">ابدأ ←</button>
-    <p class="fs-footer">بالمتابعة توافق على شروط الاستخدام وسياسة الخصوصية</p>
-  </div>
-</div>
-
 <!-- Feature cards -->
 <div class="cards-side">
   <div class="cs-header">
@@ -478,6 +453,31 @@ body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); fo
     <div class="cs-dot" onclick="goTo(3)"></div>
     <div class="cs-dot" onclick="goTo(4)"></div>
     <div class="cs-dot" onclick="goTo(5)"></div>
+  </div>
+</div>
+
+<!-- Form -->
+<div class="form-side">
+  <div class="fs-top">
+    <div class="fs-logo">مُدار</div>
+    <a href="index.html" class="fs-back">← الرئيسية</a>
+  </div>
+  <div class="fs-form">
+    <div class="fs-eyebrow">ابدأ مجاناً</div>
+    <h1 class="fs-title">أهلاً بك</h1>
+    <p class="fs-subtitle">أدخل بياناتك وابدأ تحليل مشروعك في دقائق.</p>
+    <div class="fs-error" id="errorMsg"></div>
+    <div class="fs-field">
+      <label>الاسم الكامل</label>
+      <input class="fs-input" type="text" id="loginName" placeholder="اكتب اسمك" autocomplete="name">
+    </div>
+    <div class="fs-field">
+      <label>البريد الإلكتروني</label>
+      <input class="fs-input" type="email" id="loginEmail" placeholder="example@email.com"
+             autocomplete="email" style="direction:ltr;text-align:right">
+    </div>
+    <button class="fs-cta" onclick="doLogin()" id="loginBtn">ابدأ ←</button>
+    <p class="fs-footer">بالمتابعة توافق على شروط الاستخدام وسياسة الخصوصية</p>
   </div>
 </div>
 
