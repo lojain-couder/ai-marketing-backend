@@ -281,6 +281,126 @@ class GeminiAnalyzer:
             print(f"[Gemini] analyze_comments failed: {e}")
             return {}
 
+    # ── Phase 3b: Product-aware comment analysis ─────────────────────────────
+
+    def analyze_product_comments(
+        self,
+        comments: list[dict],
+        products: list[dict],
+        business_profile: dict,
+    ) -> list[dict]:
+        """
+        For each product in the list, extract what the audience is saying about it
+        from the comments. Returns per-product voice data with improvement tips.
+        """
+        texts = [c.get("text", "") for c in comments if c.get("text", "").strip()]
+        if not texts or not products:
+            return []
+
+        product_names = [p["product_name"] for p in products[:10]]
+        sample = texts[:150]
+
+        prompt = f"""أنتِ محللة تسويقية متخصصة في السوق العربي.
+لديكِ قائمة منتجات وتعليقات من جمهور حساب تجاري. حللي ما يقوله الجمهور عن كل منتج.
+
+المنتجات: {', '.join(product_names)}
+
+التعليقات ({len(sample)} تعليق):
+{json.dumps(sample, ensure_ascii=False, indent=None)}
+
+لكل منتج مذكور في التعليقات، أخرجي:
+- product_name: اسم المنتج
+- mention_count: عدد التعليقات التي تذكره (تقريباً)
+- questions: أكثر 3 أسئلة يطرحها الجمهور عن هذا المنتج تحديداً
+- complaints: أكثر 2 شكوى أو ملاحظة سلبية عن هذا المنتج
+- purchase_signals: تعليقات تدل على نية الشراء (مثل "أبي أطلب"، "كم السعر؟")
+- praises: أكثر شيء يمدحونه في هذا المنتج
+- seller_tip: نصيحة واحدة عملية للبائع بناءً على هذه التعليقات (جملتان)
+
+أجيبي بـ JSON فقط:
+{{"product_voices": [{{"product_name": "...", "mention_count": 0, "questions": [], "complaints": [], "purchase_signals": [], "praises": [], "seller_tip": "..."}}]}}"""
+
+        try:
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            data = self._parse_json(response.text)
+            voices = data.get("product_voices", [])
+            print(f"[Gemini] Product comment analysis — {len(voices)} products found in comments")
+            return voices
+        except Exception as e:
+            print(f"[Gemini] analyze_product_comments failed: {e}")
+            return []
+
+    # ── Phase 3c: Per-product content strategy ────────────────────────────────
+
+    def generate_product_content_strategy(
+        self,
+        product_stats: list[dict],
+        business_profile: dict,
+        product_voices: list[dict] | None = None,
+    ) -> list[dict]:
+        """
+        For each product (top 6 by revenue), generate:
+        - content ideas to drive sales for this specific product
+        - actionable seller improvement tips
+        - recommended content formats and hooks
+        """
+        if not product_stats:
+            return []
+
+        top_products = product_stats[:6]
+        voice_map = {v["product_name"]: v for v in (product_voices or [])}
+
+        sector = business_profile.get("sector") or business_profile.get("industry") or "التجارة"
+        tone   = business_profile.get("tone") or business_profile.get("brand_tone") or "احترافي"
+
+        products_data = []
+        for p in top_products:
+            name = p["product_name"]
+            entry = {
+                "name": name,
+                "revenue": p.get("revenue", 0),
+                "orders": p.get("orders", 0),
+                "avg_order_value": p.get("avg_order_value", 0),
+                "featuring_videos": p.get("featuring_video_count", 0),
+                "engagement_lift": p.get("engagement_lift_pct"),
+                "has_content_already": p.get("has_content", False),
+            }
+            if name in voice_map:
+                v = voice_map[name]
+                entry["audience_questions"]    = v.get("questions", [])[:2]
+                entry["audience_complaints"]   = v.get("complaints", [])[:2]
+                entry["purchase_signals_count"] = len(v.get("purchase_signals", []))
+                entry["praises"]               = v.get("praises", [])[:2]
+            products_data.append(entry)
+
+        prompt = f"""أنتِ استراتيجية محتوى تسويقي خبيرة في السوق الخليجي.
+لديكِ بيانات دقيقة عن منتجات متجر {sector} بأسلوب {tone}.
+
+البيانات:
+{json.dumps(products_data, ensure_ascii=False, indent=2)}
+
+لكل منتج، قدمي:
+- product_name: اسم المنتج
+- content_ideas: قائمة بـ 3 أفكار محتوى جاهزة للتصوير (جمل واضحة وقابلة للتنفيذ مباشرة)
+- best_content_type: نوع المحتوى الأنسب لهذا المنتج (مثل: tutorial / unboxing / before_after / قصة عميل)
+- hook_suggestion: جملة افتتاحية قوية لفيديو عن هذا المنتج (بالعربي، نبرة طبيعية)
+- seller_improvements: قائمة بـ 3 نصائح عملية للبائع لتحسين مبيعات هذا المنتج (بناءً على البيانات)
+- priority: أولوية التركيز — اختاري: high / medium / low (بناءً على الإيراد ووجود إشارات الشراء)
+- why_priority: سبب الأولوية بجملة واحدة
+
+أجيبي بـ JSON فقط — لا نص خارج الـ JSON:
+{{"product_strategies": [{{"product_name": "...", "content_ideas": [], "best_content_type": "...", "hook_suggestion": "...", "seller_improvements": [], "priority": "high", "why_priority": "..."}}]}}"""
+
+        try:
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            data = self._parse_json(response.text)
+            strategies = data.get("product_strategies", [])
+            print(f"[Gemini] Product strategies generated — {len(strategies)} products")
+            return strategies
+        except Exception as e:
+            print(f"[Gemini] generate_product_content_strategy failed: {e}")
+            return []
+
     # ── Phase 4: Caption-based audience estimation (fallback) ────────────────
 
     def analyze_from_captions(self, captions: list[str], business_profile: dict) -> dict:

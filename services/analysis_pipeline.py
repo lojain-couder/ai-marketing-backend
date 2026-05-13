@@ -19,6 +19,11 @@ from bi_advisor.sales_metrics_extractor import extract_metric_snapshot, build_sa
 from bi_advisor.analysis_memory import AnalysisMemoryStore, build_snapshot
 from bi_advisor.trend_engine import TrendEngine
 from bi_advisor.content_sales_linker import analyze_content_type_impact
+from bi_advisor.product_content_analyzer import (
+    extract_product_list,
+    match_videos_to_products,
+    compute_product_video_stats,
+)
 from services.groq_writer import GroqWriter
 from services.gemini_analyzer import GeminiAnalyzer
 from services.apify_service import fetch_comments_sync
@@ -63,6 +68,11 @@ class AnalysisPipeline:
         # Phase 0b: Auto-fetch comments for top videos and analyze audience voice
         comment_voice = self._auto_fetch_and_analyze_comments(raw_videos, business_profile)
 
+        # Phase 0c: Product recognition — match videos to sales product catalog
+        product_insights = self._run_product_analysis(
+            raw_videos, sales_rows, comment_voice, business_profile
+        )
+
         # Convert frontend video format → SocialAnalysisEngine format
         social_rows = [self._to_social_row(v) for v in raw_videos]
         selected_platforms = list({r["platform"] for r in social_rows}) or ["tiktok"]
@@ -102,7 +112,7 @@ class AnalysisPipeline:
         content_type_impact = analyze_content_type_impact(social_rows, sales_rows)
 
         engine_output = {
-            "insights": self._extract_insights(analysis, sales_analysis, sales_summary, content_type_impact, comment_voice),
+            "insights": self._extract_insights(analysis, sales_analysis, sales_summary, content_type_impact, comment_voice, product_insights),
             "strategies": strategies,
             "weekly_plan": weekly_plan,
             "root_cause": self._extract_root_cause(analysis),
@@ -113,6 +123,7 @@ class AnalysisPipeline:
             "sales_analysis": sales_analysis,
             "content_type_impact": content_type_impact,
             "comment_voice": comment_voice,
+            "product_insights": product_insights,
         }
 
         # Step 4b: Load history → compute trend → save new snapshot
@@ -382,6 +393,81 @@ class AnalysisPipeline:
             "language": v.get("language"),
         }
 
+    # ── Product recognition & per-product strategy ───────────────────────────
+
+    def _run_product_analysis(
+        self,
+        raw_videos: list[dict],
+        sales_rows: list[dict],
+        comment_voice: dict,
+        business_profile: dict,
+    ) -> dict:
+        """
+        1. Extract product list from sales data.
+        2. Match each video to products it features (text matching on caption/transcript).
+        3. Compute per-product engagement + revenue stats.
+        4. Analyze comments per product (if real comments available).
+        5. Generate per-product content strategy + seller improvement tips via Gemini.
+        """
+        products = extract_product_list(sales_rows)
+        if not products:
+            return {"available": False, "reason": "no_products_in_sales_data"}
+
+        # Match videos → products (mutates raw_videos in-place adding 'featured_products')
+        raw_videos = match_videos_to_products(raw_videos, products)
+
+        # Need social_rows format for stats — convert quickly
+        social_rows_for_products = [self._to_social_row(v) for v in raw_videos]
+        # Re-attach featured_products (lost during conversion)
+        for i, v in enumerate(raw_videos):
+            social_rows_for_products[i]["featured_products"] = v.get("featured_products", [])
+            social_rows_for_products[i]["visual_type"]       = v.get("visual_type", "")
+            social_rows_for_products[i]["content_type"]      = v.get("content_type", "")
+
+        product_stats = compute_product_video_stats(social_rows_for_products, sales_rows, products)
+
+        # Product-level comment analysis (only when we have real comments)
+        product_voices: list[dict] = []
+        if comment_voice.get("source") == "real":
+            raw_comments = comment_voice.get("_raw_comments", [])
+            if raw_comments:
+                product_voices = self.gemini.analyze_product_comments(
+                    raw_comments, product_stats, business_profile
+                )
+
+        # Per-product content strategy + seller improvement tips
+        strategies = self.gemini.generate_product_content_strategy(
+            product_stats, business_profile, product_voices
+        )
+
+        # Merge strategies into product_stats
+        strategy_map = {s["product_name"]: s for s in strategies}
+        voice_map    = {v["product_name"]: v for v in product_voices}
+
+        enriched_stats = []
+        for p in product_stats:
+            name = p["product_name"]
+            entry = dict(p)
+            if name in strategy_map:
+                entry["content_strategy"] = strategy_map[name]
+            if name in voice_map:
+                entry["comment_voice"] = voice_map[name]
+            enriched_stats.append(entry)
+
+        featured_count = sum(1 for p in product_stats if p.get("featuring_video_count", 0) > 0)
+        print(
+            f"[ProductAnalysis] {len(products)} products | "
+            f"{featured_count} featured in videos | "
+            f"{len(strategies)} strategies generated"
+        )
+
+        return {
+            "available": True,
+            "product_count": len(products),
+            "featured_count": featured_count,
+            "products": enriched_stats,
+        }
+
     # ── Auto comment fetching & analysis ────────────────────────────────────
 
     def _auto_fetch_and_analyze_comments(
@@ -428,6 +514,7 @@ class AnalysisPipeline:
             if result:
                 result["source"] = "real"
                 result["comments_count"] = len(comments)
+                result["_raw_comments"] = comments  # kept for product-level analysis
                 return result
 
         # Fallback: estimate from captions
@@ -512,6 +599,7 @@ class AnalysisPipeline:
         sales_summary: dict | None = None,
         content_type_impact: dict | None = None,
         comment_voice: dict | None = None,
+        product_insights: dict | None = None,
     ) -> list:
         insights = []
         perf = analysis.get("content_performance_summary", {})
@@ -578,6 +666,52 @@ class AnalysisPipeline:
                 "title": "أكثر طلبات الجمهور",
                 "detail": reqs_str,
             })
+
+        # Product insights — top products with content strategy
+        pi = product_insights or {}
+        if pi.get("available") and pi.get("products"):
+            # Surface top 3 products by revenue that have a content strategy
+            top_products = [
+                p for p in pi["products"]
+                if p.get("content_strategy")
+            ][:3]
+            for p in top_products:
+                strat = p["content_strategy"]
+                detail_parts = [
+                    f"الإيراد: {p.get('revenue', 0):,.0f}",
+                    f"الطلبات: {p.get('orders', 0)}",
+                ]
+                if p.get("featuring_video_count", 0) > 0:
+                    detail_parts.append(f"يظهر في {p['featuring_video_count']} فيديو")
+                if p.get("engagement_lift_pct") is not None:
+                    sign = "+" if p["engagement_lift_pct"] >= 0 else ""
+                    detail_parts.append(f"التفاعل عند ظهوره: {sign}{p['engagement_lift_pct']}٪")
+
+                insights.append({
+                    "type": "product",
+                    "title": f"منتج: {p['product_name']}",
+                    "detail": " | ".join(detail_parts),
+                    "priority": strat.get("priority", "medium"),
+                    "why_priority": strat.get("why_priority", ""),
+                    "content_ideas": strat.get("content_ideas", []),
+                    "best_content_type": strat.get("best_content_type", ""),
+                    "hook_suggestion": strat.get("hook_suggestion", ""),
+                    "seller_improvements": strat.get("seller_improvements", []),
+                    "comment_voice": p.get("comment_voice", {}),
+                })
+
+            # Products with no content yet — flag as opportunity
+            no_content = [
+                p for p in pi["products"]
+                if not p.get("has_content") and p.get("revenue", 0) > 0
+            ][:2]
+            for p in no_content:
+                insights.append({
+                    "type": "product_opportunity",
+                    "title": f"منتج بدون محتوى: {p['product_name']}",
+                    "detail": f"إيراد {p.get('revenue', 0):,.0f} لكن لم يظهر في أي فيديو — فرصة للمحتوى",
+                    "revenue": p.get("revenue", 0),
+                })
 
         # Sales-backed insights from BI advisor
         if sales_analysis.get("available"):
