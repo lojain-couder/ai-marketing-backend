@@ -299,8 +299,10 @@ class GeminiAnalyzer:
 
         product_names = [p["product_name"] for p in products[:10]]
         sample = texts[:150]
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "التجارة"
+        tone    = business_profile.get("tone") or business_profile.get("brand_tone") or "احترافي"
 
-        prompt = f"""أنتِ محللة تسويقية متخصصة في السوق العربي.
+        prompt = f"""أنتِ محللة تسويقية متخصصة في السوق العربي، تعملين في قطاع {sector} بأسلوب {tone}.
 لديكِ قائمة منتجات وتعليقات من جمهور حساب تجاري. حللي ما يقوله الجمهور عن كل منتج.
 
 المنتجات: {', '.join(product_names)}
@@ -399,6 +401,169 @@ class GeminiAnalyzer:
             return strategies
         except Exception as e:
             print(f"[Gemini] generate_product_content_strategy failed: {e}")
+            return []
+
+    # ── Phase 5: Competitor narrative insights ────────────────────────────────
+
+    def generate_competitor_insights(
+        self,
+        comparison: dict,
+        business_profile: dict,
+    ) -> dict:
+        """
+        Takes the structured comparison from competitor_analyzer and produces
+        Arabic narrative insights + specific action recommendations.
+        """
+        if not comparison.get("available"):
+            return {}
+
+        benchmark = comparison.get("benchmark", {})
+        gaps = comparison.get("gaps", [])[:5]
+        unused_hashtags = comparison.get("unused_competitor_hashtags", [])[:8]
+        comp_stats = comparison.get("competitor_stats", [])
+
+        sector = business_profile.get("sector") or business_profile.get("industry") or "التجارة"
+        tone   = business_profile.get("tone") or "احترافي"
+
+        comp_summary = "\n".join(
+            f"- @{c['username']}: تفاعل متوسط {c['avg_engagement']:.4f}, "
+            f"أنواع المحتوى الرئيسية: {list(c.get('content_type_dist', {}).keys())[:3]}"
+            for c in comp_stats
+        )
+
+        gaps_text = "\n".join(
+            f"- {g.get('description', '')}: {g.get('action', '')}"
+            for g in gaps
+        )
+
+        prompt = f"""أنتِ استراتيجية تسويق رقمي خبيرة في {sector}.
+حللي مقارنة أداء الحساب مع المنافسين وأعطي توصيات استراتيجية باللغة العربية.
+
+── بيانات المقارنة ──
+تفاعلك: {benchmark.get('your_avg_engagement', 0):.4f}
+متوسط المنافسين: {benchmark.get('competitor_avg_engagement', 0):.4f}
+أفضل منافس: @{benchmark.get('best_competitor_username', '?')} بتفاعل {benchmark.get('best_competitor_engagement', 0):.4f}
+
+── أداء المنافسين ──
+{comp_summary}
+
+── الفجوات الرئيسية ──
+{gaps_text}
+
+── هاشتاقات لم تستخدمها بعد ──
+{', '.join(unused_hashtags)}
+
+أجيبي بـ JSON:
+{{
+  "competitive_position": "تقييم موقعك التنافسي الآن — جملتان",
+  "top_competitor_lessons": ["درس 1 من المنافسين", "درس 2", "درس 3"],
+  "immediate_actions": ["إجراء فوري 1", "إجراء فوري 2", "إجراء فوري 3"],
+  "hashtag_strategy": "استراتيجية الهاشتاقات المقترحة — جملتان",
+  "content_type_advice": "نصيحة عن نوع المحتوى بناءً على فجوات المنافسين — جملتان"
+}}
+
+أجيبي بـ JSON فقط."""
+
+        try:
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            result = self._parse_json(response.text)
+            print("[Gemini] Competitor insights generated")
+            return result
+        except Exception as e:
+            print(f"[Gemini] generate_competitor_insights failed: {e}")
+            return {}
+
+    # ── Phase 6: Audience persona clustering ─────────────────────────────────
+
+    def cluster_audience_personas(
+        self,
+        comments: list[dict],
+        business_profile: dict,
+    ) -> list[dict]:
+        """
+        Clusters the audience into 2-3 distinct personas based on comment patterns.
+        Each persona includes: name, %, what they care about, how to target them.
+        """
+        texts = [c.get("text", "") for c in comments if c.get("text", "").strip()]
+        if len(texts) < 10:
+            return []
+
+        sample = texts[:150]
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "التجارة"
+        product = business_profile.get("products") or "المنتج"
+
+        prompt = f"""أنتِ خبيرة تسويق في السوق الخليجي. لديكِ تعليقات من جمهور متجر {sector} ({product}).
+حللي التعليقات وصنّفي الجمهور في 2-3 شخصيات (personas) مختلفة.
+
+التعليقات:
+{json.dumps(sample, ensure_ascii=False, indent=None)}
+
+لكل شخصية، حددي:
+- persona_name: اسم وصفي للشخصية (مثل: "المقارنة بالسعر"، "طالب الجودة"، "مشتري الهدايا")
+- percentage: نسبة تقريبية من الجمهور (الإجمالي 100)
+- description: وصف قصير لهذه الشخصية (جملتان)
+- what_they_want: أهم 3 أشياء يبحث عنها هذا الشخص
+- how_to_target: كيف تستهدف هذه الشخصية بالمحتوى — جملتان عملية
+- example_comment: مثال على تعليق نموذجي لهذه الشخصية
+
+أجيبي بـ JSON فقط:
+{{"personas": [{{"persona_name": "...", "percentage": 40, "description": "...", "what_they_want": [], "how_to_target": "...", "example_comment": "..."}}]}}"""
+
+        try:
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            data = self._parse_json(response.text)
+            personas = data.get("personas", [])
+            print(f"[Gemini] Persona clustering — {len(personas)} personas identified")
+            return personas
+        except Exception as e:
+            print(f"[Gemini] cluster_audience_personas failed: {e}")
+            return []
+
+    # ── Phase 7: Trending hashtag suggestions ────────────────────────────────
+
+    def suggest_trending_hashtags(
+        self,
+        business_profile: dict,
+        account_hashtags: list[str],
+        competitor_hashtags: list[str],
+    ) -> list[str]:
+        """
+        Suggests trending hashtags for the niche that the account isn't using.
+        Uses Gemini's knowledge of the Arabic/Gulf social media landscape.
+        """
+        sector  = business_profile.get("sector") or business_profile.get("industry") or "التجارة"
+        product = business_profile.get("products") or "المنتج"
+        country = business_profile.get("country") or business_profile.get("target_market") or "السعودية والخليج"
+
+        used_sample = account_hashtags[:15]
+        competitor_sample = competitor_hashtags[:15]
+
+        prompt = f"""أنتِ خبيرة سوشيال ميديا في السوق الخليجي.
+اقترحي هاشتاقات رائجة ومناسبة لـ {sector} ({product}) في {country}.
+
+الهاشتاقات المستخدمة حالياً:
+{json.dumps(used_sample, ensure_ascii=False)}
+
+هاشتاقات المنافسين (للاستلهام):
+{json.dumps(competitor_sample, ensure_ascii=False)}
+
+اقترحي 15 هاشتاق:
+- متنوعة: بعضها عام (حجم كبير) وبعضها متخصص (niche)
+- مناسبة للسوق الخليجي والعربي
+- لم تُستخدم بالفعل في القائمة المعطاة
+- مزيج من العربية والإنجليزية
+
+أجيبي بـ JSON فقط:
+{{"suggested_hashtags": ["#هاشتاق1", "#hashtag2", ...]}}"""
+
+        try:
+            response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+            data = self._parse_json(response.text)
+            tags = data.get("suggested_hashtags", [])
+            print(f"[Gemini] Hashtag suggestions — {len(tags)} tags")
+            return tags
+        except Exception as e:
+            print(f"[Gemini] suggest_trending_hashtags failed: {e}")
             return []
 
     # ── Phase 4: Caption-based audience estimation (fallback) ────────────────

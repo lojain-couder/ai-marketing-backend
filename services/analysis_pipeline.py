@@ -24,9 +24,12 @@ from bi_advisor.product_content_analyzer import (
     match_videos_to_products,
     compute_product_video_stats,
 )
+from bi_advisor.competitor_analyzer import compare_accounts
+from bi_advisor.hook_scorer import score_hook_types
+from bi_advisor.hashtag_gap_analyzer import find_hashtag_gaps
 from services.groq_writer import GroqWriter
 from services.gemini_analyzer import GeminiAnalyzer
-from services.apify_service import fetch_comments_sync
+from services.apify_service import fetch_comments_sync, fetch_social_media_sync
 
 _BI_MEMORY_ROOT = os.getenv("BI_MEMORY_ROOT", "/tmp/mudar_bi_memory")
 
@@ -48,6 +51,7 @@ class AnalysisPipeline:
         business_profile = normalized_data.get("business_profile", {})
         sales_summary = normalized_data.get("sales_summary") or {}
         transcripts = normalized_data.get("transcripts") or []
+        competitor_accounts = normalized_data.get("competitor_accounts") or []
         sales_rows = self._extract_sales_rows(sales_summary)
 
         # Merge manually-provided transcripts (from frontend upload, if any)
@@ -72,6 +76,28 @@ class AnalysisPipeline:
         product_insights = self._run_product_analysis(
             raw_videos, sales_rows, comment_voice, business_profile
         )
+
+        # Phase 0d: Competitor analysis
+        competitor_analysis = self._run_competitor_analysis(
+            raw_videos, competitor_accounts, business_profile
+        )
+
+        # Phase 0e: Hook performance scoring
+        hook_scores = score_hook_types(
+            [self._to_social_row(v) for v in raw_videos], sales_rows
+        )
+
+        # Phase 0f: Hashtag gap analysis
+        hashtag_gap = self._run_hashtag_gap(
+            raw_videos, competitor_analysis, business_profile
+        )
+
+        # Phase 0g: Persona clustering (needs real comments)
+        personas = []
+        if comment_voice.get("source") == "real":
+            raw_comments = comment_voice.get("_raw_comments", [])
+            if len(raw_comments) >= 10:
+                personas = self.gemini.cluster_audience_personas(raw_comments, business_profile)
 
         # Convert frontend video format → SocialAnalysisEngine format
         social_rows = [self._to_social_row(v) for v in raw_videos]
@@ -112,7 +138,11 @@ class AnalysisPipeline:
         content_type_impact = analyze_content_type_impact(social_rows, sales_rows)
 
         engine_output = {
-            "insights": self._extract_insights(analysis, sales_analysis, sales_summary, content_type_impact, comment_voice, product_insights),
+            "insights": self._extract_insights(
+                analysis, sales_analysis, sales_summary,
+                content_type_impact, comment_voice, product_insights,
+                competitor_analysis, hook_scores, hashtag_gap, personas,
+            ),
             "strategies": strategies,
             "weekly_plan": weekly_plan,
             "root_cause": self._extract_root_cause(analysis),
@@ -124,6 +154,10 @@ class AnalysisPipeline:
             "content_type_impact": content_type_impact,
             "comment_voice": comment_voice,
             "product_insights": product_insights,
+            "competitor_analysis": competitor_analysis,
+            "hook_scores": hook_scores,
+            "hashtag_gap": hashtag_gap,
+            "audience_personas": personas,
         }
 
         # Step 4b: Load history → compute trend → save new snapshot
@@ -393,6 +427,85 @@ class AnalysisPipeline:
             "language": v.get("language"),
         }
 
+    # ── Competitor analysis ───────────────────────────────────────────────────
+
+    def _run_competitor_analysis(
+        self,
+        raw_videos: list[dict],
+        competitor_accounts: list[dict],
+        business_profile: dict,
+    ) -> dict:
+        """Fetch competitor posts, compare, generate narrative insights."""
+        if not competitor_accounts:
+            return {"available": False, "reason": "no_competitors_provided"}
+
+        competitors_data = []
+        for acc in competitor_accounts[:3]:
+            platform = str(acc.get("platform") or "tiktok").lower()
+            username = str(acc.get("username") or "").strip().lstrip("@")
+            if not username:
+                continue
+            print(f"[Competitor] Fetching @{username} on {platform}")
+            result = fetch_social_media_sync(platform, username, limit=25)
+            if result.get("posts"):
+                competitors_data.append(result)
+                print(f"[Competitor] @{username} — {len(result['posts'])} posts")
+            else:
+                print(f"[Competitor] @{username} — no posts (skipped)")
+
+        if not competitors_data:
+            return {"available": False, "reason": "competitor_fetch_failed"}
+
+        account_rows = [self._to_social_row(v) for v in raw_videos]
+        comparison = compare_accounts(account_rows, competitors_data)
+
+        # Gemini narrative insights on top of structured comparison
+        narrative = self.gemini.generate_competitor_insights(comparison, business_profile)
+        if narrative:
+            comparison["narrative"] = narrative
+
+        return comparison
+
+    # ── Hashtag gap analysis ──────────────────────────────────────────────────
+
+    def _run_hashtag_gap(
+        self,
+        raw_videos: list[dict],
+        competitor_analysis: dict,
+        business_profile: dict,
+    ) -> dict:
+        """Find hashtag gaps vs competitors + Gemini trending suggestions."""
+        account_rows = [self._to_social_row(v) for v in raw_videos]
+
+        # Build competitor data structure expected by hashtag gap analyzer
+        competitor_data_for_hashtags = []
+        if competitor_analysis.get("available"):
+            for cs in competitor_analysis.get("competitor_stats", []):
+                competitor_data_for_hashtags.append({
+                    "username": cs.get("username", ""),
+                    "posts": [],  # hashtags are already in competitor_stats top_hashtags
+                })
+            # Re-attach posts from competitor_analysis if available
+            # We use top_hashtags from competitor_stats as a proxy
+            pass
+
+        # Extract account hashtags
+        import re as _re
+        account_hashtags = list({
+            tag.lower()
+            for v in raw_videos
+            for tag in _re.findall(r"#\w+", str(v.get("caption") or ""))
+        })
+
+        competitor_hashtags = competitor_analysis.get("unused_competitor_hashtags", [])
+
+        # Gemini suggests additional trending hashtags for the niche
+        gemini_suggestions = self.gemini.suggest_trending_hashtags(
+            business_profile, account_hashtags, competitor_hashtags
+        )
+
+        return find_hashtag_gaps(account_rows, competitor_data_for_hashtags, gemini_suggestions)
+
     # ── Product recognition & per-product strategy ───────────────────────────
 
     def _run_product_analysis(
@@ -600,6 +713,10 @@ class AnalysisPipeline:
         content_type_impact: dict | None = None,
         comment_voice: dict | None = None,
         product_insights: dict | None = None,
+        competitor_analysis: dict | None = None,
+        hook_scores: dict | None = None,
+        hashtag_gap: dict | None = None,
+        audience_personas: list | None = None,
     ) -> list:
         insights = []
         perf = analysis.get("content_performance_summary", {})
@@ -712,6 +829,54 @@ class AnalysisPipeline:
                     "detail": f"إيراد {p.get('revenue', 0):,.0f} لكن لم يظهر في أي فيديو — فرصة للمحتوى",
                     "revenue": p.get("revenue", 0),
                 })
+
+        # Hook performance scoring
+        hs = hook_scores or {}
+        if hs.get("available") and hs.get("best_hook_type"):
+            insights.append({
+                "type": "hook_score",
+                "title": "أفضل نوع hook لحسابك",
+                "detail": hs.get("summary_ar", ""),
+                "best_hook_type": hs.get("best_hook_type"),
+                "ranked_hooks": hs.get("ranked_hooks", []),
+            })
+
+        # Competitor analysis
+        ca = competitor_analysis or {}
+        if ca.get("available"):
+            benchmark = ca.get("benchmark", {})
+            narrative = ca.get("narrative", {})
+            insights.append({
+                "type": "competitor",
+                "title": "مقارنة مع المنافسين",
+                "detail": narrative.get("competitive_position", ""),
+                "benchmark": benchmark,
+                "gaps": ca.get("gaps", [])[:3],
+                "top_lessons": narrative.get("top_competitor_lessons", []),
+                "immediate_actions": narrative.get("immediate_actions", []),
+            })
+
+        # Hashtag gaps
+        hg = hashtag_gap or {}
+        if hg.get("available") and hg.get("gaps"):
+            top_gaps = [g["hashtag"] for g in hg["gaps"][:8]]
+            insights.append({
+                "type": "hashtag_gap",
+                "title": "هاشتاقات لم تستخدمها بعد",
+                "detail": hg.get("summary_ar", ""),
+                "unused_hashtags": top_gaps,
+                "gap_count": hg.get("gap_count", 0),
+            })
+
+        # Audience personas
+        ap = audience_personas or []
+        if ap:
+            insights.append({
+                "type": "personas",
+                "title": "شخصيات الجمهور",
+                "detail": f"تم تحديد {len(ap)} شخصيات رئيسية في جمهورك",
+                "personas": ap,
+            })
 
         # Sales-backed insights from BI advisor
         if sales_analysis.get("available"):

@@ -19,6 +19,7 @@ class AnalysisRequest(BaseModel):
     business_profile: Optional[Dict[str, Any]] = None
     sales_data: Optional[List[Dict[str, Any]]] = None
     transcripts: Optional[List[Dict[str, Any]]] = None
+    competitor_accounts: Optional[List[Dict[str, Any]]] = None  # [{platform, username}]
 
 
 class BusinessProfile(BaseModel):

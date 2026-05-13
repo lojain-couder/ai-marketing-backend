@@ -53,10 +53,11 @@ async def run_analysis(request: AnalysisRequest):
 
     try:
         normalized = {
-            "business_profile": request.business_profile or {},
-            "sales_summary":    request.sales_data,
-            "videos":           request.videos,
-            "transcripts":      request.transcripts or [],
+            "business_profile":    request.business_profile or {},
+            "sales_summary":       request.sales_data,
+            "videos":              request.videos,
+            "transcripts":         request.transcripts or [],
+            "competitor_accounts": request.competitor_accounts or [],
         }
         result = await run_in_threadpool(pipeline.run, normalized)
         return {"success": True, **jsonable_encoder(result)}

@@ -227,6 +227,33 @@ async def fetch_comments(platform: str, video_urls: list[str], max_per_video: in
         return [normalize(item) for item in items if item.get("text") or item.get("comment")]
 
 
+def fetch_social_media_sync(platform: str, username: str, limit: int = 30) -> dict:
+    """Synchronous version of fetch_social_media for use inside threadpool workers."""
+    platform = platform.lower().strip()
+    if platform not in ACTOR_IDS or not APIFY_TOKEN:
+        return {"platform": platform, "username": username, "posts": [], "error": "unsupported"}
+
+    actor_id  = ACTOR_IDS[platform]
+    normalize = NORMALIZERS[platform]
+    run_input = _build_input(platform, username, limit)
+    url = f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items"
+
+    try:
+        with httpx.Client(timeout=240.0) as client:
+            response = client.post(url, json=run_input, params={"token": APIFY_TOKEN})
+        if response.status_code not in (200, 201):
+            return {"platform": platform, "username": username, "posts": [], "error": f"status_{response.status_code}"}
+        raw = response.json()
+        if not isinstance(raw, list):
+            return {"platform": platform, "username": username, "posts": [], "error": "bad_response"}
+        items = [r for r in raw if isinstance(r, dict) and "error" not in r]
+        posts = [normalize(item) for item in items]
+        return {"platform": platform, "username": username, "posts": posts}
+    except Exception as e:
+        print(f"[ApifySync] fetch_social_media_sync failed for {username}: {e}")
+        return {"platform": platform, "username": username, "posts": [], "error": str(e)}
+
+
 def fetch_comments_sync(
     platform: str,
     video_urls: list[str],
