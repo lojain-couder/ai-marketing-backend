@@ -227,6 +227,46 @@ async def fetch_comments(platform: str, video_urls: list[str], max_per_video: in
         return [normalize(item) for item in items if item.get("text") or item.get("comment")]
 
 
+def fetch_comments_sync(
+    platform: str,
+    video_urls: list[str],
+    max_per_video: int = 40,
+) -> list[dict]:
+    """
+    Synchronous version of fetch_comments for use inside threadpool workers.
+    Uses httpx.Client instead of AsyncClient.
+    """
+    platform = platform.lower().strip()
+    if platform not in COMMENT_ACTOR_IDS or not video_urls or not APIFY_TOKEN:
+        return []
+
+    actor_id  = COMMENT_ACTOR_IDS[platform]
+    normalize = _COMMENT_NORMALIZERS.get(platform)
+    if normalize is None:
+        return []
+
+    if platform == "tiktok":
+        run_input = {"postURLs": video_urls[:8], "maxComments": max_per_video}
+    else:
+        run_input = {"directUrls": video_urls[:8], "resultsLimit": max_per_video * len(video_urls[:8])}
+
+    url = f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items"
+
+    try:
+        with httpx.Client(timeout=240.0) as client:
+            response = client.post(url, json=run_input, params={"token": APIFY_TOKEN})
+        if response.status_code not in (200, 201):
+            return []
+        raw = response.json()
+        if not isinstance(raw, list):
+            return []
+        items = [r for r in raw if isinstance(r, dict) and "error" not in r]
+        return [normalize(item) for item in items if item.get("text") or item.get("comment")]
+    except Exception as e:
+        print(f"[CommentSync] Failed: {e}")
+        return []
+
+
 # ── Legacy wrapper ────────────────────────────────────────────────────────────
 
 async def fetch_tiktok_videos(

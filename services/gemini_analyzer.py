@@ -1,8 +1,11 @@
 """
 Gemini Analysis Layer — deep marketing and content analysis.
-Runs in two phases:
-  1. enrich_videos()      — before rule-based engine: classifies each video's content
-  2. generate_deep_insights() — after rule-based engine: produces strategic marketing analysis
+Runs in multiple phases:
+  1. enrich_videos()         — text classification (caption + transcript)
+  2. _enrich_with_vision()   — visual analysis of top video thumbnails (Gemini Vision)
+  3. generate_deep_insights() — strategic marketing analysis post-engine
+  4. analyze_comments()       — comment voice analysis
+  5. analyze_from_captions()  — estimated audience voice when no real comments
 """
 
 import os
@@ -10,6 +13,7 @@ import json
 import re
 
 from google import genai
+from google.genai import types as genai_types
 
 
 class GeminiAnalyzer:
@@ -26,13 +30,24 @@ class GeminiAnalyzer:
             self._client = genai.Client(api_key=api_key)
         return self._client
 
-    # ── Phase 1: Video content enrichment ────────────────────────────────────
+    # ── Phase 1: Text-based video content enrichment ─────────────────────────
 
     def enrich_videos(self, videos: list[dict]) -> list[dict]:
-        """Classify each video's caption and add content metadata fields."""
+        """
+        Classify each video using caption + transcript (text),
+        then enrich top videos further with Gemini Vision.
+        """
         if not videos:
             return videos
 
+        # Step 1: text classification
+        videos = self._enrich_with_text(videos)
+        # Step 2: visual classification for top 8 videos
+        videos = self._enrich_with_vision(videos, max_videos=8)
+        return videos
+
+    def _enrich_with_text(self, videos: list[dict]) -> list[dict]:
+        """Use caption + transcript to classify content_type, topic, hook_type, sentiment."""
         captions = []
         for i, v in enumerate(videos):
             caption_text = str(v.get("caption") or v.get("text") or "")[:300]
@@ -42,20 +57,22 @@ class GeminiAnalyzer:
                 entry["transcript"] = transcript[:400]
             captions.append(entry)
 
-        prompt = f"""أنتِ محللة محتوى تسويقي رقمي. حللي البيانات التالية لفيديوهات سوشيال ميديا وصنّفيها.
-إذا توفّر النص المنطوق (transcript) فاستخدميه مع الكابشن لتحليل أدق.
+        prompt = f"""أنتِ محللة محتوى تسويقي رقمي. حللي البيانات التالية لفيديوهات سوشيال ميديا.
+إذا توفّر النص المنطوق (transcript) استخدميه مع الكابشن لتحليل أدق.
 
 البيانات:
 {json.dumps(captions, ensure_ascii=False)}
 
 لكل فيديو (حسب index)، حددي:
-- content_type: نوع المحتوى — اختاري من: educational / promotional / entertainment / lifestyle / challenge / product_review / trending / behind_scenes
+- content_type: نوع المحتوى — اختاري من: educational / promotional / entertainment / lifestyle / challenge / product_review / trending / behind_scenes / tutorial / unboxing
 - topic: الموضوع الرئيسي بالعربي (مثل: "وصفات صحية"، "عناية بالبشرة"، "رياضة")
 - hook_type: نوع الافتتاحية — اختاري من: question / story / shock / tip / product / trend
 - sentiment: المشاعر العامة — اختاري من: positive / neutral / negative
+- has_cta: هل يوجد دعوة للشراء أو التواصل في الكابشن أو النص؟ (true/false)
+- mentions_price: هل يذكر سعراً أو عرضاً أو خصماً؟ (true/false)
 
 أجيبي بـ JSON فقط بدون أي نص إضافي أو markdown:
-{{"results": [{{"index": 0, "content_type": "...", "topic": "...", "hook_type": "...", "sentiment": "..."}}]}}"""
+{{"results": [{{"index": 0, "content_type": "...", "topic": "...", "hook_type": "...", "sentiment": "...", "has_cta": false, "mentions_price": false}}]}}"""
 
         try:
             response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
@@ -67,24 +84,99 @@ class GeminiAnalyzer:
                 ev = dict(v)
                 if i in results_map:
                     r = results_map[i]
-                    ev["content_type"] = r.get("content_type", ev.get("content_type", ""))
-                    ev["topic"] = r.get("topic", ev.get("topic"))
-                    ev["hook_type"] = r.get("hook_type", ev.get("hook_type"))
-                    ev["_sentiment"] = r.get("sentiment", "")
+                    ev["content_type"]   = r.get("content_type", ev.get("content_type", ""))
+                    ev["topic"]          = r.get("topic", ev.get("topic"))
+                    ev["hook_type"]      = r.get("hook_type", ev.get("hook_type"))
+                    ev["_sentiment"]     = r.get("sentiment", "")
+                    ev["has_cta"]        = r.get("has_cta", False)
+                    ev["mentions_price"] = r.get("mentions_price", False)
                 enriched.append(ev)
 
-            print(f"[Gemini] Enriched {len(enriched)} videos")
+            print(f"[Gemini] Text enrichment done — {len(enriched)} videos")
             return enriched
 
         except Exception as e:
-            print(f"[Gemini] enrich_videos failed — skipping: {e}")
+            print(f"[Gemini] _enrich_with_text failed — skipping: {e}")
             return videos
+
+    # ── Phase 1b: Vision enrichment (Gemini Vision) ───────────────────────────
+
+    def _enrich_with_vision(self, videos: list[dict], max_videos: int = 8) -> list[dict]:
+        """
+        Download thumbnails for the top-performing videos and classify them visually.
+        Adds: visual_type, has_product, has_face, visual_emotion, scene, hook_visual.
+        Falls back gracefully — if thumbnail download fails, the video is unchanged.
+        """
+        from services.thumbnail_downloader import download_thumbnail
+
+        candidates = sorted(
+            [(i, v) for i, v in enumerate(videos) if v.get("url")],
+            key=lambda x: float(x[1].get("engagement_rate") or 0),
+            reverse=True,
+        )[:max_videos]
+
+        if not candidates:
+            return videos
+
+        print(f"[GeminiVision] Analyzing thumbnails for {len(candidates)} videos")
+
+        for i, v in candidates:
+            url = v.get("url", "")
+            try:
+                result = download_thumbnail(url)
+                if not result:
+                    continue
+                image_bytes, _ = result
+
+                caption_hint = str(v.get("caption", ""))[:200]
+                transcript_hint = str(v.get("transcript", ""))[:150]
+
+                context = f"الكابشن: {caption_hint}"
+                if transcript_hint:
+                    context += f"\nالنص المنطوق: {transcript_hint}"
+
+                response = self.model.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=[
+                        genai_types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                        f"""أنتِ محللة محتوى بصري متخصصة في سوشيال ميديا.
+حللي صورة الفيديو (ثامبنيل) هذه لحساب تجاري.
+
+{context}
+
+أجيبي بـ JSON فقط — لا نص إضافي:
+{{
+  "visual_type": "أحد: talking_head / product_demo / lifestyle / text_overlay / unboxing / tutorial / behind_scenes / aesthetic / food / fitness",
+  "has_product": true_أو_false,
+  "has_face": true_أو_false,
+  "visual_emotion": "أحد: energetic / calm / professional / fun / emotional / aspirational",
+  "scene": "وصف قصير للمشهد بالعربي — جملة واحدة",
+  "hook_visual": "ما الذي يجذب النظر أولاً في الصورة؟ — جملة قصيرة"
+}}"""
+                    ],
+                )
+
+                vis = self._parse_json(response.text)
+                if isinstance(vis, dict):
+                    videos[i]["visual_type"]    = vis.get("visual_type", "")
+                    videos[i]["has_product"]     = vis.get("has_product", False)
+                    videos[i]["has_face"]        = vis.get("has_face", False)
+                    videos[i]["visual_emotion"]  = vis.get("visual_emotion", "")
+                    videos[i]["scene"]           = vis.get("scene", "")
+                    videos[i]["hook_visual"]     = vis.get("hook_visual", "")
+                    print(f"[GeminiVision] ✓ {url[:55]} → {vis.get('visual_type')}")
+
+            except Exception as e:
+                print(f"[GeminiVision] Skipped {url[:55]}: {e}")
+
+        vision_count = sum(1 for v in videos if v.get("visual_type"))
+        print(f"[GeminiVision] Done — {vision_count} videos with visual data")
+        return videos
 
     # ── Phase 2: Deep marketing insights ─────────────────────────────────────
 
     def generate_deep_insights(self, engine_output: dict, business_profile: dict) -> dict:
         """Produce strategic marketing insights based on engine analysis results."""
-
         try:
             root = engine_output.get("root_cause", {})
             insights_summary = "\n".join(
@@ -99,6 +191,22 @@ class GeminiAnalyzer:
                 f"الجمهور المستهدف: {business_profile.get('target_gender') or business_profile.get('target_audience', '')} / {business_profile.get('target_goal') or business_profile.get('goals', '')}",
                 f"الأسلوب: {business_profile.get('tone') or business_profile.get('brand_tone', 'غير محدد')}",
             ])
+
+            # Include content type sales data if available
+            ct_impact = engine_output.get("content_type_impact", {})
+            ct_lines = ""
+            if ct_impact.get("available"):
+                top_types = ct_impact.get("content_type_impact", [])[:3]
+                ct_lines = "\n── أنواع المحتوى حسب الأثر على المبيعات ──\n"
+                for ct in top_types:
+                    ct_lines += f"- {ct['content_type']}: متوسط إيراد 7 أيام = {ct['avg_revenue_7d']}, تفاعل = {ct['avg_engagement']}\n"
+
+            # Include comment voice if available
+            comment_voice = engine_output.get("comment_voice", {})
+            comment_lines = ""
+            if comment_voice.get("frequent_questions"):
+                qs = comment_voice["frequent_questions"][:3]
+                comment_lines = f"\n── أكثر الأسئلة من الجمهور ──\n" + "\n".join(f"- {q}" for q in qs)
 
             prompt = f"""أنتِ استراتيجية تسويق رقمي خبيرة متخصصة في السوق العربي.
 بناءً على البيانات التالية، قدمي تحليلاً استراتيجياً عميقاً باللغة العربية.
@@ -115,6 +223,7 @@ class GeminiAnalyzer:
 أفضل مواضيع: {', '.join(str(t) for t in root.get('best_topics', []))}
 إجمالي المشاهدات: {root.get('total_views', 0)}
 إجمالي المنشورات: {root.get('total_posts', 0)}
+{ct_lines}{comment_lines}
 
 قدمي JSON يشمل:
 - market_opportunities: قائمة بـ 3 فرص تسويقية غير مستغلة (نصوص قصيرة واضحة)
@@ -123,8 +232,10 @@ class GeminiAnalyzer:
 - growth_strategy: استراتيجية نمو مختصرة (جملتان فقط)
 - quick_wins: قائمة بـ 3 إجراءات سريعة قابلة للتطبيق هذا الأسبوع
 - audience_insight: رؤية عن الجمهور المستهدف (جملة واحدة)
+- top_sales_content_type: نوع المحتوى الأنسب للمبيعات بناءً على البيانات (جملة)
 
 أجيبي بـ JSON فقط بدون markdown أو نص إضافي."""
+
             response = self.model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
             result = self._parse_json(response.text)
             print("[Gemini] Deep insights generated successfully")
@@ -154,6 +265,7 @@ class GeminiAnalyzer:
 - frequent_questions: أكثر 5 أسئلة يطرحها الجمهور (مثل "كيف أطلب؟", "هل في توصيل؟")
 - product_requests: أكثر 5 طلبات أو اقتراحات لمنتجات/ألوان/مقاسات
 - complaints: أكثر 3 شكاوى أو ملاحظات سلبية (إن وجدت)
+- purchase_signals: 3 تعليقات تدل على نية شراء (مثل "كم السعر؟"، "أبي أطلب")
 - content_suggestions: 5 أفكار محتوى مباشرة تجيب على هذه الأسئلة والطلبات (جملة كاملة لكل فكرة)
 - sentiment_breakdown: نسب المشاعر كأرقام مئوية {{"positive": N, "neutral": N, "negative": N}}
 - top_comments: أفضل 3 تعليقات تعبر عن صوت الجمهور (نصوص كاملة)
@@ -191,10 +303,11 @@ class GeminiAnalyzer:
 أجيبي بـ JSON بنفس الهيكل:
 - frequent_questions: 5 أسئلة متوقعة من الجمهور
 - product_requests: 5 طلبات/اقتراحات متوقعة
-- complaints: قائمة فارغة [] (لا معلومات حقيقية)
+- complaints: قائمة فارغة []
+- purchase_signals: []
 - content_suggestions: 5 أفكار محتوى بناءً على ما يحتاجه هذا الجمهور
 - sentiment_breakdown: {{"positive": 75, "neutral": 20, "negative": 5}}
-- top_comments: [] (لا تعليقات حقيقية)
+- top_comments: []
 - is_estimated: true
 
 أجيبي بـ JSON فقط."""
@@ -213,7 +326,6 @@ class GeminiAnalyzer:
 
     def _parse_json(self, text: str) -> dict | list:
         text = text.strip()
-        # Strip markdown code fences if present
         text = re.sub(r"^```(?:json)?\s*", "", text)
         text = re.sub(r"\s*```$", "", text)
         return json.loads(text.strip())

@@ -18,8 +18,10 @@ from bi_advisor.domain import BusinessProfile as BIBusinessProfile, DataSourceSt
 from bi_advisor.sales_metrics_extractor import extract_metric_snapshot, build_sales_kpis
 from bi_advisor.analysis_memory import AnalysisMemoryStore, build_snapshot
 from bi_advisor.trend_engine import TrendEngine
+from bi_advisor.content_sales_linker import analyze_content_type_impact
 from services.groq_writer import GroqWriter
 from services.gemini_analyzer import GeminiAnalyzer
+from services.apify_service import fetch_comments_sync
 
 _BI_MEMORY_ROOT = os.getenv("BI_MEMORY_ROOT", "/tmp/mudar_bi_memory")
 
@@ -55,9 +57,11 @@ class AnalysisPipeline:
         # Auto-transcribe top videos that don't already have a transcript
         raw_videos = self._auto_transcribe_videos(raw_videos)
 
-        # Phase 0: Gemini enriches video content metadata (type, topic, hook, sentiment)
-        # — transcript fields are now embedded in each video dict for richer analysis
+        # Phase 0a: Gemini enriches video content metadata (caption + transcript + vision)
         raw_videos = self.gemini.enrich_videos(raw_videos)
+
+        # Phase 0b: Auto-fetch comments for top videos and analyze audience voice
+        comment_voice = self._auto_fetch_and_analyze_comments(raw_videos, business_profile)
 
         # Convert frontend video format → SocialAnalysisEngine format
         social_rows = [self._to_social_row(v) for v in raw_videos]
@@ -94,8 +98,11 @@ class AnalysisPipeline:
             selected_platforms=selected_platforms,
         )
 
+        # Content type × sales correlation (which content types drove revenue)
+        content_type_impact = analyze_content_type_impact(social_rows, sales_rows)
+
         engine_output = {
-            "insights": self._extract_insights(analysis, sales_analysis, sales_summary),
+            "insights": self._extract_insights(analysis, sales_analysis, sales_summary, content_type_impact, comment_voice),
             "strategies": strategies,
             "weekly_plan": weekly_plan,
             "root_cause": self._extract_root_cause(analysis),
@@ -104,6 +111,8 @@ class AnalysisPipeline:
             "data_quality": analysis.get("data_quality_summary", {}),
             "platform_comparison": analysis.get("platform_comparison", {}),
             "sales_analysis": sales_analysis,
+            "content_type_impact": content_type_impact,
+            "comment_voice": comment_voice,
         }
 
         # Step 4b: Load history → compute trend → save new snapshot
@@ -373,6 +382,65 @@ class AnalysisPipeline:
             "language": v.get("language"),
         }
 
+    # ── Auto comment fetching & analysis ────────────────────────────────────
+
+    def _auto_fetch_and_analyze_comments(
+        self,
+        videos: list[dict],
+        business_profile: dict,
+        max_videos: int = 5,
+    ) -> dict:
+        """
+        Fetch real comments from Apify for the top-performing videos,
+        then run Gemini comment analysis. Falls back to caption-based estimation.
+        Returns the comment_voice dict (questions, requests, suggestions, etc.)
+        """
+        # Detect platform from videos
+        platforms = list({str(v.get("platform") or "tiktok").lower() for v in videos})
+        platform = platforms[0] if platforms else "tiktok"
+
+        # Only tiktok/instagram supported for comment fetching
+        if platform not in ("tiktok", "instagram"):
+            return {}
+
+        # Get URLs of top videos sorted by views
+        top_videos = sorted(
+            [v for v in videos if v.get("url")],
+            key=lambda v: int(v.get("views") or 0),
+            reverse=True,
+        )[:max_videos]
+
+        urls = [v["url"] for v in top_videos if v.get("url")]
+
+        if urls:
+            print(f"[CommentFetch] Fetching comments for {len(urls)} top videos ({platform})")
+            try:
+                comments = fetch_comments_sync(platform, urls, max_per_video=40)
+                print(f"[CommentFetch] Got {len(comments)} comments")
+            except Exception as e:
+                print(f"[CommentFetch] Failed: {e}")
+                comments = []
+        else:
+            comments = []
+
+        if comments:
+            result = self.gemini.analyze_comments(comments, business_profile)
+            if result:
+                result["source"] = "real"
+                result["comments_count"] = len(comments)
+                return result
+
+        # Fallback: estimate from captions
+        captions = [str(v.get("caption") or "") for v in videos if v.get("caption")]
+        if captions:
+            print("[CommentFetch] Falling back to caption-based estimation")
+            result = self.gemini.analyze_from_captions(captions, business_profile)
+            if result:
+                result["source"] = "estimated"
+                return result
+
+        return {}
+
     # ── Auto audio transcription ─────────────────────────────────────────────
 
     def _auto_transcribe_videos(self, videos: list[dict], max_videos: int = 5) -> list[dict]:
@@ -437,7 +505,14 @@ class AnalysisPipeline:
 
     # ── Engine output builders ───────────────────────────────────────────────
 
-    def _extract_insights(self, analysis: dict, sales_analysis: dict, sales_summary: dict | None = None) -> list:
+    def _extract_insights(
+        self,
+        analysis: dict,
+        sales_analysis: dict,
+        sales_summary: dict | None = None,
+        content_type_impact: dict | None = None,
+        comment_voice: dict | None = None,
+    ) -> list:
         insights = []
         perf = analysis.get("content_performance_summary", {})
 
@@ -449,11 +524,11 @@ class AnalysisPipeline:
         if top_posts:
             top = top_posts[0]
             caption_preview = (top.get("caption") or "")[:80]
-            insights.append({
-                "type": "good",
-                "title": "أفضل محتوى أداءً",
-                "detail": f"{caption_preview} — نسبة التفاعل: {top.get('engagement_rate', 0):.4f}",
-            })
+            detail = f"{caption_preview} — نسبة التفاعل: {top.get('engagement_rate', 0):.4f}"
+            # Enrich with visual info if available
+            if top.get("visual_type"):
+                detail += f" — نوع المشهد: {top['visual_type']}"
+            insights.append({"type": "good", "title": "أفضل محتوى أداءً", "detail": detail})
 
         platform_cmp = analysis.get("platform_comparison", {})
         if platform_cmp.get("available") and platform_cmp.get("summary_text"):
@@ -461,6 +536,47 @@ class AnalysisPipeline:
                 "type": "info",
                 "title": "مقارنة المنصات",
                 "detail": platform_cmp["summary_text"],
+            })
+
+        # Content type × sales impact
+        ct = content_type_impact or {}
+        if ct.get("available"):
+            summary_ar = ct.get("summary_ar", "")
+            if summary_ar:
+                insights.append({
+                    "type": "content_type",
+                    "title": "نوع المحتوى الأكثر تأثيراً على المبيعات",
+                    "detail": summary_ar,
+                    "top_type": ct.get("top_revenue_content_type"),
+                    "top_visual_type": ct.get("top_revenue_visual_type"),
+                    "breakdown": ct.get("content_type_impact", [])[:4],
+                })
+            cta_data = ct.get("cta_impact", {})
+            if cta_data.get("summary_ar"):
+                insights.append({
+                    "type": "content_type",
+                    "title": "أثر الـ CTA وذكر السعر",
+                    "detail": cta_data["summary_ar"],
+                })
+
+        # Comment voice insights
+        cv = comment_voice or {}
+        if cv.get("frequent_questions"):
+            questions_str = " | ".join(cv["frequent_questions"][:3])
+            insights.append({
+                "type": "audience_voice",
+                "title": "أكثر الأسئلة من الجمهور",
+                "detail": questions_str,
+                "source": cv.get("source", "estimated"),
+                "purchase_signals": cv.get("purchase_signals", []),
+                "content_suggestions": cv.get("content_suggestions", []),
+            })
+        if cv.get("product_requests"):
+            reqs_str = " | ".join(cv["product_requests"][:3])
+            insights.append({
+                "type": "audience_voice",
+                "title": "أكثر طلبات الجمهور",
+                "detail": reqs_str,
             })
 
         # Sales-backed insights from BI advisor

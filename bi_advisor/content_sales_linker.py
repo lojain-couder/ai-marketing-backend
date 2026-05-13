@@ -2,10 +2,192 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime
+from statistics import mean
 from typing import Any
 
 
 WINDOWS = (0, 1, 3, 7)
+
+
+# ── Content-type × Sales impact ───────────────────────────────────────────────
+
+def analyze_content_type_impact(
+    social_rows: list[dict[str, Any]],
+    sales_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Find which content_type values historically correlated with the highest
+    revenue in the 7-day window after posting.
+    Also factors in engagement rate and visual_type from Gemini Vision.
+    """
+    if not sales_rows:
+        return {"available": False, "reason": "no_sales_data"}
+
+    daily_revenue = _build_daily_revenue(sales_rows)
+    total_revenue = sum(daily_revenue.values())
+    if total_revenue == 0:
+        return {"available": False, "reason": "zero_revenue"}
+
+    # Group by content_type
+    by_type: dict[str, list[dict]] = defaultdict(list)
+    for row in social_rows:
+        ct = row.get("content_type") or "unknown"
+        by_type[ct].append(row)
+
+    # Group by visual_type (from Gemini Vision)
+    by_visual: dict[str, list[dict]] = defaultdict(list)
+    for row in social_rows:
+        vt = row.get("visual_type") or ""
+        if vt:
+            by_visual[vt].append(row)
+
+    type_stats = _compute_type_stats(by_type, daily_revenue)
+    visual_stats = _compute_type_stats(by_visual, daily_revenue)
+
+    top_type = type_stats[0] if type_stats else None
+    top_visual = visual_stats[0] if visual_stats else None
+
+    # Find posts with CTA/price mentions that also had high post-revenue
+    cta_impact = _analyze_cta_impact(social_rows, daily_revenue)
+
+    return {
+        "available": True,
+        "content_type_impact": type_stats,
+        "visual_type_impact": visual_stats,
+        "cta_impact": cta_impact,
+        "top_revenue_content_type": top_type["content_type"] if top_type else None,
+        "top_revenue_visual_type": top_visual["content_type"] if top_visual else None,
+        "summary_ar": _content_type_summary_ar(type_stats, top_type),
+    }
+
+
+def _compute_type_stats(
+    grouped: dict[str, list[dict]],
+    daily_revenue: dict[str, float],
+) -> list[dict[str, Any]]:
+    stats = []
+    for label, rows in grouped.items():
+        if not label:
+            continue
+        rev_7d_list, rev_1d_list, eng_list = [], [], []
+        for row in rows:
+            posted_at = _parse_iso(row.get("posted_at"))
+            if posted_at is None:
+                continue
+            rev_7d_list.append(_revenue_in_window(daily_revenue, posted_at.date(), 7))
+            rev_1d_list.append(_revenue_in_window(daily_revenue, posted_at.date(), 1))
+            eng_list.append(float(row.get("engagement_rate") or 0))
+
+        if not rev_7d_list:
+            continue
+
+        avg_rev_7d = mean(rev_7d_list)
+        avg_rev_1d = mean(rev_1d_list)
+        avg_eng = mean(eng_list) if eng_list else 0.0
+
+        stats.append({
+            "content_type": label,
+            "post_count": len(rows),
+            "avg_revenue_7d": round(avg_rev_7d, 2),
+            "avg_revenue_1d": round(avg_rev_1d, 2),
+            "avg_engagement": round(avg_eng, 4),
+            "recommendation_ar": _type_recommendation_ar(label, avg_rev_7d, avg_eng),
+        })
+
+    stats.sort(key=lambda x: (x["avg_revenue_7d"], x["avg_engagement"]), reverse=True)
+    for rank, s in enumerate(stats, 1):
+        s["rank"] = rank
+    return stats
+
+
+def _analyze_cta_impact(
+    social_rows: list[dict],
+    daily_revenue: dict[str, float],
+) -> dict[str, Any]:
+    """Compare revenue windows for posts with vs without CTA/price mentions."""
+    with_cta, without_cta = [], []
+    with_price, without_price = [], []
+
+    for row in social_rows:
+        posted_at = _parse_iso(row.get("posted_at"))
+        if posted_at is None:
+            continue
+        rev = _revenue_in_window(daily_revenue, posted_at.date(), 3)
+        if row.get("has_cta"):
+            with_cta.append(rev)
+        else:
+            without_cta.append(rev)
+        if row.get("mentions_price"):
+            with_price.append(rev)
+        else:
+            without_price.append(rev)
+
+    def _avg(lst):
+        return round(mean(lst), 2) if lst else 0.0
+
+    cta_lift = round((_avg(with_cta) - _avg(without_cta)) / max(_avg(without_cta), 1) * 100, 1)
+    price_lift = round((_avg(with_price) - _avg(without_price)) / max(_avg(without_price), 1) * 100, 1)
+
+    return {
+        "cta_avg_revenue_3d": _avg(with_cta),
+        "no_cta_avg_revenue_3d": _avg(without_cta),
+        "cta_lift_pct": cta_lift,
+        "price_mention_avg_revenue_3d": _avg(with_price),
+        "no_price_avg_revenue_3d": _avg(without_price),
+        "price_lift_pct": price_lift,
+        "summary_ar": _cta_summary_ar(cta_lift, price_lift),
+    }
+
+
+def _type_recommendation_ar(content_type: str, avg_rev: float, avg_eng: float) -> str:
+    labels = {
+        "product_review":  "مراجعات المنتج",
+        "promotional":     "المحتوى الترويجي",
+        "educational":     "المحتوى التعليمي",
+        "tutorial":        "الشروحات العملية",
+        "unboxing":        "فيديوهات الفتح",
+        "lifestyle":       "محتوى اللايف ستايل",
+        "entertainment":   "المحتوى الترفيهي",
+        "behind_scenes":   "الكواليس",
+        "trending":        "التريندات",
+        "challenge":       "التحديات",
+        "product_demo":    "عرض المنتج",
+        "talking_head":    "الحديث المباشر",
+    }
+    ar_label = labels.get(content_type, content_type)
+    if avg_rev > 0 and avg_eng > 0.05:
+        return f"انشري {ar_label} بانتظام — يجلب تفاعلاً ومبيعات في نفس الوقت"
+    if avg_rev > 0:
+        return f"ركّزي على {ar_label} — يرتبط بارتفاع المبيعات حتى لو التفاعل متوسط"
+    if avg_eng > 0.05:
+        return f"{ar_label} يجلب تفاعلاً جيداً لكن الربط بالمبيعات محدود"
+    return f"راجعي استراتيجية {ar_label} — الأداء الإجمالي يمكن تحسينه"
+
+
+def _content_type_summary_ar(
+    type_stats: list[dict],
+    top_type: dict | None,
+) -> str:
+    if not type_stats or not top_type:
+        return "لا تتوفر بيانات كافية لتحليل أثر نوع المحتوى على المبيعات."
+    label = top_type["content_type"]
+    rev   = top_type["avg_revenue_7d"]
+    count = top_type["post_count"]
+    return (
+        f"نوع المحتوى الأعلى ارتباطاً بالمبيعات هو «{label}» "
+        f"بمتوسط إيراد {rev:.0f} خلال 7 أيام بعد النشر، استناداً لـ {count} منشور."
+    )
+
+
+def _cta_summary_ar(cta_lift: float, price_lift: float) -> str:
+    parts = []
+    if cta_lift > 10:
+        parts.append(f"المنشورات التي تحتوي دعوة للتواصل/الشراء ترتبط بإيراد أعلى بنسبة {cta_lift:.0f}٪")
+    if price_lift > 10:
+        parts.append(f"ذكر السعر أو العروض يرتبط بزيادة الإيراد بنسبة {price_lift:.0f}٪")
+    if not parts:
+        return "لا يوجد فرق واضح حتى الآن بين المنشورات ذات الـ CTA والأخرى."
+    return " — ".join(parts) + "."
 
 
 def analyze_content_sales_links(
