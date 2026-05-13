@@ -17,7 +17,7 @@ class SocialFetchRequest(BaseModel):
 class AnalysisRequest(BaseModel):
     videos: List[Dict[str, Any]]
     business_profile: Optional[Dict[str, Any]] = None
-    sales_data: Optional[List[Dict[str, Any]]] = None
+    sales_data: Optional[Any] = None
     transcripts: Optional[List[Dict[str, Any]]] = None
     competitor_accounts: Optional[List[Dict[str, Any]]] = None  # [{platform, username}]
 

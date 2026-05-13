@@ -1341,6 +1341,7 @@ async function startAnalysis() {
       videos: videos,
       business_profile: window.appState.businessProfile,
       transcripts: window.appState.transcripts || [],
+      sales_data: window.appState.salesSummary || null,
     };
     const result = await runAnalysis(dataset);
     clearInterval(stepInterval);
