@@ -82,6 +82,26 @@
     .section-dark .section-label.light { color:var(--terra-pale); }
     .section-dark .section-title.light { color:#fff; }
 
+    /* ── Growth chart section ── */
+    .growth-subtitle { font-size:15px; color:var(--t3); text-align:center; margin-top:-16px; margin-bottom:40px; }
+    .growth-chart-box {
+      background:var(--surface); border:1px solid var(--b1); border-radius:var(--r);
+      padding:32px 24px 20px; margin-bottom:40px;
+    }
+    .growth-svg { width:100%; height:auto; display:block; }
+    .growth-line { stroke-dasharray:950; stroke-dashoffset:950; }
+    .growth-chart-box.visible .growth-eng  { animation:drawChart 2s ease 0.15s forwards; }
+    .growth-chart-box.visible .growth-sales { animation:drawChart 2s ease 0.45s forwards; }
+    @keyframes drawChart { to { stroke-dashoffset:0; } }
+    .growth-legend { display:flex; gap:28px; justify-content:center; margin-top:14px; }
+    .gl-item { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--t2); }
+    .gl-line { width:28px; height:3px; border-radius:2px; flex-shrink:0; }
+    .growth-stats { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; }
+    .gs-item { text-align:center; padding:16px 44px; }
+    .gs-val { font-size:42px; font-weight:900; letter-spacing:-2px; display:block; line-height:1.1; margin-bottom:6px; }
+    .gs-label { font-size:13px; color:var(--t3); font-weight:600; }
+    .gs-divider { width:1px; height:56px; background:var(--b1); flex-shrink:0; }
+
     @media(max-width:900px) {
       .hero-actions { flex-direction:column; align-items:stretch; }
       .kpi-row { grid-template-columns:1fr; }
@@ -91,6 +111,9 @@
       .cta-inner h2 { font-size:26px; }
       .footer-inner { flex-direction:column; gap:12px; }
       .nav-links { display:none; }
+      .gs-item { padding:16px 24px; }
+      .gs-val { font-size:32px; }
+      .gs-divider { display:none; }
     }
   </style>
 </head>
@@ -240,6 +263,81 @@
         <div class="bento-card bento-sm">
           <div class="bento-icon">📊</div>
           <div><h3>تقارير الأداء</h3><p>تتبع ما ينجح وما يحتاج تعديل أسبوعياً.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GROWTH CHART -->
+  <section class="section">
+    <div class="container">
+      <p class="section-label">النتائج</p>
+      <h2 class="section-title">كلما استخدمتِ مُدار، كلما نما مشروعك</h2>
+      <p class="growth-subtitle">متوسط نتائج المستخدمين خلال أول شهرين من الاستخدام</p>
+
+      <div class="growth-chart-box fade-in">
+        <svg class="growth-svg" viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Grid -->
+          <line x1="40" y1="45"  x2="720" y2="45"  stroke="var(--b1)" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="40" y1="90"  x2="720" y2="90"  stroke="var(--b1)" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="40" y1="135" x2="720" y2="135" stroke="var(--b1)" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="40" y1="175" x2="720" y2="175" stroke="var(--b2)" stroke-width="1"/>
+          <!-- Milestone ticks -->
+          <line x1="280" y1="175" x2="280" y2="181" stroke="var(--b2)" stroke-width="1"/>
+          <line x1="530" y1="175" x2="530" y2="181" stroke="var(--b2)" stroke-width="1"/>
+          <line x1="720" y1="175" x2="720" y2="181" stroke="var(--b2)" stroke-width="1"/>
+          <!-- Area fills -->
+          <path d="M40,173 C130,163 210,150 280,132 C360,110 445,85 530,58 C620,32 680,24 720,20 L720,175 L40,175 Z"
+                fill="rgba(123,117,168,.08)"/>
+          <path d="M40,175 C130,167 210,152 280,126 C360,96 445,60 530,26 C620,8 680,7 720,7 L720,175 L40,175 Z"
+                fill="rgba(193,117,88,.08)"/>
+          <!-- Engagement line -->
+          <path class="growth-line growth-eng"
+                d="M40,173 C130,163 210,150 280,132 C360,110 445,85 530,58 C620,32 680,24 720,20"
+                fill="none" stroke="rgba(123,117,168,.9)" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Sales line -->
+          <path class="growth-line growth-sales"
+                d="M40,175 C130,167 210,152 280,126 C360,96 445,60 530,26 C620,8 680,7 720,7"
+                fill="none" stroke="var(--terra)" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- End dots -->
+          <circle cx="720" cy="20" r="5" fill="rgba(123,117,168,.9)"/>
+          <circle cx="720" cy="7"  r="5" fill="var(--terra)"/>
+          <!-- Start dot -->
+          <circle cx="40" cy="174" r="4" fill="var(--b2)"/>
+          <!-- X labels -->
+          <text x="40"  y="200" font-size="11" fill="var(--t3)" font-family="Cairo,sans-serif" text-anchor="middle" font-weight="600">بداية</text>
+          <text x="280" y="200" font-size="11" fill="var(--t3)" font-family="Cairo,sans-serif" text-anchor="middle" font-weight="600">الأسبوع ٣</text>
+          <text x="530" y="200" font-size="11" fill="var(--t3)" font-family="Cairo,sans-serif" text-anchor="middle" font-weight="600">الشهر الأول</text>
+          <text x="720" y="200" font-size="11" fill="var(--t1)" font-family="Cairo,sans-serif" text-anchor="middle" font-weight="800">الآن</text>
+        </svg>
+        <div class="growth-legend">
+          <div class="gl-item">
+            <div class="gl-line" style="background:rgba(123,117,168,.9)"></div>
+            معدل التفاعل
+          </div>
+          <div class="gl-item">
+            <div class="gl-line" style="background:var(--terra)"></div>
+            المبيعات الشهرية
+          </div>
+        </div>
+      </div>
+
+      <div class="growth-stats fade-in">
+        <div class="gs-item">
+          <span class="gs-val" style="color:rgba(123,117,168,.95)">+١٨٤٪</span>
+          <span class="gs-label">نمو التفاعل بعد شهرين</span>
+        </div>
+        <div class="gs-divider"></div>
+        <div class="gs-item">
+          <span class="gs-val" style="color:var(--terra)">+٢٣٧٪</span>
+          <span class="gs-label">نمو المبيعات بعد شهرين</span>
+        </div>
+        <div class="gs-divider"></div>
+        <div class="gs-item">
+          <span class="gs-val" style="color:#22c55e">٣ ساعات</span>
+          <span class="gs-label">توفير أسبوعي في التخطيط</span>
         </div>
       </div>
     </div>
