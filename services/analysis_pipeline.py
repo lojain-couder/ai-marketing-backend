@@ -27,6 +27,7 @@ from bi_advisor.product_content_analyzer import (
 from bi_advisor.competitor_analyzer import compare_accounts
 from bi_advisor.hook_scorer import score_hook_types
 from bi_advisor.hashtag_gap_analyzer import find_hashtag_gaps
+from bi_advisor.sales_normalizer import normalize_sales_rows, normalize_zid_orders, normalize_salla_orders
 from services.groq_writer import GroqWriter
 from services.gemini_analyzer import GeminiAnalyzer
 from services.apify_service import fetch_comments_sync, fetch_social_media_sync
@@ -694,13 +695,27 @@ class AnalysisPipeline:
     def _extract_sales_rows(self, sales_summary: Any) -> list:
         if not sales_summary:
             return []
+
+        # Zid / Salla API format — list of raw order objects
         if isinstance(sales_summary, list):
-            return sales_summary
+            first = sales_summary[0] if sales_summary else {}
+            # Detect Zid orders by presence of 'order_status' dict or 'order_total'
+            if isinstance(first.get("order_status"), dict) or "order_total" in first:
+                return normalize_zid_orders(sales_summary)
+            # Detect Salla orders by presence of 'total.amount' structure
+            if isinstance(first.get("total"), dict) and "amount" in first.get("total", {}):
+                return normalize_salla_orders(sales_summary)
+            # Plain rows (already normalized or from CSV upload preview)
+            rows, _, _ = normalize_sales_rows(sales_summary)
+            return rows
+
         if isinstance(sales_summary, dict):
-            # "preview" contains actual row dicts; "rows" is just the count integer
+            # CSV upload: "preview" contains actual row dicts
             preview = sales_summary.get("preview", [])
             if isinstance(preview, list) and preview:
-                return preview
+                rows, _, _ = normalize_sales_rows(preview)
+                return rows
+
         return []
 
     # ── Engine output builders ───────────────────────────────────────────────

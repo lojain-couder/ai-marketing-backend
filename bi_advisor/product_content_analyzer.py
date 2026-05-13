@@ -22,34 +22,53 @@ from typing import Any
 def extract_product_list(sales_rows: list[dict]) -> list[dict]:
     """
     Return unique products from sales data, each with revenue + order stats.
+    Uses SKU as primary key when available; falls back to product_name.
     Result is sorted by revenue descending.
     """
     if not sales_rows:
         return []
 
-    product_rev: dict[str, float] = defaultdict(float)
-    product_orders: dict[str, int] = defaultdict(int)
-    product_qty: dict[str, float] = defaultdict(float)
+    product_rev:    dict[str, float] = defaultdict(float)
+    product_orders: dict[str, int]   = defaultdict(int)
+    product_qty:    dict[str, float] = defaultdict(float)
+    product_sku:    dict[str, str]   = {}
+    product_cost:   dict[str, float] = defaultdict(float)
+    product_discounted: dict[str, int] = defaultdict(int)
 
     for row in sales_rows:
         name = (row.get("product_name") or "").strip()
         if not name or name.lower() in ("غير محدد", "unknown", ""):
             continue
-        product_rev[name] += float(row.get("revenue") or 0)
-        product_orders[name] += 1
-        product_qty[name] += float(row.get("quantity") or 1)
+        sku = (row.get("sku") or "").strip()
+        key = sku if sku else name  # prefer SKU as unique key
+        product_sku[key]          = name
+        product_rev[key]         += float(row.get("revenue") or 0)
+        product_orders[key]      += 1
+        product_qty[key]         += float(row.get("quantity") or 1)
+        product_cost[key]        += float(row.get("cost_price") or 0)
+        if row.get("is_discounted"):
+            product_discounted[key] += 1
 
-    products = [
-        {
-            "name": name,
-            "revenue": round(product_rev[name], 2),
-            "orders": product_orders[name],
-            "total_qty": round(product_qty[name], 1),
-            "avg_order_value": round(product_rev[name] / product_orders[name], 2)
-            if product_orders[name] > 0 else 0.0,
-        }
-        for name in product_rev
-    ]
+    products = []
+    for key in product_rev:
+        name   = product_sku.get(key, key)
+        orders = product_orders[key]
+        rev    = product_rev[key]
+        cost   = product_cost[key]
+        disc   = product_discounted[key]
+        margin = round((rev - cost) / rev * 100, 1) if rev > 0 and cost > 0 else None
+        products.append({
+            "name":              name,
+            "sku":               key if key != name else "",
+            "revenue":           round(rev, 2),
+            "orders":            orders,
+            "total_qty":         round(product_qty[key], 1),
+            "avg_order_value":   round(rev / orders, 2) if orders > 0 else 0.0,
+            "discounted_orders": disc,
+            "discount_rate_pct": round(disc / orders * 100, 1) if orders > 0 else 0.0,
+            "gross_margin_pct":  margin,
+        })
+
     products.sort(key=lambda p: p["revenue"], reverse=True)
     return products
 
@@ -59,13 +78,12 @@ def match_videos_to_products(
     products: list[dict],
 ) -> list[dict]:
     """
-    For each video, check caption + transcript + scene for product name mentions.
+    For each video, check caption + transcript + scene for product name/SKU mentions.
+    SKU matching takes priority over text matching.
     Adds 'featured_products' list to each video dict.
     """
     if not products:
         return videos
-
-    product_names = [p["name"] for p in products]
 
     for v in videos:
         text = " ".join(filter(None, [
@@ -77,9 +95,13 @@ def match_videos_to_products(
         ])).lower()
 
         matched = []
-        for name in product_names:
-            # Match if product name (or significant words from it) appear in the text
-            if _name_matches(name, text):
+        for p in products:
+            name = p["name"]
+            sku  = p.get("sku") or ""
+            # SKU exact match (highest confidence)
+            if sku and sku.lower() in text:
+                matched.append(name)
+            elif _name_matches(name, text):
                 matched.append(name)
 
         v["featured_products"] = matched
@@ -108,7 +130,6 @@ def compute_product_video_stats(
         if social_rows else 0.0
     )
 
-    product_lookup = {p["name"]: p for p in products}
     result = []
 
     for product in products:
@@ -141,18 +162,23 @@ def compute_product_video_stats(
         )
 
         result.append({
-            "product_name": name,
-            "revenue": product["revenue"],
-            "orders": product["orders"],
-            "avg_order_value": product["avg_order_value"],
-            "featuring_video_count": len(featuring_rows),
+            "product_name":                 name,
+            "sku":                          product.get("sku", ""),
+            "revenue":                      product["revenue"],
+            "orders":                       product["orders"],
+            "total_qty":                    product.get("total_qty", 0),
+            "avg_order_value":              product["avg_order_value"],
+            "gross_margin_pct":             product.get("gross_margin_pct"),
+            "discounted_orders":            product.get("discounted_orders", 0),
+            "discount_rate_pct":            product.get("discount_rate_pct", 0.0),
+            "featuring_video_count":        len(featuring_rows),
             "avg_engagement_when_featured": round(featuring_eng, 4),
-            "account_avg_engagement": round(overall_avg_eng, 4),
-            "engagement_lift_pct": eng_lift_pct,
-            "avg_revenue_7d_after_post": round(avg_rev_7d, 2),
-            "featured_video_urls": [r.get("content_url") or r.get("url") for r in featuring_rows[:3]],
-            "featured_captions": [(r.get("caption") or "")[:120] for r in featuring_rows[:3]],
-            "has_content": len(featuring_rows) > 0,
+            "account_avg_engagement":       round(overall_avg_eng, 4),
+            "engagement_lift_pct":          eng_lift_pct,
+            "avg_revenue_7d_after_post":    round(avg_rev_7d, 2),
+            "featured_video_urls":          [r.get("content_url") or r.get("url") for r in featuring_rows[:3]],
+            "featured_captions":            [(r.get("caption") or "")[:120] for r in featuring_rows[:3]],
+            "has_content":                  len(featuring_rows) > 0,
         })
 
     result.sort(key=lambda x: x["revenue"], reverse=True)

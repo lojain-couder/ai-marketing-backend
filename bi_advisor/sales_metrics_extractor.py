@@ -71,17 +71,21 @@ def build_sales_kpis(
     channel_breakdown = _channel_breakdown(sales_rows)
 
     return {
-        "revenue": snapshot.revenue,
-        "total_orders": total_orders,
-        "unique_customers": snapshot.leads,
-        "avg_order_value": avg_order_value,
-        "conversion_rate": snapshot.conversion_rate,
-        "returning_customer_rate": snapshot.returning_customer_rate,
-        "ad_spend": snapshot.ad_spend,
-        "roas": roas,
-        "content_engagement_rate": snapshot.content_engagement_rate,
-        "top_products": top_products,
-        "channel_breakdown": channel_breakdown,
+        "revenue":                  snapshot.revenue,
+        "total_orders":             total_orders,
+        "unique_customers":         snapshot.leads,
+        "avg_order_value":          avg_order_value,
+        "conversion_rate":          snapshot.conversion_rate,
+        "returning_customer_rate":  snapshot.returning_customer_rate,
+        "ad_spend":                 snapshot.ad_spend,
+        "roas":                     roas,
+        "content_engagement_rate":  snapshot.content_engagement_rate,
+        "top_products":             top_products,
+        "channel_breakdown":        channel_breakdown,
+        "payment_method_breakdown": _payment_method_breakdown(sales_rows),
+        "geographic_breakdown":     _geographic_breakdown(sales_rows),
+        "margin_analysis":          _margin_analysis(sales_rows),
+        "discount_analysis":        _discount_analysis(sales_rows),
     }
 
 
@@ -201,6 +205,111 @@ def _channel_breakdown(sales_rows: list[dict[str, Any]]) -> list[dict[str, Any]]
     ]
     ranked.sort(key=lambda x: x["revenue"], reverse=True)
     return ranked
+
+
+def _payment_method_breakdown(sales_rows: list[dict]) -> list[dict]:
+    """Orders and revenue grouped by payment method (COD vs credit card etc.)."""
+    rev: dict[str, float] = defaultdict(float)
+    cnt: dict[str, int]   = defaultdict(int)
+    for row in sales_rows:
+        method = (row.get("payment_method") or "غير محدد").strip() or "غير محدد"
+        rev[method] += float(row.get("revenue") or 0)
+        cnt[method] += 1
+    total_orders = sum(cnt.values()) or 1
+    result = [
+        {
+            "method":        m,
+            "orders":        cnt[m],
+            "revenue":       round(rev[m], 2),
+            "orders_pct":    round(cnt[m] / total_orders * 100, 1),
+        }
+        for m in cnt
+    ]
+    result.sort(key=lambda x: x["orders"], reverse=True)
+    return result
+
+
+def _geographic_breakdown(sales_rows: list[dict]) -> list[dict]:
+    """Top cities by order count and revenue."""
+    rev: dict[str, float] = defaultdict(float)
+    cnt: dict[str, int]   = defaultdict(int)
+    for row in sales_rows:
+        city = (row.get("customer_city") or "غير محدد").strip() or "غير محدد"
+        rev[city] += float(row.get("revenue") or 0)
+        cnt[city] += 1
+    result = [
+        {"city": c, "orders": cnt[c], "revenue": round(rev[c], 2)}
+        for c in cnt
+    ]
+    result.sort(key=lambda x: x["orders"], reverse=True)
+    return result[:10]
+
+
+def _margin_analysis(sales_rows: list[dict]) -> dict:
+    """
+    Gross margin analysis when cost_price is available.
+    Returns available=False when no cost data exists.
+    """
+    rows_with_cost = [r for r in sales_rows if float(r.get("cost_price") or 0) > 0]
+    if not rows_with_cost:
+        return {"available": False, "reason": "no_cost_price_data"}
+
+    total_rev  = sum(float(r.get("revenue") or 0) for r in rows_with_cost)
+    total_cost = sum(float(r.get("cost_price") or 0) for r in rows_with_cost)
+    gross_profit = total_rev - total_cost
+    margin_pct   = round(gross_profit / total_rev * 100, 1) if total_rev > 0 else 0.0
+
+    # Per-product margin
+    prod_rev:  dict[str, float] = defaultdict(float)
+    prod_cost: dict[str, float] = defaultdict(float)
+    for r in rows_with_cost:
+        name = r.get("product_name") or "غير محدد"
+        prod_rev[name]  += float(r.get("revenue") or 0)
+        prod_cost[name] += float(r.get("cost_price") or 0)
+
+    product_margins = sorted(
+        [
+            {
+                "product":    name,
+                "revenue":    round(prod_rev[name], 2),
+                "cost":       round(prod_cost[name], 2),
+                "profit":     round(prod_rev[name] - prod_cost[name], 2),
+                "margin_pct": round((prod_rev[name] - prod_cost[name]) / prod_rev[name] * 100, 1)
+                              if prod_rev[name] > 0 else 0.0,
+            }
+            for name in prod_rev
+        ],
+        key=lambda x: x["margin_pct"],
+        reverse=True,
+    )
+
+    return {
+        "available":        True,
+        "total_revenue":    round(total_rev, 2),
+        "total_cost":       round(total_cost, 2),
+        "gross_profit":     round(gross_profit, 2),
+        "gross_margin_pct": margin_pct,
+        "product_margins":  product_margins[:10],
+    }
+
+
+def _discount_analysis(sales_rows: list[dict]) -> dict:
+    """Compare revenue and order count for discounted vs full-price orders."""
+    discounted     = [r for r in sales_rows if r.get("is_discounted")]
+    full_price     = [r for r in sales_rows if not r.get("is_discounted")]
+    total          = len(sales_rows) or 1
+    disc_rev       = sum(float(r.get("revenue") or 0) for r in discounted)
+    full_rev       = sum(float(r.get("revenue") or 0) for r in full_price)
+    disc_aov       = round(disc_rev / len(discounted), 2) if discounted else 0.0
+    full_aov       = round(full_rev / len(full_price), 2)  if full_price  else 0.0
+    return {
+        "discounted_orders":     len(discounted),
+        "full_price_orders":     len(full_price),
+        "discount_rate_pct":     round(len(discounted) / total * 100, 1),
+        "discounted_aov":        disc_aov,
+        "full_price_aov":        full_aov,
+        "aov_diff_pct":          round((full_aov - disc_aov) / full_aov * 100, 1) if full_aov > 0 else 0.0,
+    }
 
 
 def _parse_iso(value: Any) -> datetime | None:
