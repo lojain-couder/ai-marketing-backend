@@ -352,22 +352,6 @@ function renderPillarsCompact() {
     </div>`;
 }
 
-// ── OLD Pillars renderer (kept for reference, no longer called) ──
-function renderPillars() {
-  const pillars = starterPlan.content_pillars || [];
-  document.getElementById('contentPillars') && (document.getElementById('contentPillars').innerHTML = pillars.map((p, i) => `
-    <div class="pillar-card">
-      <div class="pillar-num">${i + 1}</div>
-      <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <div class="pillar-title">${p.title||''}</div>
-          <span class="pillar-freq">${p.frequency||''}</span>
-        </div>
-        <div class="pillar-desc">${p.description||''}</div>
-        ${p.example_idea ? `<div class="pillar-example">💡 مثال: ${p.example_idea}</div>` : ''}
-      </div>
-    </div>`).join('') || '<p style="color:var(--t3)">لا توجد بيانات</p>');
-}
 
 // ── Tab 2: Monthly Plan ──
 const goalColors = {
@@ -620,12 +604,11 @@ async function sendChatMessage() {
   chatHistory.push({ role:'user', content: msg });
   const dots = appendTyping();
   try {
-    const API = window.MUDAR_API_BASE || API_BASE || '';
     const context = {
       business_profile: businessProfile,
       starter_plan: starterPlan,
     };
-    const res = await fetch(`${API}/api/assistant/chat`, {
+    const res = await fetch(`${API_BASE}/api/assistant/chat`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ message: msg, context, history: chatHistory.slice(-8) }),
@@ -774,6 +757,7 @@ async function regenerateHook(idx) {
   if (!original) return;
 
   const panel   = document.getElementById(`feedbackPanel_${idx}`);
+  if (!panel) return;
   const feedbackText = document.getElementById(`feedbackText_${idx}`)?.value || '';
   const selectedChips = panel.querySelectorAll('.feedback-chip.selected');
   const dislikeReason = selectedChips.length ? selectedChips[0].getAttribute('onclick').match(/'(\w+)'/)?.[1] || '' : '';

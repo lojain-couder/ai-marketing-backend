@@ -1090,8 +1090,7 @@ async function renderTab5() {
     document.getElementById('salesInsightBody').style.display = 'none';
 
     try {
-      const API = window.MUDAR_API_BASE || '';
-      const res = await fetch(`${API}/api/analysis/sales-insights`, {
+      const res = await fetch(`${API_BASE}/api/analysis/sales-insights`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -1120,6 +1119,8 @@ async function renderTab5() {
             <div style="font-size:13px;color:var(--t2)">${data.top_action}</div></div>`:''}`;
         document.getElementById('salesInsightLoading').style.display = 'none';
         document.getElementById('salesInsightBody').style.display = 'block';
+      } else {
+        document.getElementById('salesInsightLoading').textContent = 'تعذّر التحليل';
       }
     } catch(e) {
       document.getElementById('salesInsightLoading').textContent = 'تعذّر التحليل';
@@ -1197,10 +1198,9 @@ async function loadComments() {
   document.getElementById('commentsResults').style.display = 'none';
 
   try {
-    const API = window.MUDAR_API_BASE || '';
     const captions = videos.map(v => v.caption || v.desc || v.text || '').filter(Boolean);
 
-    const res = await fetch(`${API}/api/comments/fetch`, {
+    const res = await fetch(`${API_BASE}/api/comments/fetch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1211,6 +1211,7 @@ async function loadComments() {
         max_per_video: 50,
       }),
     });
+    if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
     if (!data.success) throw new Error(data.detail || 'خطأ في جلب التعليقات');
 
@@ -1388,8 +1389,7 @@ async function sendChatMessage() {
   const typing = appendTyping();
 
   try {
-    const API = window.MUDAR_API_BASE || '';
-    const res = await fetch(`${API}/api/assistant/chat`, {
+    const res = await fetch(`${API_BASE}/api/assistant/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1403,6 +1403,7 @@ async function sendChatMessage() {
         history: chatHistory.slice(-8),
       }),
     });
+    if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
     typing.remove();
     const reply = data.reply || 'عذراً، لم أتمكن من الرد.';

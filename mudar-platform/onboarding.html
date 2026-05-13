@@ -969,6 +969,15 @@ async function startNewBizPlan() {
 document.getElementById('salesFileInput').addEventListener('change', async function() {
   const file = this.files[0];
   if (!file) return;
+  const allowedTypes = ['text/csv','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+  const allowedExts  = ['.csv','.xls','.xlsx'];
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+  if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+    toast('يجب أن يكون الملف CSV أو Excel', 'error'); return;
+  }
+  if (file.size > 15 * 1024 * 1024) {
+    toast('حجم الملف يتجاوز 15 ميجابايت', 'error'); return;
+  }
   const zone     = document.getElementById('salesUploadZone');
   const iconEl   = document.getElementById('uploadIcon');
   const textEl   = document.getElementById('uploadText');
@@ -1053,6 +1062,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (inp) inp.addEventListener('change', async function() {
     const file = this.files[0];
     if (!file) return;
+    const allowedExts = ['.csv','.xls','.xlsx'];
+    const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+    if (!allowedExts.includes(ext)) { toast('يجب أن يكون الملف CSV أو Excel', 'error'); return; }
+    if (file.size > 15 * 1024 * 1024) { toast('حجم الملف يتجاوز 15 ميجابايت', 'error'); return; }
     document.getElementById('tiktokUploadIcon').textContent = '⏳';
     document.getElementById('tiktokUploadText').textContent = 'جارٍ قراءة الملف...';
 

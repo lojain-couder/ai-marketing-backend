@@ -488,7 +488,7 @@ function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const err   = document.getElementById('errorMsg');
   if (!name || !email) { err.textContent = 'يرجى إدخال الاسم والبريد الإلكتروني'; err.style.display = 'block'; return; }
-  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRe = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
   if (!emailRe.test(email)) { err.textContent = 'البريد الإلكتروني غير صحيح'; err.style.display = 'block'; return; }
   err.style.display = 'none';
   const bizTypeParam = new URLSearchParams(window.location.search).get('type') || '';
