@@ -5,79 +5,165 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مُدار — تسجيل الدخول</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Cairo', sans-serif; display: flex; direction: rtl; height: 100vh; background: #FAFAF9; color: #1C1917; }
-  .l-panel { width: 40%; background: #F4EDE6; display: flex; flex-direction: column; justify-content: space-between; padding: 48px; }
-  .l-logo { font-size: 28px; font-weight: 900; color: #7B75A8; }
-  .r-panel { flex: 1; display: flex; flex-direction: column; padding: 48px; background: #FFFFFF; }
-  .r-form { max-width: 400px; margin: auto; width: 100%; }
-  .r-title { font-size: 48px; font-weight: 900; margin-bottom: 40px; letter-spacing: -1px; }
-  .r-field { margin-bottom: 24px; }
-  .r-field label { display: block; font-size: 13px; font-weight: 700; color: #57534E; margin-bottom: 8px; }
-  .r-input { width: 100%; background: #FAFAF9; border: 1px solid rgba(42,33,64,0.08); border-radius: 12px; padding: 16px; font-family: 'Cairo'; font-size: 16px; outline: none; transition: all .2s; }
-  .r-input:focus { border-color: #7B75A8; background: #FFFFFF; box-shadow: 0 0 0 4px #EDE9F5; }
-  .r-cta { background: #1C1917; color: #fff; border: none; border-radius: 50px; padding: 16px; width: 100%; font-family: 'Cairo'; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 24px; transition: all .3s; }
-  .r-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(28,25,23,0.15); }
-  .r-back { text-decoration: none; color: #A8A29E; font-weight: 600; font-size: 14px; }
-  .r-error { background: #FEE2E2; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px; display: none; }
-  @media(max-width: 768px) { body { flex-direction: column; } .l-panel { width: 100%; height: auto; padding: 24px; } .r-panel { padding: 24px; } }
+  body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); }
+
+  /* Left brand panel */
+  .l-panel {
+    width: 38%;
+    background: var(--bg2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .l-panel::before {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(193,117,88,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .l-panel::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(123,117,168,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .l-logo { font-size: 28px; font-weight: 900; color: var(--dark); position: relative; z-index: 1; }
+  .l-tagline { font-size: 13px; color: var(--t2); font-weight: 600; margin-top: 6px; position: relative; z-index: 1; }
+  .l-body { flex: 1; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 1; }
+  .l-headline { font-size: 32px; font-weight: 900; color: var(--dark); line-height: 1.25; margin-bottom: 16px; }
+  .l-headline span { color: var(--terra); }
+  .l-desc { font-size: 14px; color: var(--t2); line-height: 1.8; max-width: 280px; }
+  .l-footer { font-size: 12px; color: var(--t3); position: relative; z-index: 1; }
+
+  /* Trust pills */
+  .trust-pills { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+  .trust-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--b1);
+    border-radius: 50px;
+    padding: 8px 16px;
+    font-size: 13px; font-weight: 600; color: var(--t1);
+    width: fit-content;
+  }
+  .trust-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--terra); flex-shrink: 0;
+  }
+
+  /* Right form panel */
+  .r-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 56px;
+    background: var(--surface);
+    overflow-y: auto;
+  }
+  .r-top { margin-bottom: auto; }
+  .r-back {
+    text-decoration: none; color: var(--t3); font-weight: 600; font-size: 14px;
+    transition: color .2s;
+  }
+  .r-back:hover { color: var(--t1); }
+  .r-form { max-width: 400px; margin: auto; width: 100%; padding: 40px 0; }
+  .r-eyebrow {
+    font-size: 12px; font-weight: 800; color: var(--purple);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+  }
+  .r-title {
+    font-size: 42px; font-weight: 900; color: var(--t1);
+    line-height: 1.1; margin-bottom: 36px; letter-spacing: -1px;
+  }
+  .r-field { margin-bottom: 22px; }
+  .r-field label { display: block; font-size: 13px; font-weight: 700; color: var(--t2); margin-bottom: 8px; }
+  .r-input {
+    width: 100%; background: var(--bg);
+    border: 1px solid var(--b2);
+    border-radius: var(--r-sm);
+    padding: 15px 18px;
+    font-family: var(--font); font-size: 15px; color: var(--t1);
+    outline: none; transition: all .2s;
+  }
+  .r-input:focus { border-color: var(--purple); background: var(--surface); box-shadow: 0 0 0 4px var(--purple-pale); }
+  .r-input::placeholder { color: var(--t3); }
+  .r-cta {
+    width: 100%; margin-top: 8px;
+    background: var(--dark); color: #fff;
+    border: none; border-radius: 50px;
+    padding: 16px; font-family: var(--font);
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: all .3s; letter-spacing: -.3px;
+  }
+  .r-cta:hover { background: var(--terra); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(193,117,88,0.3); }
+  .r-error {
+    background: #FEE2E2; color: #ef4444;
+    padding: 12px 16px; border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 600;
+    margin-bottom: 20px; display: none;
+  }
+
+  @media (max-width: 768px) {
+    body { flex-direction: column; height: auto; overflow: auto; }
+    .l-panel { width: 100%; height: auto; padding: 32px 24px; }
+    .l-body { padding: 20px 0 10px; }
+    .l-headline { font-size: 24px; }
+    .r-panel { padding: 32px 24px; }
+    .r-form { padding: 20px 0; }
+    .r-title { font-size: 32px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- ════ LEFT: Brand & Decoration ════ -->
+<!-- Left: Brand -->
 <div class="l-panel">
-  <!-- Large X lines across panel -->
-  <svg class="l-lines" style="display:none" viewBox="0 0 100 100" preserveAspectRatio="none">
-    <line x1="0" y1="0" x2="100" y2="100"
-          stroke="rgba(255,255,255,0.065)" stroke-width=".4"
-          vector-effect="non-scaling-stroke"/>
-    <line x1="100" y1="0" x2="0" y2="100"
-          stroke="rgba(255,255,255,0.065)" stroke-width=".4"
-          vector-effect="non-scaling-stroke"/>
-  </svg>
-
-  <!-- Radial glow -->
-  <div class="l-glow" style="display:none"></div>
-
-  <!-- 8-ray asterisk -->
-  <div class="l-star-wrap" style="display:none">
-    <svg class="l-star" viewBox="0 0 120 120" fill="none">
-      <!-- Vertical -->
-      <line x1="60" y1="2"  x2="60" y2="118" stroke="white" stroke-width="2.2"/>
-      <!-- Horizontal -->
-      <line x1="2"  y1="60" x2="118" y2="60" stroke="white" stroke-width="2.2"/>
-      <!-- Diagonal \ -->
-      <line x1="16.4" y1="16.4" x2="103.6" y2="103.6" stroke="white" stroke-width="2.2"/>
-      <!-- Diagonal / -->
-      <line x1="103.6" y1="16.4" x2="16.4" y2="103.6" stroke="white" stroke-width="2.2"/>
-    </svg>
+  <div>
+    <div class="l-logo">مُدار</div>
+    <div class="l-tagline">تسويق يُدار بالبيانات</div>
   </div>
 
-  <div class="l-logo">مُدار</div>
+  <div class="l-body">
+    <h2 class="l-headline">
+      خطتك التسويقية<br>
+      <span>جاهزة خلال دقائق</span>
+    </h2>
+    <p class="l-desc">أدخل بياناتك وابدأ تحليل مشروعك بالذكاء الاصطناعي — مجاناً.</p>
 
-  <div class="l-footer">
-    © ٢٠٢٦ مُدار<br>تسويق يُدار بالبيانات
+    <div class="trust-pills">
+      <div class="trust-pill"><span class="trust-dot"></span>مجاني للبدء</div>
+      <div class="trust-pill"><span class="trust-dot"></span>لا بطاقة ائتمان</div>
+      <div class="trust-pill"><span class="trust-dot"></span>بيانات محمية</div>
+    </div>
   </div>
+
+  <div class="l-footer">© ٢٠٢٦ مُدار</div>
 </div>
 
-<!-- ════ RIGHT: Form ════ -->
+<!-- Right: Form -->
 <div class="r-panel">
   <div class="r-top">
     <a href="index.html" class="r-back">← الرئيسية</a>
   </div>
 
   <div class="r-form">
-    <div class="r-eyebrow">أدخل بياناتك للمتابعة</div>
+    <div class="r-eyebrow">ابدأ مجاناً</div>
     <h1 class="r-title">تسجيل<br>الدخول</h1>
 
     <div class="r-error" id="errorMsg"></div>
 
     <div class="r-field">
       <label>الاسم الكامل</label>
-      <input class="r-input" type="text" id="loginName"
-             placeholder="اكتب اسمك" autocomplete="name">
+      <input class="r-input" type="text" id="loginName" placeholder="اكتب اسمك" autocomplete="name">
     </div>
 
     <div class="r-field">
@@ -88,18 +174,8 @@
              style="direction:ltr;text-align:right">
     </div>
 
-    <div class="r-trust">
-      <div class="r-trust-item"><span class="r-trust-dot"></span>مجاني للبدء</div>
-      <div class="r-trust-item"><span class="r-trust-dot"></span>لا بطاقة</div>
-      <div class="r-trust-item"><span class="r-trust-dot"></span>بيانات محمية</div>
-    </div>
+    <button class="r-cta" onclick="doLogin()" id="loginBtn">ابدأ ←</button>
   </div>
-
-  <!-- Circular submit button -->
-  <button class="r-cta" onclick="doLogin()" id="loginBtn">
-    <span class="r-cta-arrow">←</span>
-    ابدأ
-  </button>
 </div>
 
 <script>
@@ -124,7 +200,7 @@ function doLogin() {
   if (bizTypeParam) sessionStorage.setItem('mudarBizTypeHint', bizTypeParam);
 
   const btn = document.getElementById('loginBtn');
-  btn.innerHTML = '<span style="font-size:22px;line-height:1">⋯</span>';
+  btn.textContent = '...';
   btn.disabled = true;
   setTimeout(() => { window.location.href = 'pricing.html'; }, 400);
 }
