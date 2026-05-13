@@ -8,6 +8,154 @@ from typing import Any
 
 WINDOWS = (0, 1, 3, 7)
 
+_DAYS_AR = {0: "الإثنين", 1: "الثلاثاء", 2: "الأربعاء", 3: "الخميس",
+            4: "الجمعة",  5: "السبت",   6: "الأحد"}
+
+_DURATION_BUCKETS = [
+    ("أقل من 15 ثانية", 0,   15),
+    ("15-30 ثانية",     15,  30),
+    ("30-60 ثانية",     30,  60),
+    ("1-3 دقائق",       60,  180),
+    ("أكثر من 3 دقائق", 180, 99999),
+]
+
+
+# ── Posting time heatmap ──────────────────────────────────────────────────────
+
+def analyze_posting_time_impact(
+    social_rows: list[dict[str, Any]],
+    sales_rows:  list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Build a day-of-week × hour-of-day heatmap correlating post time with
+    engagement rate and 7-day revenue window.
+    Returns the best posting slots and a ranked list.
+    """
+    if not social_rows:
+        return {"available": False, "reason": "no_social_data"}
+
+    daily_revenue = _build_daily_revenue(sales_rows)
+
+    slots: dict[tuple[int, int], list[dict]] = defaultdict(list)
+
+    for row in social_rows:
+        posted_at = _parse_iso(row.get("posted_at"))
+        if posted_at is None:
+            continue
+        day  = posted_at.weekday()   # 0=Monday … 6=Sunday
+        hour = posted_at.hour
+        eng  = float(row.get("engagement_rate") or 0)
+        rev  = _revenue_in_window(daily_revenue, posted_at.date(), 7)
+        slots[(day, hour)].append({"eng": eng, "rev": rev})
+
+    if not slots:
+        return {"available": False, "reason": "no_parseable_dates"}
+
+    heatmap = []
+    for (day, hour), entries in slots.items():
+        engs = [e["eng"] for e in entries]
+        revs = [e["rev"] for e in entries]
+        heatmap.append({
+            "day":           day,
+            "day_ar":        _DAYS_AR[day],
+            "hour":          hour,
+            "time_label":    f"{hour:02d}:00",
+            "post_count":    len(entries),
+            "avg_engagement": round(mean(engs) * 100, 2),
+            "avg_revenue_7d": round(mean(revs), 2),
+        })
+
+    heatmap.sort(key=lambda x: (x["avg_revenue_7d"], x["avg_engagement"]), reverse=True)
+
+    best = heatmap[0] if heatmap else {}
+    return {
+        "available":   True,
+        "heatmap":     heatmap,
+        "best_day":    best.get("day_ar", ""),
+        "best_hour":   best.get("time_label", ""),
+        "best_slot":   f"{best.get('day_ar', '')} الساعة {best.get('time_label', '')}",
+        "top_slots":   heatmap[:5],
+        "summary_ar":  _time_summary_ar(best),
+    }
+
+
+def _time_summary_ar(best: dict) -> str:
+    if not best:
+        return "لا تتوفر بيانات كافية لتحديد أفضل وقت نشر."
+    return (
+        f"أفضل وقت للنشر: {best.get('day_ar', '')} الساعة {best.get('time_label', '')} — "
+        f"متوسط تفاعل {best.get('avg_engagement', 0):.1f}٪ "
+        f"وإيراد {best.get('avg_revenue_7d', 0):.0f} خلال 7 أيام."
+    )
+
+
+# ── Duration sweet spot ───────────────────────────────────────────────────────
+
+def analyze_duration_impact(
+    social_rows: list[dict[str, Any]],
+    sales_rows:  list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Group videos by duration bucket and find which length drives the most
+    engagement and revenue for this specific account.
+    """
+    rows_with_duration = [r for r in social_rows if int(r.get("duration") or 0) > 0]
+    if not rows_with_duration:
+        return {"available": False, "reason": "no_duration_data"}
+
+    daily_revenue = _build_daily_revenue(sales_rows)
+    buckets: dict[str, list[dict]] = defaultdict(list)
+
+    for row in rows_with_duration:
+        dur = int(row.get("duration") or 0)
+        eng = float(row.get("engagement_rate") or 0)
+        rev = 0.0
+        posted_at = _parse_iso(row.get("posted_at"))
+        if posted_at:
+            rev = _revenue_in_window(daily_revenue, posted_at.date(), 7)
+
+        for label, lo, hi in _DURATION_BUCKETS:
+            if lo <= dur < hi:
+                buckets[label].append({"eng": eng, "rev": rev, "dur": dur})
+                break
+
+    if not buckets:
+        return {"available": False, "reason": "no_matching_buckets"}
+
+    stats = []
+    for label, entries in buckets.items():
+        engs = [e["eng"] for e in entries]
+        revs = [e["rev"] for e in entries]
+        durs = [e["dur"] for e in entries]
+        stats.append({
+            "label":            label,
+            "post_count":       len(entries),
+            "avg_duration_sec": round(mean(durs), 0),
+            "avg_engagement":   round(mean(engs) * 100, 2),
+            "avg_revenue_7d":   round(mean(revs), 2),
+        })
+
+    stats.sort(key=lambda x: (x["avg_revenue_7d"], x["avg_engagement"]), reverse=True)
+    best = stats[0]
+
+    return {
+        "available":    True,
+        "duration_stats": stats,
+        "best_bucket":  best["label"],
+        "summary_ar":   _duration_summary_ar(best, stats),
+    }
+
+
+def _duration_summary_ar(best: dict, stats: list[dict]) -> str:
+    worst = stats[-1] if len(stats) > 1 else None
+    msg = (
+        f"أفضل طول للفيديو في حسابك: {best['label']} — "
+        f"تفاعل {best['avg_engagement']:.1f}٪ وإيراد {best['avg_revenue_7d']:.0f}."
+    )
+    if worst and worst["avg_engagement"] < best["avg_engagement"] * 0.6:
+        msg += f" تجنّبي الفيديوهات من نوع {worst['label']} — أداؤها ضعيف لحسابك."
+    return msg
+
 
 # ── Content-type × Sales impact ───────────────────────────────────────────────
 

@@ -18,7 +18,14 @@ from bi_advisor.domain import BusinessProfile as BIBusinessProfile, DataSourceSt
 from bi_advisor.sales_metrics_extractor import extract_metric_snapshot, build_sales_kpis
 from bi_advisor.analysis_memory import AnalysisMemoryStore, build_snapshot
 from bi_advisor.trend_engine import TrendEngine
-from bi_advisor.content_sales_linker import analyze_content_type_impact
+from bi_advisor.content_sales_linker import (
+    analyze_content_type_impact,
+    analyze_posting_time_impact,
+    analyze_duration_impact,
+)
+from bi_advisor.basket_analyzer import find_product_bundles
+from bi_advisor.funnel_analyzer import detect_funnel_gap
+from bi_advisor.caption_analyzer import analyze_caption_structure
 from bi_advisor.product_content_analyzer import (
     extract_product_list,
     match_videos_to_products,
@@ -138,11 +145,28 @@ class AnalysisPipeline:
         # Content type × sales correlation (which content types drove revenue)
         content_type_impact = analyze_content_type_impact(social_rows, sales_rows)
 
+        # Phase 0h: Posting time heatmap (day × hour vs engagement + revenue)
+        posting_time_impact = analyze_posting_time_impact(social_rows, sales_rows)
+
+        # Phase 0i: Duration sweet spot
+        duration_impact = analyze_duration_impact(social_rows, sales_rows)
+
+        # Phase 0j: Basket analysis (products bought together)
+        basket_analysis = find_product_bundles(sales_rows)
+
+        # Phase 0k: Funnel gap detection
+        funnel_analysis = detect_funnel_gap(social_rows, sales_rows)
+
+        # Phase 0l: Caption structure analysis
+        caption_analysis = analyze_caption_structure(social_rows, sales_rows)
+
         engine_output = {
             "insights": self._extract_insights(
                 analysis, sales_analysis, sales_summary,
                 content_type_impact, comment_voice, product_insights,
                 competitor_analysis, hook_scores, hashtag_gap, personas,
+                posting_time_impact, duration_impact, basket_analysis,
+                funnel_analysis, caption_analysis,
             ),
             "strategies": strategies,
             "weekly_plan": weekly_plan,
@@ -157,8 +181,13 @@ class AnalysisPipeline:
             "product_insights": product_insights,
             "competitor_analysis": competitor_analysis,
             "hook_scores": hook_scores,
-            "hashtag_gap": hashtag_gap,
-            "audience_personas": personas,
+            "hashtag_gap":        hashtag_gap,
+            "audience_personas":  personas,
+            "posting_time":       posting_time_impact,
+            "duration_impact":    duration_impact,
+            "basket_analysis":    basket_analysis,
+            "funnel_analysis":    funnel_analysis,
+            "caption_analysis":   caption_analysis,
         }
 
         # Step 4b: Load history → compute trend → save new snapshot
@@ -423,10 +452,18 @@ class AnalysisPipeline:
             "spoken_hook":  v.get("spoken_hook", ""),
             "key_message":  v.get("key_message", ""),
             "author_username": str(v.get("author_username") or ""),
-            "music_name": v.get("music_name"),
-            "location_name": v.get("location_name"),
-            "language": v.get("language"),
+            "music_name":     v.get("music_name"),
+            "location_name":  v.get("location_name"),
+            "language":       v.get("language"),
+            "duration":       int(v.get("duration") or 0),
+            "quality_score":  self._compute_quality_score(views, likes, comments, shares),
         }
+
+    @staticmethod
+    def _compute_quality_score(views: int, likes: int, comments: int, shares: int) -> float:
+        if views == 0:
+            return 0.0
+        return round((likes * 1 + comments * 3 + shares * 5) / views, 6)
 
     # ── Competitor analysis ───────────────────────────────────────────────────
 
@@ -732,6 +769,11 @@ class AnalysisPipeline:
         hook_scores: dict | None = None,
         hashtag_gap: dict | None = None,
         audience_personas: list | None = None,
+        posting_time_impact: dict | None = None,
+        duration_impact: dict | None = None,
+        basket_analysis: dict | None = None,
+        funnel_analysis: dict | None = None,
+        caption_analysis: dict | None = None,
     ) -> list:
         insights = []
         perf = analysis.get("content_performance_summary", {})
@@ -891,6 +933,74 @@ class AnalysisPipeline:
                 "title": "شخصيات الجمهور",
                 "detail": f"تم تحديد {len(ap)} شخصيات رئيسية في جمهورك",
                 "personas": ap,
+            })
+
+        # Posting time heatmap
+        pt = posting_time_impact or {}
+        if pt.get("available") and pt.get("best_slot"):
+            insights.append({
+                "type":       "posting_time",
+                "title":      "أفضل وقت للنشر",
+                "detail":     pt.get("summary_ar", ""),
+                "best_slot":  pt.get("best_slot", ""),
+                "best_day":   pt.get("best_day", ""),
+                "best_hour":  pt.get("best_hour", ""),
+                "top_slots":  pt.get("top_slots", [])[:3],
+            })
+
+        # Duration sweet spot
+        di = duration_impact or {}
+        if di.get("available") and di.get("best_bucket"):
+            insights.append({
+                "type":         "duration",
+                "title":        "أفضل طول للفيديو",
+                "detail":       di.get("summary_ar", ""),
+                "best_bucket":  di.get("best_bucket", ""),
+                "duration_stats": di.get("duration_stats", []),
+            })
+
+        # Basket analysis
+        ba = basket_analysis or {}
+        if ba.get("available") and ba.get("bundles"):
+            top_bundle = ba["bundles"][0]
+            insights.append({
+                "type":    "basket",
+                "title":   "منتجات تُشترى معاً",
+                "detail":  ba.get("summary_ar", ""),
+                "bundles": ba.get("bundles", [])[:5],
+                "multi_order_pct": ba.get("multi_order_pct", 0),
+            })
+
+        # Funnel gap
+        fa = funnel_analysis or {}
+        if fa.get("available"):
+            insights.append({
+                "type":      "funnel",
+                "title":     "تشخيص مسار العميل",
+                "detail":    fa.get("gap_diagnosis_ar", ""),
+                "action":    fa.get("recommended_action_ar", ""),
+                "gap_stage": fa.get("gap_stage", ""),
+                "severity":  fa.get("severity", ""),
+                "metrics": {
+                    "total_views":          fa.get("total_views", 0),
+                    "avg_engagement_rate":  fa.get("avg_engagement_rate", 0),
+                    "total_orders":         fa.get("total_orders", 0),
+                    "overall_conversion":   fa.get("overall_conversion_pct", 0),
+                },
+            })
+
+        # Caption structure
+        ca = caption_analysis or {}
+        if ca.get("available") and ca.get("summary_ar"):
+            insights.append({
+                "type":          "caption",
+                "title":         "أفضل بنية للكابشن",
+                "detail":        ca.get("summary_ar", ""),
+                "best_length":   ca.get("best_length", ""),
+                "best_opening":  ca.get("best_opening", ""),
+                "best_emoji":    ca.get("best_emoji", ""),
+                "length_stats":  ca.get("length_stats", []),
+                "opening_stats": ca.get("opening_stats", []),
             })
 
         # Sales-backed insights from BI advisor
