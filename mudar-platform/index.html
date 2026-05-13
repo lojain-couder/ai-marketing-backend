@@ -4,127 +4,309 @@
   <meta charset="UTF-8">
   <title>مُدار — تسويق يُدار بالبيانات</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="مُدار يحلل مشروعك ويولّد خطة محتوى يومية كاملة — مبنية على بيانات حقيقية، لا على تخمين.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ── Index-specific overrides ── */
+    .nav-inner { max-width:1200px; margin:0 auto; width:100%; display:flex; align-items:center; justify-content:space-between; }
+    .nav-links { display:flex; list-style:none; gap:32px; }
+    .nav-links a { font-size:14px; font-weight:600; color:var(--t2); text-decoration:none; transition:color .2s; }
+    .nav-links a:hover { color:var(--t1); }
+
+    /* Hero */
+    .hero-content { display:flex; flex-direction:column; justify-content:center; }
+    .hero-actions { display:flex; gap:14px; margin-top:32px; flex-wrap:wrap; }
+
+    /* Mockup */
+    .mockup-bar { display:flex; align-items:center; gap:8px; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--b1); }
+    .dot { width:10px; height:10px; border-radius:50%; }
+    .dot.r { background:#ff5f57; } .dot.y { background:#ffbd2e; } .dot.g { background:#28c840; }
+    .mockup-title { font-size:12px; font-weight:700; color:var(--t3); margin-right:auto; font-family:var(--mono); }
+    .kpi-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
+    .kpi { background:var(--bg); border-radius:var(--r-sm); padding:16px; text-align:center; }
+    .kpi-val { display:block; font-size:28px; font-weight:900; color:var(--t1); }
+    .kpi-lbl { font-size:11px; color:var(--t3); font-weight:600; }
+    .kpi-terra .kpi-val { color:var(--terra); }
+    .kpi-purple .kpi-val { color:var(--purple); }
+    .chart-area { background:var(--bg); border-radius:var(--r-sm); padding:16px; margin-bottom:14px; }
+    .chart-bars { display:flex; align-items:flex-end; gap:10px; height:100px; }
+    .bar { flex:1; background:var(--purple-pale); border-radius:6px 6px 0 0; transition:height .6s ease; }
+    .bar.b-terra { background:var(--terra); }
+    .chart-label { font-size:11px; color:var(--t3); text-align:center; margin-top:8px; }
+    .insight-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--t2); font-weight:600; }
+    .insight-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* Logos */
+    .logos-label { font-size:13px; color:var(--t3); font-weight:600; }
+
+    /* Bento */
+    .bento-card { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:var(--r); padding:32px; transition:all .3s; }
+    .bento-card:hover { transform:translateY(-3px); border-color:rgba(255,255,255,0.2); }
+    .bento-tag { font-size:11px; font-weight:800; color:var(--terra-pale); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+    .bento-card h3 { font-size:20px; font-weight:800; color:#fff; margin-bottom:8px; }
+    .bento-card p { font-size:14px; color:rgba(255,255,255,.6); line-height:1.8; }
+    .bento-metrics { display:flex; gap:24px; margin-top:20px; }
+    .metric span { font-size:28px; font-weight:900; color:var(--terra); display:block; }
+    .metric small { font-size:12px; color:rgba(255,255,255,.5); }
+    .bento-sm { display:flex; gap:16px; align-items:flex-start; }
+    .bento-icon { font-size:32px; flex-shrink:0; }
+    .bento-sm h3 { font-size:17px; }
+    .bento-terra { border-color:rgba(193,117,88,.3); }
+    .bento-purple { border-color:rgba(123,117,168,.3); }
+
+    /* Reviews */
+    .review-stars { color:#F59E0B; font-size:14px; margin-bottom:10px; letter-spacing:2px; }
+    .review-card p { font-size:14px; color:var(--t2); line-height:1.8; margin-bottom:16px; }
+    .reviewer { display:flex; align-items:center; gap:10px; }
+    .reviewer-avatar { width:36px; height:36px; border-radius:50%; background:var(--purple-pale); color:var(--purple); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; }
+    .reviewer strong { display:block; font-size:13px; color:var(--t1); }
+    .reviewer small { font-size:12px; color:var(--t3); }
+
+    /* CTA */
+    .section-cta { background:var(--bg2); border-radius:var(--r-lg); margin:0 40px 60px; }
+    .cta-inner { text-align:center; padding:80px 40px; }
+    .cta-inner h2 { font-size:36px; font-weight:900; color:var(--t1); margin-bottom:12px; letter-spacing:-1px; }
+    .cta-inner p { font-size:16px; color:var(--t2); margin-bottom:32px; }
+    .cta-actions { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+    /* Footer */
+    .footer-inner { display:flex; align-items:center; justify-content:space-between; }
+    .footer-logo { font-size:18px; font-weight:900; color:var(--t1); }
+    .footer-copy { font-size:12px; color:var(--t3); }
+    .footer-link { font-size:13px; color:var(--t2); text-decoration:none; font-weight:700; }
+
+    .section-dark .section-label.light { color:var(--terra-pale); }
+    .section-dark .section-title.light { color:#fff; }
+
+    @media(max-width:900px) {
+      .hero-actions { flex-direction:column; align-items:stretch; }
+      .kpi-row { grid-template-columns:1fr; }
+      .bento-metrics { flex-direction:column; gap:12px; }
+      .section-cta { margin:0 16px 40px; border-radius:var(--r); }
+      .cta-inner { padding:48px 24px; }
+      .cta-inner h2 { font-size:26px; }
+      .footer-inner { flex-direction:column; gap:12px; }
+      .nav-links { display:none; }
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <h1 class="logo">مُدار</h1>
-
-    <ul class="nav-menu">
-      <li><a href="#about">عن مُدار</a></li>
-      <li><a href="#how">كيف يعمل</a></li>
-      <li><a href="#features">المميزات</a></li>
-      <li><a href="#contact">تواصل معنا</a></li>
-      <li><a href="pricing.html">التسعير</a></li>
-    </ul>
-
-    <a href="login.html" class="start-btn">ابدأ</a>
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">مُدار</a>
+      <ul class="nav-links">
+        <li><a href="#how">كيف يعمل</a></li>
+        <li><a href="#features">المميزات</a></li>
+        <li><a href="#contact">تواصل</a></li>
+        <li><a href="pricing.html">التسعير</a></li>
+      </ul>
+      <a href="login.html" class="nav-cta">ابدأ مجاناً</a>
+    </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-card">
-      <span class="badge">AI Marketing Advisor</span>
-
-      <h2>
-        منصة ذكية تساعدك
-        <span>تسوق مشروعك بذكاء</span>
-      </h2>
-
-      <p>
-        مُدار يحلل مشروعك، جمهورك، وأهدافك، ثم يعطيك توصيات تسويقية واضحة
-        مبنية على البيانات بدل التخمين.
+    <div class="hero-content">
+      <span class="hero-badge">✦ مدعوم بالذكاء الاصطناعي</span>
+      <h1>
+        خطتك التسويقية<br>
+        <span class="accent-terra">جاهزة خلال دقائق</span>
+      </h1>
+      <p class="hero-sub">
+        مُدار يحلل مشروعك ويولّد خطة محتوى يومية كاملة — مبنية على بيانات حقيقية،
+        لا على تخمين.
       </p>
+      <div class="hero-actions">
+        <a href="login.html" class="btn-primary">ابدأ تحليل مشروعك ←</a>
+        <a href="#how" class="btn-ghost">كيف يعمل؟</a>
+      </div>
+    </div>
 
-      <a href="login.html" class="cta">ابدأ تحليل مشروعك ←</a>
+    <!-- Dashboard mockup -->
+    <div class="hero-mockup">
+      <div class="mockup-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="mockup-title">لوحة التحكم</span>
+      </div>
+      <div class="mockup-body">
+        <div class="kpi-row">
+          <div class="kpi">
+            <span class="kpi-val">٩٢٪</span>
+            <span class="kpi-lbl">دقة التوصيات</span>
+          </div>
+          <div class="kpi kpi-terra">
+            <span class="kpi-val">١٤</span>
+            <span class="kpi-lbl">فكرة محتوى / أسبوع</span>
+          </div>
+          <div class="kpi kpi-purple">
+            <span class="kpi-val">٣×</span>
+            <span class="kpi-lbl">توفير في الوقت</span>
+          </div>
+        </div>
+        <div class="chart-area">
+          <div class="chart-bars">
+            <div class="bar" style="height:55%"></div>
+            <div class="bar" style="height:70%"></div>
+            <div class="bar" style="height:45%"></div>
+            <div class="bar b-terra" style="height:88%"></div>
+            <div class="bar" style="height:62%"></div>
+            <div class="bar b-terra" style="height:95%"></div>
+            <div class="bar" style="height:75%"></div>
+          </div>
+          <div class="chart-label">أداء المحتوى الأسبوعي</div>
+        </div>
+        <div class="insight-row">
+          <span class="insight-dot"></span>
+          أفضل وقت للنشر: ٨ م – ١٠ م خليجي
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ABOUT -->
-  <section id="about" class="section">
-    <div class="section-card">
-      <h2>عن مُدار</h2>
-      <p>
-        مُدار هو مستشارك التسويقي الذكي، يساعدك على فهم مشروعك
-        وتحويل بياناتك إلى قرارات واضحة وخطة تسويق قابلة للتنفيذ.
-      </p>
-      <p>
-        نؤمن أن كل مشروع يحتاج إلى تحليل حقيقي، لذلك يعتمد مُدار على البيانات
-        لبناء توصيات دقيقة ومناسبة لهوية البراند.
-      </p>
+  <!-- LOGOS STRIP -->
+  <div class="logos-strip">
+    <span class="logos-label">متكامل مع</span>
+    <div class="logos-row">
+      <span class="logo-chip">TikTok</span>
+      <span class="logo-chip">Instagram</span>
+      <span class="logo-chip">YouTube</span>
+      <span class="logo-chip">Groq AI</span>
+      <span class="logo-chip">Gemini</span>
     </div>
-  </section>
+  </div>
 
-  <!-- HOW -->
+  <!-- HOW IT WORKS -->
   <section id="how" class="section">
-    <div class="section-card">
-      <h2>كيف يعمل مُدار؟</h2>
-
-      <div class="grid">
-        <div class="card">
-          <span class="card-number">01</span>
-          <h3>أدخل معلوماتك</h3>
-          <p>أضف بيانات مشروعك، القطاع، والجمهور المستهدف.</p>
+    <div class="container">
+      <p class="section-label">كيف يعمل؟</p>
+      <h2 class="section-title">ثلاث خطوات وخطتك جاهزة</h2>
+      <div class="steps-grid">
+        <div class="step-card fade-in">
+          <div class="step-num">٠١</div>
+          <h3>أدخل بيانات مشروعك</h3>
+          <p>اسم البراند، القطاع، الجمهور المستهدف، وأهدافك التسويقية.</p>
         </div>
-
-        <div class="card">
-          <span class="card-number">02</span>
-          <h3>تحليل ذكي</h3>
-          <p>مُدار يحلل المعلومات ويربطها بأهدافك التسويقية.</p>
+        <div class="step-card fade-in">
+          <div class="step-num">٠٢</div>
+          <h3>تحليل ذكي بالبيانات</h3>
+          <p>مُدار يسحب بيانات المنافسين والتريندز ويحللها بالذكاء الاصطناعي.</p>
         </div>
-
-        <div class="card">
-          <span class="card-number">03</span>
-          <h3>توصيات جاهزة</h3>
-          <p>تحصل على خطة تسويقية واضحة وقابلة للتنفيذ.</p>
+        <div class="step-card fade-in">
+          <div class="step-num">٠٣</div>
+          <h3>خطة محتوى قابلة للتنفيذ</h3>
+          <p>تحصل على جدول نشر يومي، أفكار محتوى، وهوك لكل بوست.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- FEATURES -->
-  <section id="features" class="section">
-    <div class="section-card">
-      <h2>المميزات</h2>
-
-      <div class="grid">
-        <div class="card">
-          <h3>تحليل مبني على البيانات</h3>
-          <p>يساعدك على فهم الاتجاه بدل الاعتماد على التخمين.</p>
+  <!-- FEATURES BENTO -->
+  <section id="features" class="section section-dark">
+    <div class="container">
+      <p class="section-label light">المميزات</p>
+      <h2 class="section-title light">كل ما تحتاجه في مكان واحد</h2>
+      <div class="bento">
+        <div class="bento-card bento-wide">
+          <div class="bento-tag">تحليل البيانات</div>
+          <h3>قرارات مبنية على أرقام حقيقية</h3>
+          <p>لا تخمين، لا آراء شخصية — فقط بيانات من المنصات وتحليل موضوعي.</p>
+          <div class="bento-metrics">
+            <div class="metric"><span>+٢٤٠٪</span><small>نمو التفاعل</small></div>
+            <div class="metric"><span>٩٧٪</span><small>دقة التوقيت</small></div>
+            <div class="metric"><span>٥ ث</span><small>وقت التحليل</small></div>
+          </div>
         </div>
-
-        <div class="card">
-          <h3>تجربة استخدام بسيطة</h3>
-          <p>تدخل معلومات قليلة وتحصل على تصور تسويقي واضح.</p>
+        <div class="bento-card bento-terra">
+          <div class="bento-tag">المحتوى</div>
+          <h3>أفكار محتوى تناسب جمهورك</h3>
+          <p>مُصممة للسوق الخليجي بلهجة طبيعية تتفاعل معها الجماهير.</p>
         </div>
-
-        <div class="card">
-          <h3>توصيات قابلة للتنفيذ</h3>
-          <p>يعطيك خطوات عملية تساعدك تبدأ مباشرة.</p>
+        <div class="bento-card bento-purple">
+          <div class="bento-tag">التخطيط</div>
+          <h3>جدول نشر أسبوعي تلقائي</h3>
+          <p>يتجدد كل أسبوع بناءً على أداء المحتوى السابق.</p>
+        </div>
+        <div class="bento-card bento-sm">
+          <div class="bento-icon">🎯</div>
+          <div><h3>هوك لكل بوست</h3><p>جمل افتتاحية تجذب الانتباه في الثانية الأولى.</p></div>
+        </div>
+        <div class="bento-card bento-sm">
+          <div class="bento-icon">📊</div>
+          <div><h3>تقارير الأداء</h3><p>تتبع ما ينجح وما يحتاج تعديل أسبوعياً.</p></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CONTACT -->
-  <section id="contact" class="section">
-    <div class="section-card contact-card">
-      <h2>تواصل معنا</h2>
-      <p>نسعد بتواصلك معنا عبر منصة اكس.</p>
+  <!-- SOCIAL PROOF -->
+  <section class="section">
+    <div class="container">
+      <p class="section-label">آراء المستخدمين</p>
+      <h2 class="section-title">ماذا قالوا عن مُدار؟</h2>
+      <div class="reviews-grid">
+        <div class="review-card fade-in">
+          <div class="review-stars">★★★★★</div>
+          <p>«وفّر عليّ ساعات كل أسبوع. كنت أمضي يومين في التخطيط — الحين خلال دقائق.»</p>
+          <div class="reviewer">
+            <div class="reviewer-avatar">ن</div>
+            <div><strong>نورة الغامدي</strong><small>صاحبة براند تجميل</small></div>
+          </div>
+        </div>
+        <div class="review-card fade-in">
+          <div class="review-stars">★★★★★</div>
+          <p>«التحليل دقيق جداً والأفكار تناسب جمهوري الخليجي بشكل مباشر، مو كوبي-باست من الأجنبي.»</p>
+          <div class="reviewer">
+            <div class="reviewer-avatar">خ</div>
+            <div><strong>خالد المطيري</strong><small>مدير تسويق رقمي</small></div>
+          </div>
+        </div>
+        <div class="review-card fade-in">
+          <div class="review-stars">★★★★★</div>
+          <p>«أول أداة ذكاء اصطناعي تفهم السوق الخليجي فعلاً. التوصيات واقعية وقابلة للتنفيذ.»</p>
+          <div class="reviewer">
+            <div class="reviewer-avatar">م</div>
+            <div><strong>مريم الراشد</strong><small>مستشارة أعمال</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      <div class="contact-links">
-        <a href="https://x.com/MudarMarketing/status/2050679453198524696?s=20" target="_blank">X</a>
+  <!-- CTA -->
+  <section id="contact" class="section-cta">
+    <div class="cta-inner">
+      <h2>ابدأ تسوّق مشروعك بذكاء اليوم</h2>
+      <p>جرب مُدار مجاناً — لا بطاقة ائتمان مطلوبة.</p>
+      <div class="cta-actions">
+        <a href="login.html" class="btn-cta">ابدأ مجاناً ←</a>
+        <a href="https://x.com/MudarMarketing" target="_blank" class="btn-outline-light">تابعنا على X</a>
       </div>
     </div>
   </section>
 
   <!-- FOOTER -->
   <footer class="footer">
-    <p>© 2026 مُدار — جميع الحقوق محفوظة</p>
+    <div class="container footer-inner">
+      <span class="footer-logo">مُدار</span>
+      <span class="footer-copy">© ٢٠٢٦ مُدار — جميع الحقوق محفوظة</span>
+      <a href="https://x.com/MudarMarketing" target="_blank" class="footer-link">X</a>
+    </div>
   </footer>
+
+  <script>
+    // Scroll fade-in
+    const obs = new IntersectionObserver(els => {
+      els.forEach(el => { if (el.isIntersecting) { el.target.classList.add('visible'); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+  </script>
 
 </body>
 </html>
