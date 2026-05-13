@@ -1243,6 +1243,10 @@ function renderRows(videos) {
   const gT = window._getCaption  || (v => v.caption  ?? v.text ?? v.desc ?? '');
 
   const tbody = document.getElementById('videosTableBody');
+  if (!videos || videos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--t3);font-size:14px">لا توجد فيديوهات للعرض</td></tr>`;
+    return;
+  }
   const platformIcons = { tiktok:'🎵', instagram:'📸', x:'𝕏' };
   tbody.innerHTML = videos.map((v, i) => {
     const views = gV(v);

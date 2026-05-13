@@ -43,6 +43,8 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+/* iOS smooth scroll on all scrollable areas */
+* { -webkit-overflow-scrolling: touch; }
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -80,8 +82,11 @@ button, .btn-primary, .btn-green, .btn-terra, .btn-cta, .start-btn, .nav-cta {
   cursor: pointer; transition: all .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   text-decoration: none; white-space: nowrap;
 }
-button:hover, .btn-primary:hover, .btn-green:hover, .btn-terra:hover, .btn-cta:hover, .start-btn:hover, .nav-cta:hover { 
-  transform: translateY(-2px); box-shadow: 0 8px 24px rgba(28,25,23,0.15); 
+button:hover, .btn-primary:hover, .btn-green:hover, .btn-terra:hover, .btn-cta:hover, .start-btn:hover, .nav-cta:hover {
+  transform: translateY(-2px); box-shadow: 0 8px 24px rgba(28,25,23,0.15);
+}
+button:active, .btn-primary:active, .btn-cta:active, .start-btn:active, .nav-cta:active {
+  transform: translateY(0); box-shadow: none;
 }
 
 .btn-navy, .btn-navy-lg {
@@ -119,7 +124,8 @@ button:hover, .btn-primary:hover, .btn-green:hover, .btn-terra:hover, .btn-cta:h
   font-family: var(--font); font-size: 15px; color: var(--t1);
   outline: none; transition: all .2s;
 }
-.input:focus, .demo-input:focus { border-color: var(--purple); background: var(--surface); box-shadow: 0 0 0 4px var(--purple-pale); }
+.input:focus, .demo-input:focus,
+.input:focus-visible, .demo-input:focus-visible { border-color: var(--purple); background: var(--surface); box-shadow: 0 0 0 4px var(--purple-pale); }
 .input::placeholder { color: var(--t3); }
 
 /* ── LAYOUT & TYPOGRAPHY ── */

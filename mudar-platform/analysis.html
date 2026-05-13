@@ -306,7 +306,7 @@
 <div id="chatWindow" style="
   display:none;flex-direction:column;
   position:fixed;bottom:94px;left:28px;z-index:1000;
-  width:360px;max-height:520px;
+  width:min(360px, calc(100vw - 40px));max-height:520px;
   background:var(--bg);border:1px solid var(--b1);
   border-radius:16px;box-shadow:0 8px 40px rgba(42,33,64,.15);
   overflow:hidden;
